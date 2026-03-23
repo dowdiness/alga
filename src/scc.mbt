@@ -43,7 +43,7 @@ pub fn AdjacencyMap::scc(self : AdjacencyMap) -> Array[Array[Int]] {
   // Step 3: Iterative DFS on transposed graph in reverse finish order
   let visited2 : Map[Int, Bool] = Map::new()
   let components : Array[Array[Int]] = []
-  for i = finish_order.length() - 1; i >= 0; i = i - 1 {
+  for i in (finish_order.length() - 1)>=..0 {
     let root = finish_order[i]
     if visited2.get(root) == Some(true) {
       continue
@@ -56,7 +56,7 @@ pub fn AdjacencyMap::scc(self : AdjacencyMap) -> Array[Array[Int]] {
       component.push(v)
       match transposed.adjacency.get(v) {
         Some(succs) =>
-          for j = succs.length() - 1; j >= 0; j = j - 1 {
+          for j in (succs.length() - 1)>=..0 {
             let w = succs[j]
             if visited2.get(w) != Some(true) {
               visited2[w] = true

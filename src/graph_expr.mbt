@@ -78,11 +78,11 @@ pub fn Graph::vertices(vs : Array[Int]) -> Graph {
   if vs.length() == 0 {
     return Empty
   }
-  let mut result : Graph = Vertex(vs[0])
-  for i = 1; i < vs.length(); i = i + 1 {
-    result = Overlay(result, Vertex(vs[i]))
+  for v in vs[1:]; acc = Vertex(vs[0]) {
+    continue Overlay(acc, Vertex(v))
+  } nobreak {
+    acc
   }
-  result
 }
 
 ///|
@@ -91,11 +91,11 @@ pub fn Graph::edges(es : Array[(Int, Int)]) -> Graph {
   if es.length() == 0 {
     return Empty
   }
-  let mut result : Graph = Connect(Vertex(es[0].0), Vertex(es[0].1))
-  for i = 1; i < es.length(); i = i + 1 {
-    result = Overlay(result, Connect(Vertex(es[i].0), Vertex(es[i].1)))
+  for e in es[1:]; acc = Connect(Vertex(es[0].0), Vertex(es[0].1)) {
+    continue Overlay(acc, Connect(Vertex(e.0), Vertex(e.1)))
+  } nobreak {
+    acc
   }
-  result
 }
 
 ///|
@@ -104,11 +104,11 @@ pub fn Graph::clique(vs : Array[Int]) -> Graph {
   if vs.length() == 0 {
     return Empty
   }
-  let mut result : Graph = Vertex(vs[0])
-  for i = 1; i < vs.length(); i = i + 1 {
-    result = Connect(result, Vertex(vs[i]))
+  for v in vs[1:]; acc = Vertex(vs[0]) {
+    continue Connect(acc, Vertex(v))
+  } nobreak {
+    acc
   }
-  result
 }
 
 ///|
@@ -129,11 +129,11 @@ pub fn Graph::path(vs : Array[Int]) -> Graph {
   if vs.length() == 1 {
     return Vertex(vs[0])
   }
-  let mut result : Graph = Connect(Vertex(vs[0]), Vertex(vs[1]))
-  for i = 1; i < vs.length() - 1; i = i + 1 {
-    result = Overlay(result, Connect(Vertex(vs[i]), Vertex(vs[i + 1])))
+  for v in vs[1:]; acc = Vertex(vs[0]), prev = vs[0] {
+    continue Overlay(acc, Connect(Vertex(prev), Vertex(v))), v
+  } nobreak {
+    acc
   }
-  result
 }
 
 ///|

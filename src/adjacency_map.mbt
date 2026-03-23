@@ -30,9 +30,9 @@ pub fn AdjacencyMap::edge(u : Int, v : Int) -> AdjacencyMap {
 ///|
 pub fn AdjacencyMap::from_edges(edges : Array[(Int, Int)]) -> AdjacencyMap {
   let m : Map[Int, Array[Int]] = Map::new()
-  for i = 0; i < edges.length(); i = i + 1 {
-    let u = edges[i].0
-    let v = edges[i].1
+  for edge in edges {
+    let u = edge.0
+    let v = edge.1
     match m.get(u) {
       Some(arr) => if not(array_contains(arr, v)) { arr.push(v) }
       None => m[u] = [v]
@@ -46,12 +46,7 @@ pub fn AdjacencyMap::from_edges(edges : Array[(Int, Int)]) -> AdjacencyMap {
 
 ///|
 pub fn array_contains(arr : Array[Int], val : Int) -> Bool {
-  for i = 0; i < arr.length(); i = i + 1 {
-    if arr[i] == val {
-      return true
-    }
-  }
-  false
+  arr.contains(val)
 }
 
 ///|

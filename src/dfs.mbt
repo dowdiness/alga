@@ -29,7 +29,7 @@ pub fn[G : DirectedGraph, Acc] dfs_fold(
         succs.push(w)
       }
     })
-    for i = succs.length() - 1; i >= 0; i = i - 1 {
+    for i in (succs.length() - 1)>=..0 {
       stack.push(succs[i])
     }
   }
