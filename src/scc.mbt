@@ -9,9 +9,9 @@ pub fn AdjacencyMap::scc(self : AdjacencyMap) -> Array[Array[Int]] {
   // Use explicit stack with frame tracking for post-order
   // Stack entries: (vertex, successor_index)
   // When all successors processed, vertex goes to finish_order
-  self.adjacency.each(fn(root, _) {
+  for root, _ in self.adjacency {
     if visited.get(root) == Some(true) {
-      return
+      continue
     }
     let stack : Array[(Int, Int)] = [(root, 0)]
     visited[root] = true
@@ -24,7 +24,6 @@ pub fn AdjacencyMap::scc(self : AdjacencyMap) -> Array[Array[Int]] {
         None => []
       }
       if si < succs.length() {
-        // Advance successor index
         stack[top_idx] = (v, si + 1)
         let w = succs[si]
         if visited.get(w) != Some(true) {
@@ -32,12 +31,11 @@ pub fn AdjacencyMap::scc(self : AdjacencyMap) -> Array[Array[Int]] {
           stack.push((w, 0))
         }
       } else {
-        // All successors processed — record finish
         let _ = stack.unsafe_pop()
         finish_order.push(v)
       }
     }
-  })
+  }
   // Step 2: Transpose the graph
   let transposed = self.transpose()
   // Step 3: Iterative DFS on transposed graph in reverse finish order

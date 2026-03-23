@@ -14,7 +14,11 @@ pub fn[G : DirectedGraph] toposort(graph : G) -> Array[Int]? {
     })
   })
   let queue : Array[Int] = []
-  in_degree.each(fn(v, d) { if d == 0 { queue.push(v) } })
+  for v, d in in_degree {
+    if d == 0 {
+      queue.push(v)
+    }
+  }
   let result : Array[Int] = []
   let mut head = 0
   while head < queue.length() {
