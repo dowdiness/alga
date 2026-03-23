@@ -32,6 +32,10 @@
 ///|
 /// Topological sort via Kahn's algorithm.
 /// Returns `Some(ordering)` for DAGs, `None` if the graph has a cycle.
+///
+/// **Warning:** Self-loops (edges v -> v) are treated as cycles and cause
+/// this function to return `None`. If your graph may contain self-loops
+/// that you want to ignore, call `remove_self_loops()` first.
 pub fn[G : DirectedGraph] toposort(graph : G) -> Array[Int]? {
   // Step 1: Compute in-degrees
   let in_degree : Map[Int, Int] = Map::new()

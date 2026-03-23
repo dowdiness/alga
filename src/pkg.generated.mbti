@@ -1,9 +1,7 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "dowdiness/canopy/graph"
+package "dowdiness/alga"
 
 // Values
-pub fn array_contains(Array[Int], Int) -> Bool
-
 pub fn[G : DirectedGraph, Acc] bfs_fold(G, Int, Acc, (Acc, Int) -> (Acc, Bool)) -> Acc
 
 pub fn[G : DirectedGraph, Acc] dfs_fold(G, Int, Acc, (Acc, Int) -> (Acc, Bool)) -> Acc
@@ -31,6 +29,7 @@ pub fn AdjacencyMap::from_edges(Array[(Int, Int)]) -> Self
 pub fn AdjacencyMap::has_edge(Self, Int, Int) -> Bool
 pub fn AdjacencyMap::has_vertex(Self, Int) -> Bool
 pub fn AdjacencyMap::overlay(Self, Self) -> Self
+pub fn AdjacencyMap::remove_self_loops(Self) -> Self
 pub fn AdjacencyMap::scc(Self) -> Array[Array[Int]]
 pub fn AdjacencyMap::successors(Self, Int) -> Array[Int]
 pub fn AdjacencyMap::transpose(Self) -> Self
@@ -39,6 +38,8 @@ pub fn AdjacencyMap::vertex_count(Self) -> Int
 pub fn AdjacencyMap::vertex_list(Self) -> Array[Int]
 pub impl DirectedGraph for AdjacencyMap
 pub impl GraphSym for AdjacencyMap
+pub impl Eq for AdjacencyMap
+pub impl Show for AdjacencyMap
 
 pub(all) enum Graph {
   Empty

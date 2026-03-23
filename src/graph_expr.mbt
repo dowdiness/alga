@@ -57,6 +57,13 @@ pub(all) enum Graph {
 /// This is the universal evaluator — every graph interpretation
 /// (to_adjacency_map, vertex_count, gmap, etc.) can be expressed as
 /// a single call to `foldg` with appropriate replacement functions.
+///
+/// **Performance warning:** When folding into `AdjacencyMap`, each
+/// `Overlay` or `Connect` node creates an intermediate `AdjacencyMap`
+/// and merges it, resulting in O(n^2) total work for a chain of n
+/// operations (e.g., `path([1..1000])`). For large graphs, prefer
+/// `AdjacencyMap::from_edges` which builds the representation directly
+/// in O(E) time.
 pub fn[B] foldg(
   graph : Graph,
   empty : B,
@@ -86,6 +93,11 @@ pub fn[B] foldg(
 /// This is THE bridge between the construction layer (Graph/GraphSym)
 /// and the observation layer (DirectedGraph). Once converted, you can
 /// run any algorithm (toposort, DFS, SCC, etc.) on the result.
+///
+/// **Performance warning:** This uses `foldg` internally, which creates
+/// O(n) intermediate `AdjacencyMap` values and merges them pairwise.
+/// For large graphs, prefer `AdjacencyMap::from_edges` which builds
+/// the adjacency structure directly in O(E) time.
 pub fn Graph::to_adjacency_map(self : Graph) -> AdjacencyMap {
   foldg(
     self,

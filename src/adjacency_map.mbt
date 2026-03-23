@@ -57,7 +57,7 @@ pub fn AdjacencyMap::vertex(v : Int) -> AdjacencyMap {
 }
 
 ///|
-/// A graph with a single directed edge u → v.
+/// A graph with a single directed edge u -> v.
 /// Both u and v are added as vertices (maintaining the key invariant).
 pub fn AdjacencyMap::edge(u : Int, v : Int) -> AdjacencyMap {
   let m : Map[Int, Array[Int]] = Map::new()
@@ -74,14 +74,29 @@ pub fn AdjacencyMap::edge(u : Int, v : Int) -> AdjacencyMap {
 /// Build a graph from an array of directed edges.
 /// Duplicate edges are silently ignored. All endpoints are registered
 /// as vertices (maintaining the key invariant).
+///
+/// Uses `HashSet` internally for O(1) duplicate edge detection.
 pub fn AdjacencyMap::from_edges(edges : Array[(Int, Int)]) -> AdjacencyMap {
   let m : Map[Int, Array[Int]] = Map::new()
+  let seen : Map[Int, @hashset.HashSet[Int]] = Map::new()
   for edge in edges {
     let u = edge.0
     let v = edge.1
-    match m.get(u) {
-      Some(arr) => if not(arr.contains(v)) { arr.push(v) }
-      None => m[u] = [v]
+    match seen.get(u) {
+      Some(set) =>
+        if not(set.contains(v)) {
+          set.add(v)
+          match m.get(u) {
+            Some(arr) => arr.push(v)
+            None => m[u] = [v]
+          }
+        }
+      None => {
+        let set : @hashset.HashSet[Int] = @hashset.new()
+        set.add(v)
+        seen[u] = set
+        m[u] = [v]
+      }
     }
     if not(m.contains(v)) {
       m[v] = []
@@ -91,35 +106,54 @@ pub fn AdjacencyMap::from_edges(edges : Array[(Int, Int)]) -> AdjacencyMap {
 }
 
 ///|
-/// Helper: check if an array contains a value.
-/// Delegates to Array.contains() — kept public for use in tests.
-pub fn array_contains(arr : Array[Int], val : Int) -> Bool {
-  arr.contains(val)
-}
-
-///|
 /// Overlay: union of two graphs' vertices and edges.
 ///
 /// `overlay(G1, G2)` contains every vertex and edge from both G1 and G2.
 /// This is the graph analogue of set union. Overlay is commutative and
 /// associative: `overlay(a, b) == overlay(b, a)`.
+///
+/// Uses `HashSet` internally for O(1) duplicate edge detection.
 pub fn AdjacencyMap::overlay(
   self : AdjacencyMap,
   other : AdjacencyMap,
 ) -> AdjacencyMap {
   let m : Map[Int, Array[Int]] = Map::new()
+  let seen : Map[Int, @hashset.HashSet[Int]] = Map::new()
   for k, v in self.adjacency {
-    m[k] = v.copy()
+    let arr = v.copy()
+    m[k] = arr
+    let set : @hashset.HashSet[Int] = @hashset.new()
+    for elem in arr {
+      set.add(elem)
+    }
+    seen[k] = set
   }
   for k, v in other.adjacency {
     match m.get(k) {
-      Some(existing) =>
+      Some(existing) => {
+        let set = match seen.get(k) {
+          Some(s) => s
+          None => {
+            let s : @hashset.HashSet[Int] = @hashset.new()
+            seen[k] = s
+            s
+          }
+        }
         for elem in v {
-          if not(existing.contains(elem)) {
+          if not(set.contains(elem)) {
+            set.add(elem)
             existing.push(elem)
           }
         }
-      None => m[k] = v.copy()
+      }
+      None => {
+        m[k] = v.copy()
+        let set : @hashset.HashSet[Int] = @hashset.new()
+        for elem in v {
+          set.add(elem)
+        }
+        seen[k] = set
+      }
     }
   }
   { adjacency: m }
@@ -133,7 +167,9 @@ pub fn AdjacencyMap::overlay(
 /// Connect is associative but NOT commutative.
 ///
 /// This is the key operation that makes algebraic graph construction
-/// possible — `connect(vertex(1), vertex(2))` creates the edge 1 → 2.
+/// possible — `connect(vertex(1), vertex(2))` creates the edge 1 -> 2.
+///
+/// Uses `HashSet` internally for O(1) duplicate edge detection.
 pub fn AdjacencyMap::connect(
   self : AdjacencyMap,
   other : AdjacencyMap,
@@ -149,8 +185,13 @@ pub fn AdjacencyMap::connect(
       Some(s) => s
       None => []
     }
+    let set : @hashset.HashSet[Int] = @hashset.new()
+    for elem in current {
+      set.add(elem)
+    }
     for ov in other_vertices {
-      if not(current.contains(ov)) {
+      if not(set.contains(ov)) {
+        set.add(ov)
         current.push(ov)
       }
     }
@@ -223,22 +264,117 @@ pub fn AdjacencyMap::edge_count(self : AdjacencyMap) -> Int {
 ///
 /// Transpose is essential for Kosaraju's SCC algorithm (Phase 2 runs
 /// DFS on the transposed graph) and for computing predecessor queries.
+///
+/// Uses `HashSet` internally for O(1) duplicate edge detection.
 pub fn AdjacencyMap::transpose(self : AdjacencyMap) -> AdjacencyMap {
   let m : Map[Int, Array[Int]] = Map::new()
+  let seen : Map[Int, @hashset.HashSet[Int]] = Map::new()
   for k, _ in self.adjacency {
     if not(m.contains(k)) {
       m[k] = []
+      seen[k] = @hashset.new()
     }
   }
   for u, succs in self.adjacency {
     for v in succs {
-      match m.get(v) {
-        Some(arr) => if not(arr.contains(u)) { arr.push(u) }
-        None => m[v] = [u]
+      let set = match seen.get(v) {
+        Some(s) => s
+        None => {
+          let s : @hashset.HashSet[Int] = @hashset.new()
+          seen[v] = s
+          s
+        }
+      }
+      if not(set.contains(u)) {
+        set.add(u)
+        match m.get(v) {
+          Some(arr) => arr.push(u)
+          None => m[v] = [u]
+        }
       }
     }
   }
   { adjacency: m }
+}
+
+///|
+/// Remove all self-loops (edges v -> v) from the graph.
+/// Returns a new graph with the same vertex set but no self-loops.
+pub fn AdjacencyMap::remove_self_loops(self : AdjacencyMap) -> AdjacencyMap {
+  let m : Map[Int, Array[Int]] = Map::new()
+  for k, succs in self.adjacency {
+    let filtered : Array[Int] = []
+    for v in succs {
+      if v != k {
+        filtered.push(v)
+      }
+    }
+    m[k] = filtered
+  }
+  { adjacency: m }
+}
+
+///|
+/// Show implementation for AdjacencyMap.
+/// Format: `AdjacencyMap({1: [2, 3], 2: []})`
+pub impl Show for AdjacencyMap with output(self, logger) {
+  logger.write_string("AdjacencyMap({")
+  let keys : Array[Int] = []
+  for k, _ in self.adjacency {
+    keys.push(k)
+  }
+  keys.sort()
+  for i, k in keys {
+    if i > 0 {
+      logger.write_string(", ")
+    }
+    logger.write_string(k.to_string())
+    logger.write_string(": [")
+    let succs = match self.adjacency.get(k) {
+      Some(s) => s
+      None => []
+    }
+    let sorted = succs.copy()
+    sorted.sort()
+    for j, v in sorted {
+      if j > 0 {
+        logger.write_string(", ")
+      }
+      logger.write_string(v.to_string())
+    }
+    logger.write_string("]")
+  }
+  logger.write_string("})")
+}
+
+///|
+/// Eq implementation for AdjacencyMap.
+/// Two graphs are equal if they have the same vertices and edges.
+/// Successor arrays are sorted before comparison since order may differ.
+pub impl Eq for AdjacencyMap with equal(self, other) -> Bool {
+  if self.adjacency.length() != other.adjacency.length() {
+    return false
+  }
+  for k, v in self.adjacency {
+    match other.adjacency.get(k) {
+      None => return false
+      Some(other_v) => {
+        if v.length() != other_v.length() {
+          return false
+        }
+        let sorted_self = v.copy()
+        sorted_self.sort()
+        let sorted_other = other_v.copy()
+        sorted_other.sort()
+        for i = 0; i < sorted_self.length(); i = i + 1 {
+          if sorted_self[i] != sorted_other[i] {
+            return false
+          }
+        }
+      }
+    }
+  }
+  true
 }
 
 ///|

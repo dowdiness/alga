@@ -15,14 +15,14 @@ test "scc single cycle" {
   let components = g.scc()
   assert_eq(components.length(), 1)
   assert_eq(components[0].length(), 3)
-  assert_true(@alga.array_contains(components[0], 1))
-  assert_true(@alga.array_contains(components[0], 2))
-  assert_true(@alga.array_contains(components[0], 3))
+  assert_true(components[0].contains(1))
+  assert_true(components[0].contains(2))
+  assert_true(components[0].contains(3))
 }
 
 ///|
 test "scc two components connected" {
-  // {1→2→1} → {3→4→3}
+  // {1->2->1} -> {3->4->3}
   let g = @alga.AdjacencyMap::from_edges([
     (1, 2),
     (2, 1),
@@ -35,22 +35,22 @@ test "scc two components connected" {
   // Find which component has vertex 1
   let mut comp1_idx = 0
   for i = 0; i < components.length(); i = i + 1 {
-    if @alga.array_contains(components[i], 1) {
+    if components[i].contains(1) {
       comp1_idx = i
     }
   }
   let mut comp2_idx = 0
   for i = 0; i < components.length(); i = i + 1 {
-    if @alga.array_contains(components[i], 3) {
+    if components[i].contains(3) {
       comp2_idx = i
     }
   }
   assert_eq(components[comp1_idx].length(), 2)
-  assert_true(@alga.array_contains(components[comp1_idx], 1))
-  assert_true(@alga.array_contains(components[comp1_idx], 2))
+  assert_true(components[comp1_idx].contains(1))
+  assert_true(components[comp1_idx].contains(2))
   assert_eq(components[comp2_idx].length(), 2)
-  assert_true(@alga.array_contains(components[comp2_idx], 3))
-  assert_true(@alga.array_contains(components[comp2_idx], 4))
+  assert_true(components[comp2_idx].contains(3))
+  assert_true(components[comp2_idx].contains(4))
 }
 
 ///|

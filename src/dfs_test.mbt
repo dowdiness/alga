@@ -3,10 +3,10 @@ test "reachable linear" {
   let g = @alga.AdjacencyMap::from_edges([(1, 2), (2, 3), (3, 4)])
   let r = @alga.reachable(g, 1)
   assert_eq(r.length(), 4)
-  assert_true(@alga.array_contains(r, 1))
-  assert_true(@alga.array_contains(r, 2))
-  assert_true(@alga.array_contains(r, 3))
-  assert_true(@alga.array_contains(r, 4))
+  assert_true(r.contains(1))
+  assert_true(r.contains(2))
+  assert_true(r.contains(3))
+  assert_true(r.contains(4))
 }
 
 ///|
@@ -14,9 +14,9 @@ test "reachable from middle" {
   let g = @alga.AdjacencyMap::from_edges([(1, 2), (2, 3), (3, 4)])
   let r = @alga.reachable(g, 3)
   assert_eq(r.length(), 2)
-  assert_true(@alga.array_contains(r, 3))
-  assert_true(@alga.array_contains(r, 4))
-  assert_true(not(@alga.array_contains(r, 1)))
+  assert_true(r.contains(3))
+  assert_true(r.contains(4))
+  assert_true(not(r.contains(1)))
 }
 
 ///|
@@ -31,9 +31,9 @@ test "reachable disconnected" {
   let g = @alga.AdjacencyMap::from_edges([(1, 2), (3, 4)])
   let r = @alga.reachable(g, 1)
   assert_eq(r.length(), 2)
-  assert_true(@alga.array_contains(r, 1))
-  assert_true(@alga.array_contains(r, 2))
-  assert_true(not(@alga.array_contains(r, 3)))
+  assert_true(r.contains(1))
+  assert_true(r.contains(2))
+  assert_true(not(r.contains(3)))
 }
 
 ///|
