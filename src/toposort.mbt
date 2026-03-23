@@ -1,7 +1,39 @@
 ///|
+/// # Topological Sort (Kahn's Algorithm)
+///
+/// A topological ordering of a directed acyclic graph (DAG) is a linear
+/// ordering of vertices such that for every edge u → v, u comes before v.
+/// If the graph has a cycle, no topological ordering exists.
+///
+/// ## Algorithm: Kahn (1962)
+///
+/// 1. Compute in-degree (number of incoming edges) for each vertex.
+/// 2. Enqueue all vertices with in-degree 0 (no dependencies).
+/// 3. Repeatedly dequeue a vertex, add it to the result, and decrement
+///    the in-degree of all its successors. When a successor's in-degree
+///    reaches 0, enqueue it.
+/// 4. If the result contains all vertices, return it. Otherwise, the
+///    remaining vertices form a cycle — return None.
+///
+/// This is equivalent to repeatedly removing "ready" nodes — nodes with
+/// no unsatisfied dependencies. It's the same principle behind build
+/// systems (Make), package managers (dependency resolution), and
+/// spreadsheet recalculation order.
+///
+/// ## Cycle detection
+///
+/// Kahn's algorithm naturally detects cycles: if the result is shorter
+/// than the vertex count, some vertices could never reach in-degree 0
+/// because they're in a cycle. `has_cycle` is simply
+/// `toposort(graph) is None`.
+///
+/// Time: O(V + E). Space: O(V).
+
+///|
 /// Topological sort via Kahn's algorithm.
-/// Returns None if graph contains a cycle.
+/// Returns `Some(ordering)` for DAGs, `None` if the graph has a cycle.
 pub fn[G : DirectedGraph] toposort(graph : G) -> Array[Int]? {
+  // Step 1: Compute in-degrees
   let in_degree : Map[Int, Int] = Map::new()
   G::for_each_vertex(graph, fn(v) { in_degree[v] = 0 })
   G::for_each_vertex(graph, fn(v) {
@@ -13,12 +45,14 @@ pub fn[G : DirectedGraph] toposort(graph : G) -> Array[Int]? {
       in_degree[w] = d + 1
     })
   })
+  // Step 2: Seed queue with zero-in-degree vertices
   let queue : Array[Int] = []
   for v, d in in_degree {
     if d == 0 {
       queue.push(v)
     }
   }
+  // Step 3: Process queue, building topological order
   let result : Array[Int] = []
   let mut head = 0
   while head < queue.length() {
@@ -36,6 +70,7 @@ pub fn[G : DirectedGraph] toposort(graph : G) -> Array[Int]? {
       }
     })
   }
+  // Step 4: Check completeness — incomplete means a cycle exists
   let vc = G::vertex_count(graph)
   if result.length() == vc {
     Some(result)
@@ -45,7 +80,8 @@ pub fn[G : DirectedGraph] toposort(graph : G) -> Array[Int]? {
 }
 
 ///|
-/// Returns true if the graph contains a cycle.
+/// Returns true if the graph contains a directed cycle.
+/// A self-loop (v → v) counts as a cycle.
 pub fn[G : DirectedGraph] has_cycle(graph : G) -> Bool {
   toposort(graph) is None
 }

@@ -1,14 +1,55 @@
 ///|
+/// # AdjacencyMap — the canonical graph representation
+///
+/// Stores a directed graph as `Map[Int, Array[Int]]` where each key is a
+/// vertex and its value is the list of successor vertices. This is the
+/// standard "adjacency list" representation used in most graph textbooks.
+///
+/// ## Key invariant
+///
+/// Every vertex that appears as an edge target also exists as a key in the
+/// map (with an empty successor list if it has no outgoing edges). This
+/// means `adjacency.keys() == vertex_set` — you never have a "dangling"
+/// edge pointing to a vertex that doesn't exist in the map.
+///
+/// ## Algebraic graph operations
+///
+/// AdjacencyMap supports the four algebraic graph operations from
+/// Mokhov's "Algebraic Graphs with Class" (2017):
+///
+/// - `empty()` — the empty graph (no vertices, no edges)
+/// - `vertex(v)` — a single vertex with no edges
+/// - `overlay(g1, g2)` — union of vertices and edges
+/// - `connect(g1, g2)` — overlay + all edges from g1's vertices to g2's
+///
+/// These satisfy the algebraic graph axioms (overlay is commutative and
+/// associative, connect is associative, connect distributes over overlay).
+///
+/// ## Performance characteristics
+///
+/// | Operation      | Time complexity |
+/// |----------------|-----------------|
+/// | from_edges     | O(E) amortized  |
+/// | has_vertex     | O(1)            |
+/// | has_edge       | O(degree)       |
+/// | overlay        | O(V + E)        |
+/// | connect        | O(V1 * V2 + E)  |
+/// | transpose      | O(V + E)        |
+/// | vertex_count   | O(1)            |
+/// | edge_count     | O(V)            |
 pub struct AdjacencyMap {
   adjacency : Map[Int, Array[Int]]
 }
 
 ///|
+/// The empty graph: no vertices, no edges.
+/// Identity element for both overlay and connect.
 pub fn AdjacencyMap::empty() -> AdjacencyMap {
   { adjacency: Map::new() }
 }
 
 ///|
+/// A graph with a single vertex and no edges.
 pub fn AdjacencyMap::vertex(v : Int) -> AdjacencyMap {
   let m : Map[Int, Array[Int]] = Map::new()
   m[v] = []
@@ -16,6 +57,8 @@ pub fn AdjacencyMap::vertex(v : Int) -> AdjacencyMap {
 }
 
 ///|
+/// A graph with a single directed edge u → v.
+/// Both u and v are added as vertices (maintaining the key invariant).
 pub fn AdjacencyMap::edge(u : Int, v : Int) -> AdjacencyMap {
   let m : Map[Int, Array[Int]] = Map::new()
   m[u] = [v]
@@ -28,6 +71,9 @@ pub fn AdjacencyMap::edge(u : Int, v : Int) -> AdjacencyMap {
 }
 
 ///|
+/// Build a graph from an array of directed edges.
+/// Duplicate edges are silently ignored. All endpoints are registered
+/// as vertices (maintaining the key invariant).
 pub fn AdjacencyMap::from_edges(edges : Array[(Int, Int)]) -> AdjacencyMap {
   let m : Map[Int, Array[Int]] = Map::new()
   for edge in edges {
@@ -45,11 +91,18 @@ pub fn AdjacencyMap::from_edges(edges : Array[(Int, Int)]) -> AdjacencyMap {
 }
 
 ///|
+/// Helper: check if an array contains a value.
+/// Delegates to Array.contains() — kept public for use in tests.
 pub fn array_contains(arr : Array[Int], val : Int) -> Bool {
   arr.contains(val)
 }
 
 ///|
+/// Overlay: union of two graphs' vertices and edges.
+///
+/// `overlay(G1, G2)` contains every vertex and edge from both G1 and G2.
+/// This is the graph analogue of set union. Overlay is commutative and
+/// associative: `overlay(a, b) == overlay(b, a)`.
 pub fn AdjacencyMap::overlay(
   self : AdjacencyMap,
   other : AdjacencyMap,
@@ -73,6 +126,14 @@ pub fn AdjacencyMap::overlay(
 }
 
 ///|
+/// Connect: overlay + all cross-edges from self's vertices to other's.
+///
+/// `connect(G1, G2)` contains everything from `overlay(G1, G2)` plus
+/// a directed edge from every vertex in G1 to every vertex in G2.
+/// Connect is associative but NOT commutative.
+///
+/// This is the key operation that makes algebraic graph construction
+/// possible — `connect(vertex(1), vertex(2))` creates the edge 1 → 2.
 pub fn AdjacencyMap::connect(
   self : AdjacencyMap,
   other : AdjacencyMap,
@@ -99,6 +160,7 @@ pub fn AdjacencyMap::connect(
 }
 
 ///|
+/// All vertices as an array.
 pub fn AdjacencyMap::vertex_list(self : AdjacencyMap) -> Array[Int] {
   let result : Array[Int] = []
   for k, _ in self.adjacency {
@@ -108,6 +170,7 @@ pub fn AdjacencyMap::vertex_list(self : AdjacencyMap) -> Array[Int] {
 }
 
 ///|
+/// All edges as (source, target) pairs.
 pub fn AdjacencyMap::edge_list(self : AdjacencyMap) -> Array[(Int, Int)] {
   let result : Array[(Int, Int)] = []
   for u, succs in self.adjacency {
@@ -119,6 +182,7 @@ pub fn AdjacencyMap::edge_list(self : AdjacencyMap) -> Array[(Int, Int)] {
 }
 
 ///|
+/// Successor vertices of v (vertices reachable by one edge from v).
 pub fn AdjacencyMap::successors(self : AdjacencyMap, v : Int) -> Array[Int] {
   match self.adjacency.get(v) {
     Some(s) => s.copy()
@@ -145,6 +209,7 @@ pub fn AdjacencyMap::vertex_count(self : AdjacencyMap) -> Int {
 }
 
 ///|
+/// Count all edges. O(V) — sums successor list lengths.
 pub fn AdjacencyMap::edge_count(self : AdjacencyMap) -> Int {
   for _, v in self.adjacency; count = 0 {
     continue count + v.length()
@@ -154,6 +219,10 @@ pub fn AdjacencyMap::edge_count(self : AdjacencyMap) -> Int {
 }
 
 ///|
+/// Reverse all edge directions. Vertex set is unchanged.
+///
+/// Transpose is essential for Kosaraju's SCC algorithm (Phase 2 runs
+/// DFS on the transposed graph) and for computing predecessor queries.
 pub fn AdjacencyMap::transpose(self : AdjacencyMap) -> AdjacencyMap {
   let m : Map[Int, Array[Int]] = Map::new()
   for k, _ in self.adjacency {
@@ -173,6 +242,7 @@ pub fn AdjacencyMap::transpose(self : AdjacencyMap) -> AdjacencyMap {
 }
 
 ///|
+/// DirectedGraph trait implementation — delegates to the adjacency map.
 pub impl DirectedGraph for AdjacencyMap with vertex_count(self) {
   self.adjacency.length()
 }
