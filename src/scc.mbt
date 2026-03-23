@@ -1,59 +1,72 @@
 ///|
-/// Strongly connected components via Kosaraju's algorithm.
+/// Strongly connected components via Kosaraju's algorithm (iterative).
 /// Returns components in reverse topological order of the component DAG.
 /// SCC is an AdjacencyMap method because it requires transpose.
 pub fn AdjacencyMap::scc(self : AdjacencyMap) -> Array[Array[Int]] {
-  // Step 1: DFS on original graph, record finish order
+  // Step 1: Iterative DFS on original graph, record finish order
   let visited : Map[Int, Bool] = Map::new()
   let finish_order : Array[Int] = []
-  fn dfs1(v : Int) {
-    if visited.get(v) == Some(true) {
+  // Use explicit stack with frame tracking for post-order
+  // Stack entries: (vertex, successor_index)
+  // When all successors processed, vertex goes to finish_order
+  self.adjacency.each(fn(root, _) {
+    if visited.get(root) == Some(true) {
       return
     }
-    visited[v] = true
-    match self.adjacency.get(v) {
-      Some(succs) =>
-        for i = 0; i < succs.length(); i = i + 1 {
-          if visited.get(succs[i]) != Some(true) {
-            dfs1(succs[i])
-          }
+    let stack : Array[(Int, Int)] = [(root, 0)]
+    visited[root] = true
+    while stack.length() > 0 {
+      let top_idx = stack.length() - 1
+      let v = stack[top_idx].0
+      let si = stack[top_idx].1
+      let succs = match self.adjacency.get(v) {
+        Some(s) => s
+        None => []
+      }
+      if si < succs.length() {
+        // Advance successor index
+        stack[top_idx] = (v, si + 1)
+        let w = succs[si]
+        if visited.get(w) != Some(true) {
+          visited[w] = true
+          stack.push((w, 0))
         }
-      None => ()
+      } else {
+        // All successors processed — record finish
+        let _ = stack.unsafe_pop()
+        finish_order.push(v)
+      }
     }
-    finish_order.push(v)
-  }
-
-  self.adjacency.each(fn(v, _) { dfs1(v) })
+  })
   // Step 2: Transpose the graph
   let transposed = self.transpose()
-  // Step 3: DFS on transposed graph in reverse finish order
+  // Step 3: Iterative DFS on transposed graph in reverse finish order
   let visited2 : Map[Int, Bool] = Map::new()
   let components : Array[Array[Int]] = []
-  fn dfs2(v : Int, component : Array[Int]) {
-    if visited2.get(v) == Some(true) {
-      return
-    }
-    visited2[v] = true
-    component.push(v)
-    match transposed.adjacency.get(v) {
-      Some(succs) =>
-        for i = 0; i < succs.length(); i = i + 1 {
-          if visited2.get(succs[i]) != Some(true) {
-            dfs2(succs[i], component)
-          }
-        }
-      None => ()
-    }
-  }
-
-  // Process in reverse finish order
   for i = finish_order.length() - 1; i >= 0; i = i - 1 {
-    let v = finish_order[i]
-    if visited2.get(v) != Some(true) {
-      let component : Array[Int] = []
-      dfs2(v, component)
-      components.push(component)
+    let root = finish_order[i]
+    if visited2.get(root) == Some(true) {
+      continue
     }
+    let component : Array[Int] = []
+    let stack : Array[Int] = [root]
+    visited2[root] = true
+    while stack.length() > 0 {
+      let v = stack.unsafe_pop()
+      component.push(v)
+      match transposed.adjacency.get(v) {
+        Some(succs) =>
+          for j = succs.length() - 1; j >= 0; j = j - 1 {
+            let w = succs[j]
+            if visited2.get(w) != Some(true) {
+              visited2[w] = true
+              stack.push(w)
+            }
+          }
+        None => ()
+      }
+    }
+    components.push(component)
   }
   components
 }

@@ -1,5 +1,5 @@
 ///|
-/// DFS fold. Visits each reachable vertex exactly once.
+/// DFS fold. Visits each reachable vertex exactly once (iterative).
 /// f returns (new_accumulator, should_continue).
 /// If should_continue is false, traversal stops early.
 pub fn[G : DirectedGraph, Acc] dfs_fold(
@@ -9,30 +9,30 @@ pub fn[G : DirectedGraph, Acc] dfs_fold(
   f : (Acc, Int) -> (Acc, Bool),
 ) -> Acc {
   let visited : Map[Int, Bool] = Map::new()
+  let stack : Array[Int] = [start]
   let mut acc = init
-  let mut cont = true
-  fn dfs(v : Int) {
-    if not(cont) {
-      return
-    }
+  while stack.length() > 0 {
+    let v = stack.unsafe_pop()
     if visited.get(v) == Some(true) {
-      return
+      continue
     }
     visited[v] = true
     let result = f(acc, v)
     acc = result.0
-    cont = result.1
-    if not(cont) {
-      return
+    if not(result.1) {
+      break
     }
+    // Collect successors, then push in reverse so first successor is on top
+    let succs : Array[Int] = []
     G::for_each_successor(graph, v, fn(w) {
-      if cont && visited.get(w) != Some(true) {
-        dfs(w)
+      if visited.get(w) != Some(true) {
+        succs.push(w)
       }
     })
+    for i = succs.length() - 1; i >= 0; i = i - 1 {
+      stack.push(succs[i])
+    }
   }
-
-  dfs(start)
   acc
 }
 
