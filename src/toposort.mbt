@@ -99,17 +99,22 @@ pub fn[G : DirectedGraph] has_cycle(graph : G) -> Bool {
 ///|
 /// # Topological Levels
 ///
-/// Computes the distance from the nearest source (zero-in-degree vertex)
-/// for every vertex in a DAG. A source gets level 0, its successors get
-/// level 1, and so on — each vertex's level is the length of the longest
-/// path from any source to it.
+/// Computes the length of the longest path from any source (zero-in-degree
+/// vertex) to each vertex in a DAG. Sources get level 0, their successors
+/// get level 1, and so on.
 ///
-/// ## Why this is useful
+/// ## Why longest path, not shortest?
 ///
-/// Topological levels enable **glitch-free reactive propagation**: when
-/// signals are pushed in ascending level order, every node sees all its
-/// dependencies before it fires. This is exactly the level-sorted BFS
-/// schedule used by reactive frameworks like incr.
+/// Shortest-path levels are insufficient for glitch-free scheduling.
+/// Consider: if vertex C has predecessors A (level 0) and B (level 1),
+/// shortest-path would assign C level 1, allowing C to fire before B
+/// updates — a glitch. Longest-path assigns C level 2, guaranteeing
+/// both A and B fire before C.
+///
+/// This is exactly the level-sorted BFS schedule used by reactive
+/// frameworks like incr for glitch-free push propagation: process
+/// vertices in ascending level order and every node sees all its
+/// dependencies before it fires.
 ///
 /// ## Cycle detection
 ///
@@ -127,11 +132,7 @@ pub fn[G : DirectedGraph] has_cycle(graph : G) -> Bool {
 pub fn[G : DirectedGraph] topo_levels(graph : G) -> Map[Int, Int]? {
   // Step 1: Compute in-degrees
   let in_degree : Map[Int, Int] = Map::new()
-  let vertices : Array[Int] = []
-  G::for_each_vertex(graph, fn(v) {
-    in_degree[v] = 0
-    vertices.push(v)
-  })
+  G::for_each_vertex(graph, fn(v) { in_degree[v] = 0 })
   G::for_each_vertex(graph, fn(v) {
     G::for_each_successor(graph, v, fn(w) {
       let d = match in_degree.get(w) {
@@ -144,17 +145,21 @@ pub fn[G : DirectedGraph] topo_levels(graph : G) -> Map[Int, Int]? {
   // Step 2: Seed queue with sources (in-degree 0) at level 0
   let levels : Map[Int, Int] = Map::new()
   let queue : Array[Int] = []
-  for v in vertices {
-    if in_degree.get(v) == Some(0) {
+  for v, d in in_degree {
+    if d == 0 {
       levels[v] = 0
       queue.push(v)
     }
   }
-  // Step 3: BFS — propagate levels through the graph
+  // Step 3: BFS — propagate levels through the graph.
+  // Each vertex's level = max(predecessor_level + 1) across all predecessors.
+  // This ensures longest-path semantics for glitch-free scheduling.
   let mut head = 0
+  let mut processed = 0
   while head < queue.length() {
     let v = queue[head]
     head = head + 1
+    processed = processed + 1
     let v_level = match levels.get(v) {
       Some(l) => l
       None => 0
@@ -165,9 +170,7 @@ pub fn[G : DirectedGraph] topo_levels(graph : G) -> Map[Int, Int]? {
         None => 0
       }
       in_degree[w] = d - 1
-      // Track the max level from any predecessor — ensures the level
-      // reflects the longest path from any source, which is required
-      // for glitch-free scheduling (all predecessors at lower levels).
+      // Update w's level to the max across all predecessors
       let current_level = match levels.get(w) {
         Some(l) => l
         None => 0
@@ -181,8 +184,9 @@ pub fn[G : DirectedGraph] topo_levels(graph : G) -> Map[Int, Int]? {
       }
     })
   }
-  // Step 4: Check completeness — incomplete means a cycle exists
-  if queue.length() != vertices.length() {
+  // Step 4: Check completeness — if fewer vertices processed than exist,
+  // the remainder are in a cycle and could never reach in-degree 0.
+  if processed != in_degree.length() {
     return None
   }
   Some(levels)

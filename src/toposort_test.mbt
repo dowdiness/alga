@@ -365,3 +365,28 @@ test "topo_levels wide star" {
     None => assert_true(false)
   }
 }
+
+///|
+test "topo_levels asymmetric paths (longest wins)" {
+  // Two paths to vertex 5: long arm 1→2→3→5 (length 3) and short arm 1→4→5 (length 2).
+  // Level of 5 must be 3 (longest path), not 2 — this is the key property
+  // that distinguishes topo_levels from simple BFS distance.
+  let g = @alga.AdjacencyMap::from_edges([
+    (1, 2),
+    (2, 3),
+    (3, 5),
+    (1, 4),
+    (4, 5),
+  ])
+  let result = @alga.topo_levels(g)
+  match result {
+    Some(levels) => {
+      assert_eq(levels[1], 0)
+      assert_eq(levels[2], 1)
+      assert_eq(levels[3], 2)
+      assert_eq(levels[4], 1)
+      assert_eq(levels[5], 3) // longest path: 1→2→3→5, not shortest 1→4→5
+    }
+    None => assert_true(false)
+  }
+}
