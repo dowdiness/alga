@@ -20,6 +20,12 @@
 /// systems (Make), package managers (dependency resolution), and
 /// spreadsheet recalculation order.
 ///
+/// ## Subset variant
+///
+/// `toposort_subset` sorts only a given subset of vertices, considering
+/// only edges in the induced subgraph (both endpoints in the subset).
+/// Scales with the subset size, not the full graph.
+///
 /// ## Cycle detection
 ///
 /// Kahn's algorithm naturally detects cycles: if the result is shorter

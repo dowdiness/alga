@@ -3,7 +3,7 @@
 ///
 /// This trait defines the minimal interface for observing a directed graph.
 /// Any data structure that implements these three methods gains access to
-/// every algorithm in the library (DFS, BFS, toposort, cycle detection, etc.)
+/// every algorithm in the library (DFS, BFS, toposort, subset toposort, cycle detection, etc.)
 /// via trait-bounded generic functions.
 ///
 /// ## Design decisions
@@ -43,7 +43,8 @@
 /// }
 /// ```
 ///
-/// Once implemented, you can call `toposort(my_graph)`, `reachable(my_graph, 0)`,
+/// Once implemented, you can call `toposort(my_graph)`,
+/// `toposort_subset(my_graph, vertices)`, `reachable(my_graph, 0)`,
 /// etc. — no modifications to the library needed.
 pub(open) trait DirectedGraph {
   vertex_count(Self) -> Int

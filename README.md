@@ -27,6 +27,7 @@ Layer A: Observation                    Layer B: Construction
          ▼
    dfs_fold, bfs_fold
    reachable, toposort
+   toposort_subset
    has_cycle, scc
 ```
 
@@ -45,6 +46,7 @@ let g = AdjacencyMap::from_edges([(1, 2), (2, 3), (3, 4)])
 // Run algorithms
 let r = reachable(g, 1)       // [1, 2, 3, 4]
 let order = toposort(g)       // Some([1, 2, 3, 4])
+let sub = toposort_subset(g, [2, 3]) // Some([2, 3])
 let cyclic = has_cycle(g)     // false
 let components = g.scc()      // [[1], [2], [3], [4]]
 
@@ -62,6 +64,7 @@ assert_true(am.has_edge(1, 2))
 | BFS | `bfs_fold(g, start, init, f)` | O(V+E) | Breadth-first fold with early termination |
 | Reachability | `reachable(g, start)` | O(V+E) | All vertices reachable from start |
 | Toposort | `toposort(g)` | O(V+E) | Topological ordering (Kahn's algorithm) |
+| Toposort (subset) | `toposort_subset(g, vertices)` | O(V_sub+E_sub) | Topological ordering of induced subgraph |
 | Cycle detection | `has_cycle(g)` | O(V+E) | True if graph contains a directed cycle |
 | SCC | `g.scc()` | O(V+E) | Strongly connected components (Kosaraju) |
 
@@ -98,7 +101,8 @@ impl DirectedGraph for MyGraph with for_each_successor(self, v, f) {
 }
 
 // Now you can use:
-// toposort(my_graph), reachable(my_graph, 0), has_cycle(my_graph), etc.
+// toposort(my_graph), toposort_subset(my_graph, vertices),
+// reachable(my_graph, 0), has_cycle(my_graph), etc.
 ```
 
 ## Design decisions
@@ -116,7 +120,8 @@ Benchmarks on a 1,000-vertex chain graph (WASM-GC, release mode):
 | Operation | Time |
 |-----------|------|
 | from_edges | 62 µs |
-| toposort | 124 µs |
+| toposort | 139 µs |
+| toposort_subset (half) | 37 µs |
 | reachable (DFS) | 97 µs |
 | BFS | 68 µs |
 | has_cycle | 122 µs |
