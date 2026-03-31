@@ -171,6 +171,26 @@ test "bench/bfs/diamond_1000" (b : @bench.T) {
   b.bench(fn() { b.keep(bfs_fold(g, 0, 0, fn(acc, _v) { (acc + 1, true) })) })
 }
 
+// --- bfs_multi ---
+
+///|
+test "bench/bfs_multi/chain_1000" (b : @bench.T) {
+  let g = build_chain(1000)
+  b.bench(fn() {
+    b.keep(bfs_fold_multi(g, [0, 500, 999], 0, fn(acc, _v) { (acc + 1, true) }))
+  })
+}
+
+// --- dfs_multi ---
+
+///|
+test "bench/dfs_multi/chain_1000" (b : @bench.T) {
+  let g = build_chain(1000)
+  b.bench(fn() {
+    b.keep(dfs_fold_multi(g, [0, 500, 999], 0, fn(acc, _v) { (acc + 1, true) }))
+  })
+}
+
 // --- has_cycle ---
 
 ///|

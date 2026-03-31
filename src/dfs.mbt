@@ -83,3 +83,85 @@ pub fn[G : DirectedGraph] reachable(graph : G, start : Int) -> Array[Int] {
     (arr, true)
   })
 }
+
+///|
+/// Multi-source DFS fold over vertices reachable from any vertex in `starts`.
+///
+/// Seeds the DFS stack with all start vertices instead of one, enabling
+/// frontier-based traversal — e.g. in CRDTs where an event-graph-walker
+/// walks from a set of frontier LVs, not a single root.
+///
+/// Start vertices are pushed in reverse order so the first valid start
+/// is processed first (matching natural traversal order).
+///
+/// Invalid starts (not in the graph) are silently skipped. Duplicate starts
+/// are visited only once.
+///
+/// Time: O(V + E) where V and E are the reachable vertices and edges.
+pub fn[G : DirectedGraph, Acc] dfs_fold_multi(
+  graph : G,
+  starts : Array[Int],
+  init : Acc,
+  f : (Acc, Int) -> (Acc, Bool),
+) -> Acc {
+  let visited : Map[Int, Bool] = Map::new()
+  let stack : Array[Int] = []
+  // Deduplicate seeds and filter invalid vertices.
+  // Push in reverse so that starts[0] ends up on top of the stack.
+  let seeded : Map[Int, Bool] = Map::new()
+  let mut i = starts.length() - 1
+  while i >= 0 {
+    let s = starts[i]
+    if G::has_vertex(graph, s) && seeded.get(s) != Some(true) {
+      seeded[s] = true
+      stack.push(s)
+    }
+    i = i - 1
+  }
+  let mut acc = init
+  while stack.length() > 0 {
+    let v = stack.unsafe_pop()
+    if visited.get(v) == Some(true) {
+      continue
+    }
+    visited[v] = true
+    let result = f(acc, v)
+    acc = result.0
+    if !result.1 {
+      break
+    }
+    // Push successors directly, then reverse in place so first successor
+    // is on top of the stack. Avoids per-vertex temporary array allocation.
+    let mark = stack.length()
+    G::for_each_successor(graph, v, fn(w) {
+      if visited.get(w) != Some(true) {
+        stack.push(w)
+      }
+    })
+    let mut lo = mark
+    let mut hi = stack.length() - 1
+    while lo < hi {
+      let tmp = stack[lo]
+      stack[lo] = stack[hi]
+      stack[hi] = tmp
+      lo = lo + 1
+      hi = hi - 1
+    }
+  }
+  acc
+}
+
+///|
+/// All vertices reachable from any vertex in `starts`, in DFS pre-order.
+///
+/// Convenience wrapper around `dfs_fold_multi` — collects all reachable
+/// vertices into an array. Same relationship as `reachable` to `dfs_fold`.
+pub fn[G : DirectedGraph] reachable_multi(
+  graph : G,
+  starts : Array[Int],
+) -> Array[Int] {
+  dfs_fold_multi(graph, starts, [], fn(arr, v) {
+    arr.push(v)
+    (arr, true)
+  })
+}

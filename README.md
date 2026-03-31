@@ -63,7 +63,10 @@ assert_true(am.has_edge(1, 2))
 |-----------|----------|------|-------------|
 | DFS | `dfs_fold(g, start, init, f)` | O(V+E) | Depth-first fold with early termination |
 | BFS | `bfs_fold(g, start, init, f)` | O(V+E) | Breadth-first fold with early termination |
+| Multi-source DFS | `dfs_fold_multi(g, starts, init, f)` | O(V+E) | DFS fold from multiple start vertices |
+| Multi-source BFS | `bfs_fold_multi(g, starts, init, f)` | O(V+E) | BFS fold from multiple start vertices |
 | Reachability | `reachable(g, start)` | O(V+E) | All vertices reachable from start |
+| Multi-source reachability | `reachable_multi(g, starts)` | O(V+E) | All vertices reachable from any start |
 | Toposort | `toposort(g)` | O(V+E) | Topological ordering (Kahn's algorithm) |
 | Toposort (subset) | `toposort_subset(g, vertices)` | O(V_sub+E_sub) | Topological ordering of induced subgraph |
 | Cycle detection | `has_cycle(g)` | O(V+E) | True if graph contains a directed cycle |
