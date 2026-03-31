@@ -51,6 +51,7 @@ let sub = toposort_subset(g, [2, 3]) // Some([2, 3])
 let lvls = topo_levels(g)    // Some({1:0, 2:1, 3:2, 4:3})
 let cyclic = has_cycle(g)     // false
 let components = g.scc()      // [[1], [2], [3], [4]]
+let (dag, _) = g.condensation() // DAG of SCCs
 
 // Build with algebraic expressions
 let expr = Graph::path([1, 2, 3])
@@ -76,8 +77,9 @@ assert_true(am.has_edge(1, 2))
 | Indegree | `indegree(g, v)` | O(V+E) | Number of incoming edges to v |
 | Vertex membership | `has_vertex(g, v)` | O(1)* | True if v is a vertex in the graph |
 | SCC | `g.scc()` | O(V+E) | Strongly connected components (Kosaraju) |
+| Condensation | `g.condensation()` | O(V+E) | DAG of SCCs — collapse each SCC to a single vertex |
 
-All algorithms except SCC are generic over `DirectedGraph` — they work on any implementing type. SCC requires `transpose`, which is specific to `AdjacencyMap`.
+All algorithms except SCC and condensation are generic over `DirectedGraph` — they work on any implementing type. SCC and condensation require `transpose`, which is specific to `AdjacencyMap`.
 
 ## Graph construction combinators
 

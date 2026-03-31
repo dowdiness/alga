@@ -366,3 +366,17 @@ test "bench/vertex_count/default_1000" (b : @bench.T) {
   let g = build_minimal_chain(1000)
   b.bench(fn() { b.keep(DirectedGraph::vertex_count(g)) })
 }
+
+// --- condensation ---
+
+///|
+test "bench/condensation/acyclic_1000" (b : @bench.T) {
+  let g = build_chain(1000)
+  b.bench(fn() { b.keep(g.condensation()) })
+}
+
+///|
+test "bench/condensation/cyclic_1000" (b : @bench.T) {
+  let g = build_cyclic(1000)
+  b.bench(fn() { b.keep(g.condensation()) })
+}
