@@ -83,3 +83,32 @@ test "external impl: dfs_fold" {
   })
   assert_eq(visited.length(), 4)
 }
+
+///|
+test "default has_vertex works on ArrayGraph" {
+  let g = ArrayGraph::{
+    successors: [[1, 2], [2], [3], []],
+  }
+  assert_true(DirectedGraph::has_vertex(g, 0))
+  assert_true(DirectedGraph::has_vertex(g, 3))
+  assert_true(!DirectedGraph::has_vertex(g, 4))
+  assert_true(!DirectedGraph::has_vertex(g, -1))
+}
+
+///|
+test "has_vertex via trait on AdjacencyMap" {
+  let g = AdjacencyMap::from_edges([(0, 1), (1, 2)])
+  assert_true(DirectedGraph::has_vertex(g, 0))
+  assert_true(DirectedGraph::has_vertex(g, 2))
+  assert_true(!DirectedGraph::has_vertex(g, 3))
+  assert_true(!DirectedGraph::has_vertex(g, -1))
+}
+
+///|
+test "has_vertex via trait on DenseGraph" {
+  let g = DenseGraph::from_edges(3, [(0, 1), (1, 2)])
+  assert_true(DirectedGraph::has_vertex(g, 0))
+  assert_true(DirectedGraph::has_vertex(g, 2))
+  assert_true(!DirectedGraph::has_vertex(g, 3))
+  assert_true(!DirectedGraph::has_vertex(g, -1))
+}
