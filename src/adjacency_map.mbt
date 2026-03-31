@@ -427,6 +427,7 @@ pub impl DirectedGraph for AdjacencyMap with for_each_successor(self, v, f) {
 }
 
 ///|
+/// O(1) override — Map key lookup, bypasses the O(V) default scan.
 pub impl DirectedGraph for AdjacencyMap with has_vertex(self, v) {
   self.adjacency.contains(v)
 }

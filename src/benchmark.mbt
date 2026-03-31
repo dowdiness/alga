@@ -261,24 +261,33 @@ test "bench/transpose/1000" (b : @bench.T) {
   b.bench(fn() { b.keep(g.transpose()) })
 }
 
-// --- has_vertex ---
+// --- has_vertex: O(1) override vs O(V) default ---
+//
+// These benchmarks form a comparative study:
+//   AdjacencyMap_1000 — O(1) override via Map::contains
+//   DenseGraph_1000   — O(1) override via range check
+//   default_1000      — O(V) default via for_each_vertex scan
+// Together they quantify how much overriding has_vertex matters.
 
 ///|
+/// Minimal DirectedGraph implementation for benchmarking defaults.
+/// Implements ONLY the two required methods (for_each_vertex, for_each_successor)
+/// so that benchmarks measure the cost of the O(V) default fallback, with no
+/// O(1) override. Compare against AdjacencyMap and DenseGraph which override.
 priv struct BenchMinimalGraph {
-  n : Int
   edges : Array[Array[Int]]
 }
 
 ///|
 impl DirectedGraph for BenchMinimalGraph with for_each_vertex(self, f) {
-  for i = 0; i < self.n; i = i + 1 {
+  for i = 0; i < self.edges.length(); i = i + 1 {
     f(i)
   }
 }
 
 ///|
 impl DirectedGraph for BenchMinimalGraph with for_each_successor(self, v, f) {
-  if v >= 0 && v < self.n {
+  if v >= 0 && v < self.edges.length() {
     for w in self.edges[v] {
       f(w)
     }
@@ -294,7 +303,7 @@ fn build_minimal_chain(n : Int) -> BenchMinimalGraph {
       []
     }
   })
-  { n, edges }
+  { edges, }
 }
 
 ///|
@@ -317,6 +326,8 @@ test "bench/has_vertex/default_1000" (b : @bench.T) {
 }
 
 ///|
+/// Measures the O(V) default vertex_count (iterates all vertices).
+/// Compare against AdjacencyMap::vertex_count which is O(1) via Map::length().
 test "bench/vertex_count/default_1000" (b : @bench.T) {
   let g = build_minimal_chain(1000)
   b.bench(fn() { b.keep(DirectedGraph::vertex_count(g)) })

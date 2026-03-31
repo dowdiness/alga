@@ -8,8 +8,10 @@
 ///
 /// ## Contract
 ///
-/// `for_each_vertex` must yield each vertex exactly once. The default
-/// `vertex_count` and `has_vertex` depend on this invariant.
+/// `for_each_vertex` must yield each vertex exactly once. If this
+/// invariant is violated, the defaults produce wrong results:
+/// `vertex_count` will overcount, and `has_vertex` may return true
+/// for vertices that don't logically exist.
 ///
 /// ## Design decisions
 ///
@@ -53,6 +55,13 @@ pub(open) trait DirectedGraph {
 ///|
 /// Default vertex_count: O(V) — counts by iterating all vertices.
 /// Override for O(1) if your type tracks vertex count directly.
+///
+/// Uses `DirectedGraph::for_each_vertex(self, ...)` (trait-qualified)
+/// rather than `self.for_each_vertex(...)` because MoonBit's dot syntax
+/// prefers standalone methods over trait methods. Inside a default impl,
+/// dot syntax could dispatch to an unrelated standalone method on the
+/// concrete type instead of the trait method. Trait-qualified calls
+/// guarantee the correct dispatch.
 impl DirectedGraph with vertex_count(self) {
   let mut n = 0
   DirectedGraph::for_each_vertex(self, fn(_) { n = n + 1 })
@@ -62,6 +71,13 @@ impl DirectedGraph with vertex_count(self) {
 ///|
 /// Default has_vertex: O(V) — scans all vertices looking for a match.
 /// Override for O(1) if your type supports constant-time membership.
+///
+/// Cannot short-circuit: the CPS callback `(Int) -> Unit` has no way
+/// to signal "stop iterating." Once the target is found, the remaining
+/// vertices are still visited. This is why overriding with O(1) matters
+/// — the default always pays O(V) even in the best case.
+///
+/// Uses trait-qualified calls for dispatch safety (see vertex_count above).
 impl DirectedGraph with has_vertex(self, v) {
   let mut found = false
   DirectedGraph::for_each_vertex(self, fn(u) { if u == v { found = true } })
