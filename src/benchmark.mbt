@@ -260,3 +260,64 @@ test "bench/transpose/1000" (b : @bench.T) {
   let g = build_chain(1000)
   b.bench(fn() { b.keep(g.transpose()) })
 }
+
+// --- has_vertex ---
+
+///|
+priv struct BenchMinimalGraph {
+  n : Int
+  edges : Array[Array[Int]]
+}
+
+///|
+impl DirectedGraph for BenchMinimalGraph with for_each_vertex(self, f) {
+  for i = 0; i < self.n; i = i + 1 {
+    f(i)
+  }
+}
+
+///|
+impl DirectedGraph for BenchMinimalGraph with for_each_successor(self, v, f) {
+  if v >= 0 && v < self.n {
+    for w in self.edges[v] {
+      f(w)
+    }
+  }
+}
+
+///|
+fn build_minimal_chain(n : Int) -> BenchMinimalGraph {
+  let edges : Array[Array[Int]] = Array::makei(n, fn(i) {
+    if i < n - 1 {
+      [i + 1]
+    } else {
+      []
+    }
+  })
+  { n, edges }
+}
+
+///|
+test "bench/has_vertex/AdjacencyMap_1000" (b : @bench.T) {
+  let g = build_chain(1000)
+  b.bench(fn() { b.keep(DirectedGraph::has_vertex(g, 500)) })
+}
+
+///|
+test "bench/has_vertex/DenseGraph_1000" (b : @bench.T) {
+  let am = build_chain(1000)
+  let g = DenseGraph::from_adjacency_map(am)
+  b.bench(fn() { b.keep(DirectedGraph::has_vertex(g, 500)) })
+}
+
+///|
+test "bench/has_vertex/default_1000" (b : @bench.T) {
+  let g = build_minimal_chain(1000)
+  b.bench(fn() { b.keep(DirectedGraph::has_vertex(g, 500)) })
+}
+
+///|
+test "bench/vertex_count/default_1000" (b : @bench.T) {
+  let g = build_minimal_chain(1000)
+  b.bench(fn() { b.keep(DirectedGraph::vertex_count(g)) })
+}
