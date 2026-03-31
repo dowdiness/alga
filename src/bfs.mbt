@@ -65,11 +65,22 @@ pub fn[G : DirectedGraph, Acc] bfs_fold(
 /// Multi-source BFS fold over vertices reachable from any vertex in `starts`.
 ///
 /// Seeds the BFS queue with all start vertices instead of one, enabling
-/// frontier-based traversal — e.g. in CRDTs where an event-graph-walker
-/// walks from a set of frontier LVs, not a single root.
+/// frontier-based traversal. This is the natural fit for problems where
+/// traversal begins from a SET of vertices rather than a single root —
+/// for example, CRDT event-graph-walkers that walk forward from a set
+/// of frontier LVs, or multi-root dependency resolution.
 ///
-/// Invalid starts (not in the graph) are silently skipped. Duplicate starts
-/// are visited only once.
+/// ## Why multi-source instead of looping single-source?
+///
+/// Calling `bfs_fold` in a loop for each start would revisit vertices
+/// reachable from multiple starts. Multi-source BFS visits each vertex
+/// at most once across ALL starts, giving true O(V+E) for the union.
+///
+/// ## Seeding
+///
+/// - Invalid starts (not in the graph) are silently skipped via `has_vertex`
+/// - Duplicate starts are deduplicated before traversal begins
+/// - Starts are enqueued in input order — `starts[0]` is visited first
 ///
 /// Time: O(V + E) where V and E are the reachable vertices and edges.
 /// Seed validation calls `has_vertex` — override it for O(1) on custom types.

@@ -88,14 +88,21 @@ pub fn[G : DirectedGraph] reachable(graph : G, start : Int) -> Array[Int] {
 /// Multi-source DFS fold over vertices reachable from any vertex in `starts`.
 ///
 /// Seeds the DFS stack with all start vertices instead of one, enabling
-/// frontier-based traversal — e.g. in CRDTs where an event-graph-walker
-/// walks from a set of frontier LVs, not a single root.
+/// frontier-based traversal. Same motivation as `bfs_fold_multi` — see
+/// its doc comment for the multi-source vs looping-single-source rationale.
 ///
-/// Start vertices are pushed in reverse order so the first valid start
-/// is processed first (matching natural traversal order).
+/// ## Ordering
 ///
-/// Invalid starts (not in the graph) are silently skipped. Duplicate starts
-/// are visited only once.
+/// Start vertices are pushed in reverse order so `starts[0]` is on top
+/// of the stack and processed first. When source sub-trees are disjoint,
+/// `starts[0]` is fully explored before `starts[1]`. When sub-trees
+/// overlap, vertices reachable from multiple starts are visited on first
+/// encounter (from whichever source reaches them first in DFS order).
+///
+/// ## Seeding
+///
+/// - Invalid starts (not in the graph) are silently skipped via `has_vertex`
+/// - Duplicate starts are deduplicated before traversal begins
 ///
 /// Time: O(V + E) where V and E are the reachable vertices and edges.
 /// Seed validation calls `has_vertex` — override it for O(1) on custom types.

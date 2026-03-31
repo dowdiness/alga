@@ -133,7 +133,9 @@ Benchmarks on a 1,000-vertex chain graph (WASM-GC, release mode):
 | toposort | 139 µs |
 | toposort_subset (half) | 37 µs |
 | reachable (DFS) | 97 µs |
+| reachable_multi (3 starts) | 70 µs |
 | BFS | 68 µs |
+| BFS multi (3 starts) | 75 µs |
 | has_cycle | 122 µs |
 | SCC | 296 µs |
 | outdegree | 0.02 µs |
