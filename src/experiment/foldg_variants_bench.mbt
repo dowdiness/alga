@@ -13,37 +13,37 @@
 
 ///|
 test "bench/foldg/recursive/path_100" (b : @bench.T) {
-  let g = Graph::path(Array::makei(100, fn(i) { i }))
-  b.bench(fn() { b.keep(g.to_adjacency_map()) })
+  let g = @alga.Graph::path(Array::makei(100, fn(i) { i }))
+  b.bench(fn() { b.keep(to_adjacency_map_recursive(g)) })
 }
 
 ///|
 test "bench/foldg/inner_fn/path_100" (b : @bench.T) {
-  let g = Graph::path(Array::makei(100, fn(i) { i }))
-  b.bench(fn() { b.keep(g.to_adjacency_map_inner_fn()) })
+  let g = @alga.Graph::path(Array::makei(100, fn(i) { i }))
+  b.bench(fn() { b.keep(to_adjacency_map_inner_fn(g)) })
 }
 
 ///|
 test "bench/foldg/letrec/path_100" (b : @bench.T) {
-  let g = Graph::path(Array::makei(100, fn(i) { i }))
-  b.bench(fn() { b.keep(g.to_adjacency_map_letrec()) })
+  let g = @alga.Graph::path(Array::makei(100, fn(i) { i }))
+  b.bench(fn() { b.keep(to_adjacency_map_letrec(g)) })
 }
 
 ///|
 test "bench/foldg/iter/path_100" (b : @bench.T) {
-  let g = Graph::path(Array::makei(100, fn(i) { i }))
-  b.bench(fn() { b.keep(g.to_adjacency_map_letrec()) })
+  let g = @alga.Graph::path(Array::makei(100, fn(i) { i }))
+  b.bench(fn() { b.keep(to_adjacency_map_iter(g)) })
 }
 
 ///|
 test "bench/foldg/cps/path_100" (b : @bench.T) {
-  let g = Graph::path(Array::makei(100, fn(i) { i }))
-  b.bench(fn() { b.keep(g.to_adjacency_map_cps()) })
+  let g = @alga.Graph::path(Array::makei(100, fn(i) { i }))
+  b.bench(fn() { b.keep(to_adjacency_map_cps(g)) })
 }
 
 ///|
 test "bench/foldg/direct/path_100" (b : @bench.T) {
-  let g = Graph::path(Array::makei(100, fn(i) { i }))
+  let g = @alga.Graph::path(Array::makei(100, fn(i) { i }))
   b.bench(fn() { b.keep(g.to_adjacency_map()) })
 }
 
@@ -51,37 +51,37 @@ test "bench/foldg/direct/path_100" (b : @bench.T) {
 
 ///|
 test "bench/foldg/recursive/path_1000" (b : @bench.T) {
-  let g = Graph::path(Array::makei(1000, fn(i) { i }))
-  b.bench(fn() { b.keep(g.to_adjacency_map()) })
+  let g = @alga.Graph::path(Array::makei(1000, fn(i) { i }))
+  b.bench(fn() { b.keep(to_adjacency_map_recursive(g)) })
 }
 
 ///|
 test "bench/foldg/inner_fn/path_1000" (b : @bench.T) {
-  let g = Graph::path(Array::makei(1000, fn(i) { i }))
-  b.bench(fn() { b.keep(g.to_adjacency_map_inner_fn()) })
+  let g = @alga.Graph::path(Array::makei(1000, fn(i) { i }))
+  b.bench(fn() { b.keep(to_adjacency_map_inner_fn(g)) })
 }
 
 ///|
 test "bench/foldg/letrec/path_1000" (b : @bench.T) {
-  let g = Graph::path(Array::makei(1000, fn(i) { i }))
-  b.bench(fn() { b.keep(g.to_adjacency_map_letrec()) })
+  let g = @alga.Graph::path(Array::makei(1000, fn(i) { i }))
+  b.bench(fn() { b.keep(to_adjacency_map_letrec(g)) })
 }
 
 ///|
 test "bench/foldg/iter/path_1000" (b : @bench.T) {
-  let g = Graph::path(Array::makei(1000, fn(i) { i }))
-  b.bench(fn() { b.keep(g.to_adjacency_map_letrec()) })
+  let g = @alga.Graph::path(Array::makei(1000, fn(i) { i }))
+  b.bench(fn() { b.keep(to_adjacency_map_iter(g)) })
 }
 
 ///|
 test "bench/foldg/cps/path_1000" (b : @bench.T) {
-  let g = Graph::path(Array::makei(1000, fn(i) { i }))
-  b.bench(fn() { b.keep(g.to_adjacency_map_cps()) })
+  let g = @alga.Graph::path(Array::makei(1000, fn(i) { i }))
+  b.bench(fn() { b.keep(to_adjacency_map_cps(g)) })
 }
 
 ///|
 test "bench/foldg/direct/path_1000" (b : @bench.T) {
-  let g = Graph::path(Array::makei(1000, fn(i) { i }))
+  let g = @alga.Graph::path(Array::makei(1000, fn(i) { i }))
   b.bench(fn() { b.keep(g.to_adjacency_map()) })
 }
 
@@ -89,15 +89,17 @@ test "bench/foldg/direct/path_1000" (b : @bench.T) {
 
 ///|
 test "bench/foldg_count/recursive/path_1000" (b : @bench.T) {
-  let g = Graph::path(Array::makei(1000, fn(i) { i }))
+  let g = @alga.Graph::path(Array::makei(1000, fn(i) { i }))
   b.bench(fn() {
-    b.keep(foldg(g, 0, fn(_v) { 1 }, fn(a, b) { a + b }, fn(a, b) { a + b }))
+    b.keep(
+      @alga.foldg(g, 0, fn(_v) { 1 }, fn(a, b) { a + b }, fn(a, b) { a + b }),
+    )
   })
 }
 
 ///|
 test "bench/foldg_count/inner_fn/path_1000" (b : @bench.T) {
-  let g = Graph::path(Array::makei(1000, fn(i) { i }))
+  let g = @alga.Graph::path(Array::makei(1000, fn(i) { i }))
   b.bench(fn() {
     b.keep(
       foldg_inner_fn(g, 0, fn(_v) { 1 }, fn(a, b) { a + b }, fn(a, b) { a + b }),
@@ -107,7 +109,7 @@ test "bench/foldg_count/inner_fn/path_1000" (b : @bench.T) {
 
 ///|
 test "bench/foldg_count/letrec/path_1000" (b : @bench.T) {
-  let g = Graph::path(Array::makei(1000, fn(i) { i }))
+  let g = @alga.Graph::path(Array::makei(1000, fn(i) { i }))
   b.bench(fn() {
     b.keep(
       foldg_letrec(g, 0, fn(_v) { 1 }, fn(a, b) { a + b }, fn(a, b) { a + b }),
@@ -117,7 +119,7 @@ test "bench/foldg_count/letrec/path_1000" (b : @bench.T) {
 
 ///|
 test "bench/foldg_count/cps/path_1000" (b : @bench.T) {
-  let g = Graph::path(Array::makei(1000, fn(i) { i }))
+  let g = @alga.Graph::path(Array::makei(1000, fn(i) { i }))
   b.bench(fn() {
     b.keep(
       foldg_cps(g, 0, fn(_v) { 1 }, fn(a, b) { a + b }, fn(a, b) { a + b }),
@@ -127,10 +129,12 @@ test "bench/foldg_count/cps/path_1000" (b : @bench.T) {
 
 ///|
 test "bench/foldg_count/iter/path_1000" (b : @bench.T) {
-  let g = Graph::path(Array::makei(1000, fn(i) { i }))
+  let g = @alga.Graph::path(Array::makei(1000, fn(i) { i }))
   b.bench(fn() {
     b.keep(
-      foldg_iter(g, 0, fn(_v) { 1 }, fn(a, b) { a + b }, fn(a, b) { a + b }),
+      @alga.foldg_iter(g, 0, fn(_v) { 1 }, fn(a, b) { a + b }, fn(a, b) {
+        a + b
+      }),
     )
   })
 }
@@ -139,37 +143,37 @@ test "bench/foldg_count/iter/path_1000" (b : @bench.T) {
 
 ///|
 test "bench/foldg/recursive/clique_50" (b : @bench.T) {
-  let g = Graph::clique(Array::makei(50, fn(i) { i }))
-  b.bench(fn() { b.keep(g.to_adjacency_map()) })
+  let g = @alga.Graph::clique(Array::makei(50, fn(i) { i }))
+  b.bench(fn() { b.keep(to_adjacency_map_recursive(g)) })
 }
 
 ///|
 test "bench/foldg/inner_fn/clique_50" (b : @bench.T) {
-  let g = Graph::clique(Array::makei(50, fn(i) { i }))
-  b.bench(fn() { b.keep(g.to_adjacency_map_inner_fn()) })
+  let g = @alga.Graph::clique(Array::makei(50, fn(i) { i }))
+  b.bench(fn() { b.keep(to_adjacency_map_inner_fn(g)) })
 }
 
 ///|
 test "bench/foldg/letrec/clique_50" (b : @bench.T) {
-  let g = Graph::clique(Array::makei(50, fn(i) { i }))
-  b.bench(fn() { b.keep(g.to_adjacency_map_letrec()) })
+  let g = @alga.Graph::clique(Array::makei(50, fn(i) { i }))
+  b.bench(fn() { b.keep(to_adjacency_map_letrec(g)) })
 }
 
 ///|
 test "bench/foldg/iter/clique_50" (b : @bench.T) {
-  let g = Graph::clique(Array::makei(50, fn(i) { i }))
-  b.bench(fn() { b.keep(g.to_adjacency_map_letrec()) })
+  let g = @alga.Graph::clique(Array::makei(50, fn(i) { i }))
+  b.bench(fn() { b.keep(to_adjacency_map_iter(g)) })
 }
 
 ///|
 test "bench/foldg/cps/clique_50" (b : @bench.T) {
-  let g = Graph::clique(Array::makei(50, fn(i) { i }))
-  b.bench(fn() { b.keep(g.to_adjacency_map_cps()) })
+  let g = @alga.Graph::clique(Array::makei(50, fn(i) { i }))
+  b.bench(fn() { b.keep(to_adjacency_map_cps(g)) })
 }
 
 ///|
 test "bench/foldg/direct/clique_50" (b : @bench.T) {
-  let g = Graph::clique(Array::makei(50, fn(i) { i }))
+  let g = @alga.Graph::clique(Array::makei(50, fn(i) { i }))
   b.bench(fn() { b.keep(g.to_adjacency_map()) })
 }
 
@@ -177,36 +181,36 @@ test "bench/foldg/direct/clique_50" (b : @bench.T) {
 
 ///|
 test "bench/foldg/recursive/star_1000" (b : @bench.T) {
-  let g = Graph::star(0, Array::makei(999, fn(i) { i + 1 }))
-  b.bench(fn() { b.keep(g.to_adjacency_map()) })
+  let g = @alga.Graph::star(0, Array::makei(999, fn(i) { i + 1 }))
+  b.bench(fn() { b.keep(to_adjacency_map_recursive(g)) })
 }
 
 ///|
 test "bench/foldg/inner_fn/star_1000" (b : @bench.T) {
-  let g = Graph::star(0, Array::makei(999, fn(i) { i + 1 }))
-  b.bench(fn() { b.keep(g.to_adjacency_map_inner_fn()) })
+  let g = @alga.Graph::star(0, Array::makei(999, fn(i) { i + 1 }))
+  b.bench(fn() { b.keep(to_adjacency_map_inner_fn(g)) })
 }
 
 ///|
 test "bench/foldg/letrec/star_1000" (b : @bench.T) {
-  let g = Graph::star(0, Array::makei(999, fn(i) { i + 1 }))
-  b.bench(fn() { b.keep(g.to_adjacency_map_letrec()) })
+  let g = @alga.Graph::star(0, Array::makei(999, fn(i) { i + 1 }))
+  b.bench(fn() { b.keep(to_adjacency_map_letrec(g)) })
 }
 
 ///|
 test "bench/foldg/iter/star_1000" (b : @bench.T) {
-  let g = Graph::star(0, Array::makei(999, fn(i) { i + 1 }))
-  b.bench(fn() { b.keep(g.to_adjacency_map_letrec()) })
+  let g = @alga.Graph::star(0, Array::makei(999, fn(i) { i + 1 }))
+  b.bench(fn() { b.keep(to_adjacency_map_iter(g)) })
 }
 
 ///|
 test "bench/foldg/cps/star_1000" (b : @bench.T) {
-  let g = Graph::star(0, Array::makei(999, fn(i) { i + 1 }))
-  b.bench(fn() { b.keep(g.to_adjacency_map_cps()) })
+  let g = @alga.Graph::star(0, Array::makei(999, fn(i) { i + 1 }))
+  b.bench(fn() { b.keep(to_adjacency_map_cps(g)) })
 }
 
 ///|
 test "bench/foldg/direct/star_1000" (b : @bench.T) {
-  let g = Graph::star(0, Array::makei(999, fn(i) { i + 1 }))
+  let g = @alga.Graph::star(0, Array::makei(999, fn(i) { i + 1 }))
   b.bench(fn() { b.keep(g.to_adjacency_map()) })
 }

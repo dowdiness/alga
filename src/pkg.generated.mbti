@@ -4,57 +4,17 @@ package "dowdiness/alga"
 // Values
 pub fn[G : DirectedGraph, Acc] bfs_fold(G, Int, Acc, (Acc, Int) -> (Acc, Bool)) -> Acc
 
-pub fn[G : DirectedGraph, Acc] bfs_fold_array(G, Int, Acc, (Acc, Int) -> (Acc, Bool)) -> Acc
-
-pub fn[G : DirectedGraph, Acc] bfs_fold_bitset(G, Int, Acc, (Acc, Int) -> (Acc, Bool)) -> Acc
-
-pub fn[G : DirectedGraph, Acc] bfs_fold_fixedarray(G, Int, Acc, (Acc, Int) -> (Acc, Bool)) -> Acc
-
-pub fn[G : DirectedGraph, Acc] bfs_fold_gen(G, Int, Acc, (Acc, Int) -> (Acc, Bool), FixedArray[Int], Int) -> Acc
-
-pub fn[G : DirectedGraph, Acc] bfs_fold_hashset(G, Int, Acc, (Acc, Int) -> (Acc, Bool)) -> Acc
-
 pub fn[G : DirectedGraph, Acc] dfs_fold(G, Int, Acc, (Acc, Int) -> (Acc, Bool)) -> Acc
-
-pub fn[G : DirectedGraph, Acc] dfs_fold_array(G, Int, Acc, (Acc, Int) -> (Acc, Bool)) -> Acc
-
-pub fn[G : DirectedGraph, Acc] dfs_fold_fixedarray(G, Int, Acc, (Acc, Int) -> (Acc, Bool)) -> Acc
-
-pub fn[G : DirectedGraph, Acc] dfs_fold_hashset(G, Int, Acc, (Acc, Int) -> (Acc, Bool)) -> Acc
 
 pub fn[B] foldg(Graph, B, (Int) -> B, (B, B) -> B, (B, B) -> B) -> B
 
-pub fn[B] foldg_cps(Graph, B, (Int) -> B, (B, B) -> B, (B, B) -> B) -> B
-
-pub fn[B] foldg_inner_fn(Graph, B, (Int) -> B, (B, B) -> B, (B, B) -> B) -> B
-
 pub fn[B] foldg_iter(Graph, B, (Int) -> B, (B, B) -> B, (B, B) -> B) -> B
-
-pub fn[B] foldg_letrec(Graph, B, (Int) -> B, (B, B) -> B, (B, B) -> B) -> B
 
 pub fn[G : DirectedGraph] has_cycle(G) -> Bool
 
-pub fn[G : DirectedGraph] has_cycle_array(G) -> Bool
-
-pub fn[G : DirectedGraph] has_cycle_hashset(G) -> Bool
-
 pub fn[G : DirectedGraph] reachable(G, Int) -> Array[Int]
 
-pub fn[G : DirectedGraph] reachable_array(G, Int) -> Array[Int]
-
-pub fn[G : DirectedGraph] reachable_bitset(G, Int) -> Array[Int]
-
-pub fn[G : DirectedGraph] reachable_fixedarray(G, Int) -> Array[Int]
-
-pub fn[G : DirectedGraph] reachable_gen(G, Int, FixedArray[Int], Int) -> Array[Int]
-
-pub fn[G : DirectedGraph] reachable_hashset(G, Int) -> Array[Int]
-
 pub fn[G : DirectedGraph] toposort(G) -> Array[Int]?
-
-pub fn[G : DirectedGraph] toposort_array(G) -> Array[Int]?
-
-pub fn[G : DirectedGraph] toposort_hashset(G) -> Array[Int]?
 
 // Errors
 
@@ -73,11 +33,6 @@ pub fn AdjacencyMap::has_vertex(Self, Int) -> Bool
 pub fn AdjacencyMap::overlay(Self, Self) -> Self
 pub fn AdjacencyMap::remove_self_loops(Self) -> Self
 pub fn AdjacencyMap::scc(Self) -> Array[Array[Int]]
-pub fn AdjacencyMap::scc_array(Self) -> Array[Array[Int]]
-pub fn AdjacencyMap::scc_bitset(Self) -> Array[Array[Int]]
-pub fn AdjacencyMap::scc_fixedarray(Self) -> Array[Array[Int]]
-pub fn AdjacencyMap::scc_gen(Self, FixedArray[Int], Int) -> Array[Array[Int]]
-pub fn AdjacencyMap::scc_hashset(Self) -> Array[Array[Int]]
 pub fn AdjacencyMap::successors(Self, Int) -> Array[Int]
 pub fn AdjacencyMap::transpose(Self) -> Self
 pub fn AdjacencyMap::vertex(Int) -> Self
@@ -91,8 +46,6 @@ pub impl Show for AdjacencyMap
 pub(all) struct DenseGraph {
   successors : Array[Array[Int]]
 }
-pub fn DenseGraph::bfs_count_direct(Self, Int, FixedArray[Int], Int) -> Int
-pub fn DenseGraph::bfs_count_trait(Self, Int, FixedArray[Int], Int) -> Int
 pub fn DenseGraph::edge_count(Self) -> Int
 pub fn DenseGraph::from_adjacency_map(AdjacencyMap) -> Self
 pub fn DenseGraph::from_edges(Int, Array[(Int, Int)]) -> Self
@@ -100,17 +53,9 @@ pub fn DenseGraph::has_cycle(Self) -> Bool
 pub fn DenseGraph::has_edge(Self, Int, Int) -> Bool
 pub fn DenseGraph::has_vertex(Self, Int) -> Bool
 pub fn DenseGraph::reachable(Self, Int) -> Array[Int]
-pub fn DenseGraph::reachable_callback_no_temp(Self, Int, FixedArray[Int], Int) -> Array[Int]
-pub fn DenseGraph::reachable_direct(Self, Int, FixedArray[Int], Int) -> Array[Int]
-pub fn DenseGraph::reachable_mark_rev(Self, Int, FixedArray[Int], Int) -> Array[Int]
-pub fn DenseGraph::reachable_reuse_buf(Self, Int, FixedArray[Int], Int) -> Array[Int]
-pub fn DenseGraph::reachable_trait(Self, Int, FixedArray[Int], Int) -> Array[Int]
 pub fn DenseGraph::reachable_with(Self, Int, FixedArray[Int], Int) -> Array[Int]
 pub fn DenseGraph::scc(Self) -> Array[Array[Int]]
-pub fn DenseGraph::scc_direct(Self) -> Array[Array[Int]]
 pub fn DenseGraph::toposort(Self) -> Array[Int]?
-pub fn DenseGraph::toposort_direct(Self) -> Array[Int]?
-pub fn DenseGraph::toposort_trait(Self) -> Array[Int]?
 pub fn DenseGraph::transpose(Self) -> Self
 pub fn DenseGraph::vertex_count(Self) -> Int
 pub impl DirectedGraph for DenseGraph
@@ -131,9 +76,6 @@ pub fn Graph::path(Array[Int]) -> Self
 pub fn Graph::remove_vertex(Self, Int) -> Self
 pub fn Graph::star(Int, Array[Int]) -> Self
 pub fn Graph::to_adjacency_map(Self) -> AdjacencyMap
-pub fn Graph::to_adjacency_map_cps(Self) -> AdjacencyMap
-pub fn Graph::to_adjacency_map_inner_fn(Self) -> AdjacencyMap
-pub fn Graph::to_adjacency_map_letrec(Self) -> AdjacencyMap
 pub fn Graph::vertices(Array[Int]) -> Self
 pub impl GraphSym for Graph
 

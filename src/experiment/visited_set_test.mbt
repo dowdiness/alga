@@ -25,14 +25,11 @@ fn sorted_components(comps : Array[Array[Int]]) -> Array[Array[Int]] {
 test "correctness/reachable/chain" {
   let g = @alga.AdjacencyMap::from_edges([(0, 1), (1, 2), (2, 3), (3, 4)])
   let expected = sorted(@alga.reachable(g, 0))
-  inspect(sorted(@alga.reachable_array(g, 0)) == expected, content="true")
-  inspect(sorted(@alga.reachable_fixedarray(g, 0)) == expected, content="true")
-  inspect(sorted(@alga.reachable_bitset(g, 0)) == expected, content="true")
+  inspect(sorted(reachable_array(g, 0)) == expected, content="true")
+  inspect(sorted(reachable_fixedarray(g, 0)) == expected, content="true")
+  inspect(sorted(reachable_bitset(g, 0)) == expected, content="true")
   let visited = FixedArray::make(5, 0)
-  inspect(
-    sorted(@alga.reachable_gen(g, 0, visited, 1)) == expected,
-    content="true",
-  )
+  inspect(sorted(reachable_gen(g, 0, visited, 1)) == expected, content="true")
 }
 
 // === DFS reachable — diamond graph ===
@@ -47,14 +44,11 @@ test "correctness/reachable/diamond" {
     (3, 4),
   ])
   let expected = sorted(@alga.reachable(g, 0))
-  inspect(sorted(@alga.reachable_array(g, 0)) == expected, content="true")
-  inspect(sorted(@alga.reachable_fixedarray(g, 0)) == expected, content="true")
-  inspect(sorted(@alga.reachable_bitset(g, 0)) == expected, content="true")
+  inspect(sorted(reachable_array(g, 0)) == expected, content="true")
+  inspect(sorted(reachable_fixedarray(g, 0)) == expected, content="true")
+  inspect(sorted(reachable_bitset(g, 0)) == expected, content="true")
   let visited = FixedArray::make(5, 0)
-  inspect(
-    sorted(@alga.reachable_gen(g, 0, visited, 1)) == expected,
-    content="true",
-  )
+  inspect(sorted(reachable_gen(g, 0, visited, 1)) == expected, content="true")
 }
 
 // === DFS reachable — disconnected graph ===
@@ -64,23 +58,17 @@ test "correctness/reachable/disconnected" {
   let g = @alga.AdjacencyMap::from_edges([(0, 1), (1, 2), (3, 4), (4, 5)])
   // From vertex 0: should only reach 0, 1, 2
   let expected = sorted(@alga.reachable(g, 0))
-  inspect(sorted(@alga.reachable_array(g, 0)) == expected, content="true")
-  inspect(sorted(@alga.reachable_fixedarray(g, 0)) == expected, content="true")
-  inspect(sorted(@alga.reachable_bitset(g, 0)) == expected, content="true")
+  inspect(sorted(reachable_array(g, 0)) == expected, content="true")
+  inspect(sorted(reachable_fixedarray(g, 0)) == expected, content="true")
+  inspect(sorted(reachable_bitset(g, 0)) == expected, content="true")
   let visited = FixedArray::make(6, 0)
-  inspect(
-    sorted(@alga.reachable_gen(g, 0, visited, 1)) == expected,
-    content="true",
-  )
+  inspect(sorted(reachable_gen(g, 0, visited, 1)) == expected, content="true")
   // From vertex 3: should reach 3, 4, 5
   let expected3 = sorted(@alga.reachable(g, 3))
-  inspect(sorted(@alga.reachable_array(g, 3)) == expected3, content="true")
-  inspect(sorted(@alga.reachable_fixedarray(g, 3)) == expected3, content="true")
-  inspect(sorted(@alga.reachable_bitset(g, 3)) == expected3, content="true")
-  inspect(
-    sorted(@alga.reachable_gen(g, 3, visited, 2)) == expected3,
-    content="true",
-  )
+  inspect(sorted(reachable_array(g, 3)) == expected3, content="true")
+  inspect(sorted(reachable_fixedarray(g, 3)) == expected3, content="true")
+  inspect(sorted(reachable_bitset(g, 3)) == expected3, content="true")
+  inspect(sorted(reachable_gen(g, 3, visited, 2)) == expected3, content="true")
 }
 
 // === DFS reachable — single vertex ===
@@ -89,14 +77,11 @@ test "correctness/reachable/disconnected" {
 test "correctness/reachable/single" {
   let g = @alga.AdjacencyMap::vertex(42)
   let expected = sorted(@alga.reachable(g, 42))
-  inspect(sorted(@alga.reachable_array(g, 42)) == expected, content="true")
-  inspect(sorted(@alga.reachable_fixedarray(g, 42)) == expected, content="true")
-  inspect(sorted(@alga.reachable_bitset(g, 42)) == expected, content="true")
+  inspect(sorted(reachable_array(g, 42)) == expected, content="true")
+  inspect(sorted(reachable_fixedarray(g, 42)) == expected, content="true")
+  inspect(sorted(reachable_bitset(g, 42)) == expected, content="true")
   let visited = FixedArray::make(43, 0)
-  inspect(
-    sorted(@alga.reachable_gen(g, 42, visited, 1)) == expected,
-    content="true",
-  )
+  inspect(sorted(reachable_gen(g, 42, visited, 1)) == expected, content="true")
 }
 
 // === DFS reachable — cycle ===
@@ -105,14 +90,11 @@ test "correctness/reachable/single" {
 test "correctness/reachable/cycle" {
   let g = @alga.AdjacencyMap::from_edges([(0, 1), (1, 2), (2, 3), (3, 0)])
   let expected = sorted(@alga.reachable(g, 0))
-  inspect(sorted(@alga.reachable_array(g, 0)) == expected, content="true")
-  inspect(sorted(@alga.reachable_fixedarray(g, 0)) == expected, content="true")
-  inspect(sorted(@alga.reachable_bitset(g, 0)) == expected, content="true")
+  inspect(sorted(reachable_array(g, 0)) == expected, content="true")
+  inspect(sorted(reachable_fixedarray(g, 0)) == expected, content="true")
+  inspect(sorted(reachable_bitset(g, 0)) == expected, content="true")
   let visited = FixedArray::make(4, 0)
-  inspect(
-    sorted(@alga.reachable_gen(g, 0, visited, 1)) == expected,
-    content="true",
-  )
+  inspect(sorted(reachable_gen(g, 0, visited, 1)) == expected, content="true")
 }
 
 // === Generation counter — reuse across multiple calls ===
@@ -122,13 +104,13 @@ test "correctness/gen/reuse" {
   let g = @alga.AdjacencyMap::from_edges([(0, 1), (1, 2), (3, 4)])
   let visited = FixedArray::make(5, 0)
   // Call 1: from vertex 0
-  let r1 = sorted(@alga.reachable_gen(g, 0, visited, 1))
+  let r1 = sorted(reachable_gen(g, 0, visited, 1))
   inspect(r1 == sorted(@alga.reachable(g, 0)), content="true")
   // Call 2: from vertex 3 — must not be confused by previous call's marks
-  let r2 = sorted(@alga.reachable_gen(g, 3, visited, 2))
+  let r2 = sorted(reachable_gen(g, 3, visited, 2))
   inspect(r2 == sorted(@alga.reachable(g, 3)), content="true")
   // Call 3: from vertex 0 again — still works after gen bump
-  let r3 = sorted(@alga.reachable_gen(g, 0, visited, 3))
+  let r3 = sorted(reachable_gen(g, 0, visited, 3))
   inspect(r3 == sorted(@alga.reachable(g, 0)), content="true")
 }
 
@@ -139,15 +121,12 @@ test "correctness/bfs/chain" {
   let g = @alga.AdjacencyMap::from_edges([(0, 1), (1, 2), (2, 3)])
   let count_fn : (Int, Int) -> (Int, Bool) = fn(acc, _v) { (acc + 1, true) }
   let expected = @alga.bfs_fold(g, 0, 0, count_fn)
-  inspect(@alga.bfs_fold_array(g, 0, 0, count_fn) == expected, content="true")
-  inspect(
-    @alga.bfs_fold_fixedarray(g, 0, 0, count_fn) == expected,
-    content="true",
-  )
-  inspect(@alga.bfs_fold_bitset(g, 0, 0, count_fn) == expected, content="true")
+  inspect(bfs_fold_array(g, 0, 0, count_fn) == expected, content="true")
+  inspect(bfs_fold_fixedarray(g, 0, 0, count_fn) == expected, content="true")
+  inspect(bfs_fold_bitset(g, 0, 0, count_fn) == expected, content="true")
   let visited = FixedArray::make(4, 0)
   inspect(
-    @alga.bfs_fold_gen(g, 0, 0, count_fn, visited, 1) == expected,
+    bfs_fold_gen(g, 0, 0, count_fn, visited, 1) == expected,
     content="true",
   )
 }
@@ -157,15 +136,12 @@ test "correctness/bfs/diamond" {
   let g = @alga.AdjacencyMap::from_edges([(0, 1), (0, 2), (1, 3), (2, 3)])
   let count_fn : (Int, Int) -> (Int, Bool) = fn(acc, _v) { (acc + 1, true) }
   let expected = @alga.bfs_fold(g, 0, 0, count_fn)
-  inspect(@alga.bfs_fold_array(g, 0, 0, count_fn) == expected, content="true")
-  inspect(
-    @alga.bfs_fold_fixedarray(g, 0, 0, count_fn) == expected,
-    content="true",
-  )
-  inspect(@alga.bfs_fold_bitset(g, 0, 0, count_fn) == expected, content="true")
+  inspect(bfs_fold_array(g, 0, 0, count_fn) == expected, content="true")
+  inspect(bfs_fold_fixedarray(g, 0, 0, count_fn) == expected, content="true")
+  inspect(bfs_fold_bitset(g, 0, 0, count_fn) == expected, content="true")
   let visited = FixedArray::make(4, 0)
   inspect(
-    @alga.bfs_fold_gen(g, 0, 0, count_fn, visited, 1) == expected,
+    bfs_fold_gen(g, 0, 0, count_fn, visited, 1) == expected,
     content="true",
   )
 }
@@ -177,9 +153,9 @@ test "correctness/bfs/gen_reuse" {
   let g = @alga.AdjacencyMap::from_edges([(0, 1), (1, 2), (3, 4)])
   let count_fn : (Int, Int) -> (Int, Bool) = fn(acc, _v) { (acc + 1, true) }
   let visited = FixedArray::make(5, 0)
-  let r1 = @alga.bfs_fold_gen(g, 0, 0, count_fn, visited, 1)
+  let r1 = bfs_fold_gen(g, 0, 0, count_fn, visited, 1)
   inspect(r1 == @alga.bfs_fold(g, 0, 0, count_fn), content="true")
-  let r2 = @alga.bfs_fold_gen(g, 3, 0, count_fn, visited, 2)
+  let r2 = bfs_fold_gen(g, 3, 0, count_fn, visited, 2)
   inspect(r2 == @alga.bfs_fold(g, 3, 0, count_fn), content="true")
 }
 
@@ -190,22 +166,22 @@ test "correctness/scc/dag" {
   // DAG: each vertex is its own SCC
   let g = @alga.AdjacencyMap::from_edges([(0, 1), (1, 2), (2, 3)])
   let expected = sorted_components(g.scc())
-  inspect(sorted_components(g.scc_array()) == expected, content="true")
-  inspect(sorted_components(g.scc_fixedarray()) == expected, content="true")
-  inspect(sorted_components(g.scc_bitset()) == expected, content="true")
+  inspect(sorted_components(scc_array(g)) == expected, content="true")
+  inspect(sorted_components(scc_fixedarray(g)) == expected, content="true")
+  inspect(sorted_components(scc_bitset(g)) == expected, content="true")
   let visited = FixedArray::make(4, 0)
-  inspect(sorted_components(g.scc_gen(visited, 1)) == expected, content="true")
+  inspect(sorted_components(scc_gen(g, visited, 1)) == expected, content="true")
 }
 
 ///|
 test "correctness/scc/single_cycle" {
   let g = @alga.AdjacencyMap::from_edges([(0, 1), (1, 2), (2, 0)])
   let expected = sorted_components(g.scc())
-  inspect(sorted_components(g.scc_array()) == expected, content="true")
-  inspect(sorted_components(g.scc_fixedarray()) == expected, content="true")
-  inspect(sorted_components(g.scc_bitset()) == expected, content="true")
+  inspect(sorted_components(scc_array(g)) == expected, content="true")
+  inspect(sorted_components(scc_fixedarray(g)) == expected, content="true")
+  inspect(sorted_components(scc_bitset(g)) == expected, content="true")
   let visited = FixedArray::make(3, 0)
-  inspect(sorted_components(g.scc_gen(visited, 1)) == expected, content="true")
+  inspect(sorted_components(scc_gen(g, visited, 1)) == expected, content="true")
 }
 
 ///|
@@ -220,22 +196,22 @@ test "correctness/scc/multiple_components" {
     (4, 3),
   ])
   let expected = sorted_components(g.scc())
-  inspect(sorted_components(g.scc_array()) == expected, content="true")
-  inspect(sorted_components(g.scc_fixedarray()) == expected, content="true")
-  inspect(sorted_components(g.scc_bitset()) == expected, content="true")
+  inspect(sorted_components(scc_array(g)) == expected, content="true")
+  inspect(sorted_components(scc_fixedarray(g)) == expected, content="true")
+  inspect(sorted_components(scc_bitset(g)) == expected, content="true")
   let visited = FixedArray::make(5, 0)
-  inspect(sorted_components(g.scc_gen(visited, 1)) == expected, content="true")
+  inspect(sorted_components(scc_gen(g, visited, 1)) == expected, content="true")
 }
 
 ///|
 test "correctness/scc/self_loop" {
   let g = @alga.AdjacencyMap::from_edges([(0, 0), (0, 1)])
   let expected = sorted_components(g.scc())
-  inspect(sorted_components(g.scc_array()) == expected, content="true")
-  inspect(sorted_components(g.scc_fixedarray()) == expected, content="true")
-  inspect(sorted_components(g.scc_bitset()) == expected, content="true")
+  inspect(sorted_components(scc_array(g)) == expected, content="true")
+  inspect(sorted_components(scc_fixedarray(g)) == expected, content="true")
+  inspect(sorted_components(scc_bitset(g)) == expected, content="true")
   let visited = FixedArray::make(2, 0)
-  inspect(sorted_components(g.scc_gen(visited, 1)) == expected, content="true")
+  inspect(sorted_components(scc_gen(g, visited, 1)) == expected, content="true")
 }
 
 // === SCC — gen counter reuse ===
@@ -246,10 +222,10 @@ test "correctness/scc/gen_reuse" {
   let g2 = @alga.AdjacencyMap::from_edges([(0, 1), (1, 2), (2, 0)])
   let visited = FixedArray::make(3, 0)
   // Call 1
-  let r1 = sorted_components(g1.scc_gen(visited, 1))
+  let r1 = sorted_components(scc_gen(g1, visited, 1))
   inspect(r1 == sorted_components(g1.scc()), content="true")
   // Call 2 — reuses same buffer with bumped gen (need +2 since scc uses gen and gen+1)
-  let r2 = sorted_components(g2.scc_gen(visited, 3))
+  let r2 = sorted_components(scc_gen(g2, visited, 3))
   inspect(r2 == sorted_components(g2.scc()), content="true")
 }
 
@@ -264,14 +240,11 @@ test "correctness/reachable/large_chain" {
   let g = @alga.AdjacencyMap::from_edges(edges)
   let expected = sorted(@alga.reachable(g, 0))
   inspect(expected.length(), content="1000")
-  inspect(sorted(@alga.reachable_array(g, 0)) == expected, content="true")
-  inspect(sorted(@alga.reachable_fixedarray(g, 0)) == expected, content="true")
-  inspect(sorted(@alga.reachable_bitset(g, 0)) == expected, content="true")
+  inspect(sorted(reachable_array(g, 0)) == expected, content="true")
+  inspect(sorted(reachable_fixedarray(g, 0)) == expected, content="true")
+  inspect(sorted(reachable_bitset(g, 0)) == expected, content="true")
   let visited = FixedArray::make(1000, 0)
-  inspect(
-    sorted(@alga.reachable_gen(g, 0, visited, 1)) == expected,
-    content="true",
-  )
+  inspect(sorted(reachable_gen(g, 0, visited, 1)) == expected, content="true")
 }
 
 ///|
@@ -285,11 +258,11 @@ test "correctness/scc/large_cycle" {
   // Should be one component with all 100 vertices
   inspect(expected.length(), content="1")
   inspect(expected[0].length(), content="100")
-  inspect(sorted_components(g.scc_array()) == expected, content="true")
-  inspect(sorted_components(g.scc_fixedarray()) == expected, content="true")
-  inspect(sorted_components(g.scc_bitset()) == expected, content="true")
+  inspect(sorted_components(scc_array(g)) == expected, content="true")
+  inspect(sorted_components(scc_fixedarray(g)) == expected, content="true")
+  inspect(sorted_components(scc_bitset(g)) == expected, content="true")
   let visited = FixedArray::make(100, 0)
-  inspect(sorted_components(g.scc_gen(visited, 1)) == expected, content="true")
+  inspect(sorted_components(scc_gen(g, visited, 1)) == expected, content="true")
 }
 
 // === Bitset edge case: vertex ID at word boundary (31, 32, 63, 64) ===
@@ -299,7 +272,7 @@ test "correctness/bitset/word_boundary" {
   let g = @alga.AdjacencyMap::from_edges([(0, 31), (31, 32), (32, 63), (63, 64)])
   let expected = sorted(@alga.reachable(g, 0))
   inspect(expected, content="[0, 31, 32, 63, 64]")
-  inspect(sorted(@alga.reachable_bitset(g, 0)) == expected, content="true")
+  inspect(sorted(reachable_bitset(g, 0)) == expected, content="true")
 }
 
 // === Toposort variants (from round 1) ===
@@ -309,10 +282,10 @@ test "correctness/toposort/chain" {
   let g = @alga.AdjacencyMap::from_edges([(0, 1), (1, 2), (2, 3)])
   let expected = @alga.toposort(g)
   inspect(expected is Some(_), content="true")
-  inspect(@alga.toposort_array(g) == expected, content="true")
-  inspect(@alga.toposort_hashset(g) is Some(_), content="true")
+  inspect(toposort_array(g) == expected, content="true")
+  inspect(toposort_hashset(g) is Some(_), content="true")
   // hashset may produce different valid ordering — just check it's valid
-  match @alga.toposort_hashset(g) {
+  match toposort_hashset(g) {
     Some(order) => inspect(order.length(), content="4")
     None => inspect(false, content="true")
   }
@@ -322,18 +295,18 @@ test "correctness/toposort/chain" {
 test "correctness/toposort/cycle_detection" {
   let g = @alga.AdjacencyMap::from_edges([(0, 1), (1, 2), (2, 0)])
   inspect(@alga.toposort(g) is None, content="true")
-  inspect(@alga.toposort_array(g) is None, content="true")
-  inspect(@alga.toposort_hashset(g) is None, content="true")
-  inspect(@alga.has_cycle_array(g), content="true")
-  inspect(@alga.has_cycle_hashset(g), content="true")
+  inspect(toposort_array(g) is None, content="true")
+  inspect(toposort_hashset(g) is None, content="true")
+  inspect(has_cycle_array(g), content="true")
+  inspect(has_cycle_hashset(g), content="true")
 }
 
 ///|
 test "correctness/toposort/acyclic" {
   let g = @alga.AdjacencyMap::from_edges([(0, 1), (0, 2), (1, 3), (2, 3)])
   inspect(@alga.toposort(g) is Some(_), content="true")
-  inspect(@alga.toposort_array(g) is Some(_), content="true")
-  inspect(@alga.toposort_hashset(g) is Some(_), content="true")
-  inspect(@alga.has_cycle_array(g), content="false")
-  inspect(@alga.has_cycle_hashset(g), content="false")
+  inspect(toposort_array(g) is Some(_), content="true")
+  inspect(toposort_hashset(g) is Some(_), content="true")
+  inspect(has_cycle_array(g), content="false")
+  inspect(has_cycle_hashset(g), content="false")
 }
