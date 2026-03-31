@@ -62,10 +62,8 @@ pub fn AdjacencyMap::vertex(v : Int) -> AdjacencyMap {
 pub fn AdjacencyMap::edge(u : Int, v : Int) -> AdjacencyMap {
   let m : Map[Int, Array[Int]] = Map::new()
   m[u] = [v]
-  if !(m.contains(u) && u == v) {
-    if !m.contains(v) {
-      m[v] = []
-    }
+  if u != v {
+    m[v] = []
   }
   { adjacency: m }
 }
