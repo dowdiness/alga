@@ -67,12 +67,12 @@ pub fn[G : @alga.DirectedGraph, Acc] dfs_fold_hashset(
     visited.add(v)
     let result = f(acc, v)
     acc = result.0
-    if not(result.1) {
+    if !result.1 {
       break
     }
     let succs : Array[Int] = []
     @alga.DirectedGraph::for_each_successor(graph, v, fn(w) {
-      if not(visited.contains(w)) {
+      if !visited.contains(w) {
         succs.push(w)
       }
     })
@@ -117,12 +117,12 @@ pub fn[G : @alga.DirectedGraph, Acc] dfs_fold_array(
     visited[v] = true
     let result = f(acc, v)
     acc = result.0
-    if not(result.1) {
+    if !result.1 {
       break
     }
     let succs : Array[Int] = []
     @alga.DirectedGraph::for_each_successor(graph, v, fn(w) {
-      if not(visited[w]) {
+      if !visited[w] {
         succs.push(w)
       }
     })
@@ -165,11 +165,11 @@ pub fn[G : @alga.DirectedGraph, Acc] bfs_fold_hashset(
     head = head + 1
     let result = f(acc, v)
     acc = result.0
-    if not(result.1) {
+    if !result.1 {
       break
     }
     @alga.DirectedGraph::for_each_successor(graph, v, fn(w) {
-      if not(visited.contains(w)) {
+      if !visited.contains(w) {
         visited.add(w)
         queue.push(w)
       }
@@ -200,11 +200,11 @@ pub fn[G : @alga.DirectedGraph, Acc] bfs_fold_array(
     head = head + 1
     let result = f(acc, v)
     acc = result.0
-    if not(result.1) {
+    if !result.1 {
       break
     }
     @alga.DirectedGraph::for_each_successor(graph, v, fn(w) {
-      if not(visited[w]) {
+      if !visited[w] {
         visited[w] = true
         queue.push(w)
       }
@@ -332,7 +332,7 @@ pub fn scc_hashset(graph : @alga.AdjacencyMap) -> Array[Array[Int]] {
       if si < succs.length() {
         stack[top_idx] = (v, si + 1, succs)
         let w = succs[si]
-        if not(visited.contains(w)) {
+        if !visited.contains(w) {
           visited.add(w)
           stack.push((w, 0, graph.successors(w)))
         }
@@ -357,7 +357,7 @@ pub fn scc_hashset(graph : @alga.AdjacencyMap) -> Array[Array[Int]] {
       let v = stack.unsafe_pop()
       component.push(v)
       @alga.DirectedGraph::for_each_successor(transposed, v, fn(w) {
-        if not(visited2.contains(w)) {
+        if !visited2.contains(w) {
           visited2.add(w)
           stack.push(w)
         }
@@ -392,7 +392,7 @@ pub fn scc_array(graph : @alga.AdjacencyMap) -> Array[Array[Int]] {
       if si < succs.length() {
         stack[top_idx] = (v, si + 1, succs)
         let w = succs[si]
-        if not(visited[w]) {
+        if !visited[w] {
           visited[w] = true
           stack.push((w, 0, graph.successors(w)))
         }
@@ -417,7 +417,7 @@ pub fn scc_array(graph : @alga.AdjacencyMap) -> Array[Array[Int]] {
       let v = stack.unsafe_pop()
       component.push(v)
       @alga.DirectedGraph::for_each_successor(transposed, v, fn(w) {
-        if not(visited2[w]) {
+        if !visited2[w] {
           visited2[w] = true
           stack.push(w)
         }
@@ -451,12 +451,12 @@ pub fn[G : @alga.DirectedGraph, Acc] dfs_fold_fixedarray(
     visited[v] = true
     let result = f(acc, v)
     acc = result.0
-    if not(result.1) {
+    if !result.1 {
       break
     }
     let succs : Array[Int] = []
     @alga.DirectedGraph::for_each_successor(graph, v, fn(w) {
-      if not(visited[w]) {
+      if !visited[w] {
         succs.push(w)
       }
     })
@@ -533,7 +533,7 @@ pub fn[G : @alga.DirectedGraph] reachable_bitset(
     result.push(v)
     let succs : Array[Int] = []
     @alga.DirectedGraph::for_each_successor(graph, v, fn(w) {
-      if not(bitset_test(words, w)) {
+      if !bitset_test(words, w) {
         succs.push(w)
       }
     })
@@ -566,11 +566,11 @@ pub fn[G : @alga.DirectedGraph, Acc] bfs_fold_fixedarray(
     head = head + 1
     let result = f(acc, v)
     acc = result.0
-    if not(result.1) {
+    if !result.1 {
       break
     }
     @alga.DirectedGraph::for_each_successor(graph, v, fn(w) {
-      if not(visited[w]) {
+      if !visited[w] {
         visited[w] = true
         queue.push(w)
       }
@@ -601,7 +601,7 @@ pub fn[G : @alga.DirectedGraph, Acc] bfs_fold_gen(
     head = head + 1
     let result = f(acc, v)
     acc = result.0
-    if not(result.1) {
+    if !result.1 {
       break
     }
     @alga.DirectedGraph::for_each_successor(graph, v, fn(w) {
@@ -636,11 +636,11 @@ pub fn[G : @alga.DirectedGraph, Acc] bfs_fold_bitset(
     head = head + 1
     let result = f(acc, v)
     acc = result.0
-    if not(result.1) {
+    if !result.1 {
       break
     }
     @alga.DirectedGraph::for_each_successor(graph, v, fn(w) {
-      if not(bitset_test(words, w)) {
+      if !bitset_test(words, w) {
         bitset_set(words, w)
         queue.push(w)
       }
@@ -673,7 +673,7 @@ pub fn scc_fixedarray(graph : @alga.AdjacencyMap) -> Array[Array[Int]] {
       if si < succs.length() {
         stack[top_idx] = (v, si + 1, succs)
         let w = succs[si]
-        if not(visited[w]) {
+        if !visited[w] {
           visited[w] = true
           stack.push((w, 0, graph.successors(w)))
         }
@@ -698,7 +698,7 @@ pub fn scc_fixedarray(graph : @alga.AdjacencyMap) -> Array[Array[Int]] {
       let v = stack.unsafe_pop()
       component.push(v)
       @alga.DirectedGraph::for_each_successor(transposed, v, fn(w) {
-        if not(visited2[w]) {
+        if !visited2[w] {
           visited2[w] = true
           stack.push(w)
         }
@@ -797,7 +797,7 @@ pub fn scc_bitset(graph : @alga.AdjacencyMap) -> Array[Array[Int]] {
       if si < succs.length() {
         stack[top_idx] = (v, si + 1, succs)
         let w = succs[si]
-        if not(bitset_test(visited, w)) {
+        if !bitset_test(visited, w) {
           bitset_set(visited, w)
           stack.push((w, 0, graph.successors(w)))
         }
@@ -822,7 +822,7 @@ pub fn scc_bitset(graph : @alga.AdjacencyMap) -> Array[Array[Int]] {
       let v = stack.unsafe_pop()
       component.push(v)
       @alga.DirectedGraph::for_each_successor(transposed, v, fn(w) {
-        if not(bitset_test(visited2, w)) {
+        if !bitset_test(visited2, w) {
           bitset_set(visited2, w)
           stack.push(w)
         }

@@ -20,7 +20,7 @@ test "to_adjacency_map preserves structure" {
   assert_eq(am.vertex_count(), 3)
   assert_true(am.has_edge(1, 2))
   assert_true(am.has_edge(1, 3))
-  assert_true(not(am.has_edge(2, 3)))
+  assert_true(!am.has_edge(2, 3))
 }
 
 ///|
@@ -57,7 +57,7 @@ test "induce filtering" {
   let filtered = g.induce(fn(v) { v != 2 })
   let am = filtered.to_adjacency_map()
   assert_true(am.has_vertex(1))
-  assert_true(not(am.has_vertex(2)))
+  assert_true(!am.has_vertex(2))
   assert_true(am.has_vertex(3))
   assert_true(am.has_vertex(4))
 }
@@ -69,7 +69,7 @@ test "path combinator" {
   assert_eq(am.edge_count(), 2)
   assert_true(am.has_edge(1, 2))
   assert_true(am.has_edge(2, 3))
-  assert_true(not(am.has_edge(1, 3)))
+  assert_true(!am.has_edge(1, 3))
 }
 
 ///|
@@ -111,7 +111,7 @@ test "roundtrip path to adjacency_map" {
   let am = g.to_adjacency_map()
   assert_true(am.has_edge(1, 2))
   assert_true(am.has_edge(2, 3))
-  assert_true(not(am.has_edge(3, 1)))
+  assert_true(!am.has_edge(3, 1))
 }
 
 ///|
@@ -128,7 +128,7 @@ test "remove_vertex" {
   let removed = g.remove_vertex(2)
   let am = removed.to_adjacency_map()
   assert_true(am.has_vertex(1))
-  assert_true(not(am.has_vertex(2)))
+  assert_true(!am.has_vertex(2))
   assert_true(am.has_vertex(3))
 }
 

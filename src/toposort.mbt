@@ -102,20 +102,20 @@ pub fn[G : DirectedGraph] toposort_subset(
   graph : G,
   vertices : Array[Int],
 ) -> Array[Int]? {
-  // Build membership set (deduplicates) for O(1) lookup
-  let member : @hashset.HashSet[Int] = @hashset.new()
+  // Build subsetship set (deduplicates) for O(1) lookup
+  let subset : @hashset.HashSet[Int] = @hashset.new()
   for v in vertices {
-    member.add(v)
+    subset.add(v)
   }
-  let n = member.size()
+  let n = subset.length()
   if n == 0 {
     return Some([])
   }
   // Compute in-degrees within the induced subgraph
   let in_degree : @hashmap.HashMap[Int, Int] = @hashmap.new()
-  member.each(fn(v) {
+  subset.each(fn(v) {
     G::for_each_successor(graph, v, fn(w) {
-      if member.contains(w) {
+      if subset.contains(w) {
         match in_degree.get(w) {
           Some(d) => in_degree[w] = d + 1
           None => in_degree[w] = 1
@@ -125,7 +125,7 @@ pub fn[G : DirectedGraph] toposort_subset(
   })
   // Seed queue with zero-in-degree subset vertices
   let queue : Array[Int] = []
-  member.each(fn(v) { if not(in_degree.contains(v)) { queue.push(v) } })
+  subset.each(fn(v) { if !in_degree.contains(v) { queue.push(v) } })
   // Process queue
   let result : Array[Int] = []
   let mut head = 0
@@ -134,7 +134,7 @@ pub fn[G : DirectedGraph] toposort_subset(
     head = head + 1
     result.push(v)
     G::for_each_successor(graph, v, fn(w) {
-      if member.contains(w) {
+      if subset.contains(w) {
         match in_degree.get(w) {
           Some(d) => {
             in_degree[w] = d - 1

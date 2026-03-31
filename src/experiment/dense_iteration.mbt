@@ -236,7 +236,7 @@ pub fn scc_direct(graph : @alga.DenseGraph) -> Array[Array[Int]] {
       if si < succs.length() {
         stack[top_idx] = (v, si + 1)
         let w = succs[si]
-        if not(visited[w]) {
+        if !visited[w] {
           visited[w] = true
           stack.push((w, 0))
         }
@@ -263,7 +263,7 @@ pub fn scc_direct(graph : @alga.DenseGraph) -> Array[Array[Int]] {
       let succs = transposed.successors[v]
       for j in (succs.length() - 1)>=..0 {
         let w = succs[j]
-        if not(visited2[w]) {
+        if !visited2[w] {
           visited2[w] = true
           stack.push(w)
         }

@@ -1,5 +1,6 @@
 import {
   "dowdiness/alga",
+  "moonbitlang/core/bench",
   "moonbitlang/core/hashmap",
   "moonbitlang/core/hashset",
 }

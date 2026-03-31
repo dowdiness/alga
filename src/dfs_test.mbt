@@ -16,7 +16,7 @@ test "reachable from middle" {
   assert_eq(r.length(), 2)
   assert_true(r.contains(3))
   assert_true(r.contains(4))
-  assert_true(not(r.contains(1)))
+  assert_true(!r.contains(1))
 }
 
 ///|
@@ -33,7 +33,7 @@ test "reachable disconnected" {
   assert_eq(r.length(), 2)
   assert_true(r.contains(1))
   assert_true(r.contains(2))
-  assert_true(not(r.contains(3)))
+  assert_true(!r.contains(3))
 }
 
 ///|

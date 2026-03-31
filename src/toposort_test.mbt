@@ -197,13 +197,13 @@ test "toposort_subset self loop in subset" {
 ///|
 test "has_cycle" {
   let linear = @alga.AdjacencyMap::from_edges([(1, 2), (2, 3)])
-  assert_true(not(@alga.has_cycle(linear)))
+  assert_true(!@alga.has_cycle(linear))
   let cycle = @alga.AdjacencyMap::from_edges([(1, 2), (2, 3), (3, 1)])
   assert_true(@alga.has_cycle(cycle))
   let self_loop = @alga.AdjacencyMap::from_edges([(1, 1)])
   assert_true(@alga.has_cycle(self_loop))
   let empty = @alga.AdjacencyMap::empty()
-  assert_true(not(@alga.has_cycle(empty)))
+  assert_true(!@alga.has_cycle(empty))
   let single = @alga.AdjacencyMap::vertex(1)
-  assert_true(not(@alga.has_cycle(single)))
+  assert_true(!@alga.has_cycle(single))
 }

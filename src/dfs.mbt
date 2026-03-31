@@ -51,7 +51,7 @@ pub fn[G : DirectedGraph, Acc] dfs_fold(
     visited[v] = true
     let result = f(acc, v)
     acc = result.0
-    if not(result.1) {
+    if !result.1 {
       break
     }
     // Push successors directly, then reverse in place so first successor

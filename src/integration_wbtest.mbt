@@ -51,7 +51,7 @@ test "external impl: toposort" {
 test "external impl: has_cycle" {
   // Acyclic
   let g : ArrayGraph = { successors: [[1], [2], [3], []] }
-  assert_true(not(has_cycle(g)))
+  assert_true(!has_cycle(g))
 }
 
 ///|

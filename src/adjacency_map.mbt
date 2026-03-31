@@ -62,8 +62,8 @@ pub fn AdjacencyMap::vertex(v : Int) -> AdjacencyMap {
 pub fn AdjacencyMap::edge(u : Int, v : Int) -> AdjacencyMap {
   let m : Map[Int, Array[Int]] = Map::new()
   m[u] = [v]
-  if not(m.contains(u) && u == v) {
-    if not(m.contains(v)) {
+  if !(m.contains(u) && u == v) {
+    if !m.contains(v) {
       m[v] = []
     }
   }
@@ -84,7 +84,7 @@ pub fn AdjacencyMap::from_edges(edges : Array[(Int, Int)]) -> AdjacencyMap {
     let v = edge.1
     match seen.get(u) {
       Some(set) =>
-        if not(set.contains(v)) {
+        if !set.contains(v) {
           set.add(v)
           match m.get(u) {
             Some(arr) => arr.push(v)
@@ -98,7 +98,7 @@ pub fn AdjacencyMap::from_edges(edges : Array[(Int, Int)]) -> AdjacencyMap {
         m[u] = [v]
       }
     }
-    if not(m.contains(v)) {
+    if !m.contains(v) {
       m[v] = []
     }
   }
@@ -140,7 +140,7 @@ pub fn AdjacencyMap::overlay(
           }
         }
         for elem in v {
-          if not(set.contains(elem)) {
+          if !set.contains(elem) {
             set.add(elem)
             existing.push(elem)
           }
@@ -190,7 +190,7 @@ pub fn AdjacencyMap::connect(
       set.add(elem)
     }
     for ov in other_vertices {
-      if not(set.contains(ov)) {
+      if !set.contains(ov) {
         set.add(ov)
         current.push(ov)
       }
@@ -270,7 +270,7 @@ pub fn AdjacencyMap::transpose(self : AdjacencyMap) -> AdjacencyMap {
   let m : Map[Int, Array[Int]] = Map::new()
   let seen : Map[Int, @hashset.HashSet[Int]] = Map::new()
   for k, _ in self.adjacency {
-    if not(m.contains(k)) {
+    if !m.contains(k) {
       m[k] = []
       seen[k] = @hashset.new()
     }
@@ -285,7 +285,7 @@ pub fn AdjacencyMap::transpose(self : AdjacencyMap) -> AdjacencyMap {
           s
         }
       }
-      if not(set.contains(u)) {
+      if !set.contains(u) {
         set.add(u)
         match m.get(v) {
           Some(arr) => arr.push(u)

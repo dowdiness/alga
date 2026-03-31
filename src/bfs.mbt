@@ -48,7 +48,7 @@ pub fn[G : DirectedGraph, Acc] bfs_fold(
     head = head + 1
     let result = f(acc, v)
     acc = result.0
-    if not(result.1) {
+    if !result.1 {
       break
     }
     G::for_each_successor(graph, v, fn(w) {
