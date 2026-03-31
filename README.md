@@ -136,6 +136,13 @@ Benchmarks on a 1,000-vertex chain graph (WASM-GC, release mode):
 
 Run benchmarks: `moon bench --release`
 
+## Documentation
+
+- [Philosophy](docs/philosophy.md) — why algebraic graphs, the Mokhov axiom system, design principles
+- [Architecture](docs/architecture.md) — two-layer design, trait system, file map
+- [Performance (2026-03-31)](docs/performance-2026-03-31.md) — benchmark data, optimization history, representation choice guide
+- [TODO](docs/TODO.md) — active backlog
+
 ## References
 
 - Andrey Mokhov, [Algebraic Graphs with Class](https://dl.acm.org/doi/10.1145/3122955.3122956) (Haskell Symposium, 2017) — the foundational paper
