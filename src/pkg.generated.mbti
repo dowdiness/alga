@@ -16,6 +16,8 @@ pub fn[G : DirectedGraph] reachable(G, Int) -> Array[Int]
 
 pub fn[G : DirectedGraph] toposort(G) -> Array[Int]?
 
+pub fn[G : DirectedGraph] toposort_subset(G, Array[Int]) -> Array[Int]?
+
 // Errors
 
 // Types and methods
