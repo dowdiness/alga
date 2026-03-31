@@ -33,13 +33,26 @@ pub impl @coreqc.Arbitrary for Graph with arbitrary(size, rs) {
 
 ///|
 /// Shrink implementation for Graph.
-/// Each candidate is strictly simpler than the original:
-/// subexpressions, weakened form (Connect→Overlay), or Empty.
+/// Yields candidates in order of simplicity:
+/// 1. Whole subexpressions (drop one side)
+/// 2. Weakened form (Connect→Overlay)
+/// 3. Collapse to Empty
+/// 4. Recursive shrinks inside each child (preserves constructor)
 pub impl @qc.Shrink for Graph with shrink(self) {
   match self {
     Empty => Iter::empty()
     Vertex(_) => [Empty].iter()
-    Overlay(a, b) => [a, b, Empty].iter()
-    Connect(a, b) => [a, b, Overlay(a, b), Empty].iter()
+    Overlay(a, b) =>
+      // Subexpressions first, then shrink inside each child
+      [a, b, Empty]
+      .iter()
+      .concat(@qc.Shrink::shrink(a).map(fn(a1) { Overlay(a1, b) }))
+      .concat(@qc.Shrink::shrink(b).map(fn(b1) { Overlay(a, b1) }))
+    Connect(a, b) =>
+      // Subexpressions, weaken to Overlay, then shrink inside each child
+      [a, b, Overlay(a, b), Empty]
+      .iter()
+      .concat(@qc.Shrink::shrink(a).map(fn(a1) { Connect(a1, b) }))
+      .concat(@qc.Shrink::shrink(b).map(fn(b1) { Connect(a, b1) }))
   }
 }

@@ -328,22 +328,38 @@ test "law: connect distributes over overlay (right)" {
 ///|
 /// Axiom 8 — Connect decomposes into overlay plus cross-edges.
 ///
-/// connect(a, b) contains everything in overlay(a, b)
+/// connect(a, b) == overlay(a, b) + { u→v | u ∈ vertices(a), v ∈ vertices(b) }
 ///
-/// Connect is "overlay plus extra edges." Every vertex and edge
-/// present in overlay(a, b) must also be present in connect(a, b).
-/// The additional edges in connect are the cross-edges from every
-/// vertex in a to every vertex in b.
+/// This is the axiom that gives connect its meaning: it takes the
+/// union of two graphs AND adds directed edges from every vertex
+/// in the left graph to every vertex in the right graph.
 ///
-/// This is verified by checking that overlay(a, b) is a subgraph
-/// of connect(a, b): all vertices and all edges are preserved.
+/// We verify both directions:
+/// (a) overlay(a, b) is a subgraph of connect(a, b) — no edges lost
+/// (b) every edge in connect(a, b) that isn't in overlay(a, b) is
+///     a cross-edge u→v where u ∈ vertices(a) and v ∈ vertices(b)
+///
+/// Together these ensure connect can't silently degenerate to overlay
+/// (would fail b) or add spurious non-cross edges (would also fail b).
 test "law: connect decomposes to overlay" {
   @qc.quick_check_fn(fn(pair : (@alga.Graph, @alga.Graph)) -> Bool {
     let (a, b) = pair
     let connected = to_am(@alga.Connect(a, b))
     let overlaid = to_am(@alga.Overlay(a, b))
-    // overlay(a, b) must be a subgraph of connect(a, b)
-    overlaid.vertex_list().all(fn(v) { connected.has_vertex(v) }) &&
-    overlaid.edge_list().all(fn(e) { connected.has_edge(e.0, e.1) })
+    let am_a = to_am(a)
+    let am_b = to_am(b)
+    // (a) overlay(a, b) is a subgraph of connect(a, b)
+    let overlay_subset = overlaid
+      .vertex_list()
+      .all(fn(v) { connected.has_vertex(v) }) &&
+      overlaid.edge_list().all(fn(e) { connected.has_edge(e.0, e.1) })
+    // (b) every extra edge in connect must be a cross-edge from a's vertices to b's
+    let extras_are_cross = connected
+      .edge_list()
+      .all(fn(e) {
+        overlaid.has_edge(e.0, e.1) ||
+        (am_a.has_vertex(e.0) && am_b.has_vertex(e.1))
+      })
+    overlay_subset && extras_are_cross
   })
 }
