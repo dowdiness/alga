@@ -72,6 +72,7 @@ pub fn[G : DirectedGraph, Acc] bfs_fold(
 /// are visited only once.
 ///
 /// Time: O(V + E) where V and E are the reachable vertices and edges.
+/// Seed validation calls `has_vertex` — override it for O(1) on custom types.
 pub fn[G : DirectedGraph, Acc] bfs_fold_multi(
   graph : G,
   starts : Array[Int],
@@ -81,7 +82,7 @@ pub fn[G : DirectedGraph, Acc] bfs_fold_multi(
   let visited : Map[Int, Bool] = Map::new()
   let queue : Array[Int] = []
   for s in starts {
-    if G::has_vertex(graph, s) && visited.get(s) != Some(true) {
+    if !visited.contains(s) && G::has_vertex(graph, s) {
       visited[s] = true
       queue.push(s)
     }
@@ -97,7 +98,7 @@ pub fn[G : DirectedGraph, Acc] bfs_fold_multi(
       break
     }
     G::for_each_successor(graph, v, fn(w) {
-      if visited.get(w) != Some(true) {
+      if !visited.contains(w) {
         visited[w] = true
         queue.push(w)
       }

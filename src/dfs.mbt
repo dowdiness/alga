@@ -98,6 +98,7 @@ pub fn[G : DirectedGraph] reachable(graph : G, start : Int) -> Array[Int] {
 /// are visited only once.
 ///
 /// Time: O(V + E) where V and E are the reachable vertices and edges.
+/// Seed validation calls `has_vertex` — override it for O(1) on custom types.
 pub fn[G : DirectedGraph, Acc] dfs_fold_multi(
   graph : G,
   starts : Array[Int],
@@ -106,14 +107,16 @@ pub fn[G : DirectedGraph, Acc] dfs_fold_multi(
 ) -> Acc {
   let visited : Map[Int, Bool] = Map::new()
   let stack : Array[Int] = []
-  // Deduplicate seeds and filter invalid vertices.
-  // Push in reverse so that starts[0] ends up on top of the stack.
-  let seeded : Map[Int, Bool] = Map::new()
+  // Seed in reverse order so starts[0] ends up on top of the stack (LIFO).
+  // Use visited for dedup — seeds are pushed but NOT marked as visited,
+  // so the main loop's visited-check + fold runs normally for each seed.
+  // After seeding, clear visited so the main loop starts fresh.
+  let seen : @hashset.HashSet[Int] = @hashset.new()
   let mut i = starts.length() - 1
   while i >= 0 {
     let s = starts[i]
-    if G::has_vertex(graph, s) && seeded.get(s) != Some(true) {
-      seeded[s] = true
+    if !seen.contains(s) && G::has_vertex(graph, s) {
+      seen.add(s)
       stack.push(s)
     }
     i = i - 1
@@ -121,7 +124,7 @@ pub fn[G : DirectedGraph, Acc] dfs_fold_multi(
   let mut acc = init
   while stack.length() > 0 {
     let v = stack.unsafe_pop()
-    if visited.get(v) == Some(true) {
+    if visited.contains(v) {
       continue
     }
     visited[v] = true
@@ -134,7 +137,7 @@ pub fn[G : DirectedGraph, Acc] dfs_fold_multi(
     // is on top of the stack. Avoids per-vertex temporary array allocation.
     let mark = stack.length()
     G::for_each_successor(graph, v, fn(w) {
-      if visited.get(w) != Some(true) {
+      if !visited.contains(w) {
         stack.push(w)
       }
     })
