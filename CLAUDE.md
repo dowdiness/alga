@@ -16,7 +16,7 @@ Single module: `dowdiness/alga`
 ## Commands
 
 ```bash
-moon check && moon test        # lint + tests
+moon check && moon test        # lint + tests (includes property-based law tests)
 moon bench --release           # benchmarks (always --release)
 moon info && moon fmt          # before committing
 ```
@@ -29,6 +29,8 @@ moon info && moon fmt          # before committing
 - **Iterative algorithms:** DFS and SCC use explicit stacks, not recursion (tested up to 10K+ vertices)
 - **SCC algorithm:** Kosaraju (requires `transpose`, specific to `AdjacencyMap`)
 - **All other algorithms** are generic over `DirectedGraph`
+- **Property tests:** All 8 algebraic graph laws (Mokhov 2017) verified with `moonbitlang/quickcheck`
+- **External dep:** `moonbitlang/quickcheck` (aliased `@qc`) for property-based testing with shrinking
 
 ## References
 

@@ -3,6 +3,7 @@ package "dowdiness/alga"
 
 import {
   "moonbitlang/core/debug",
+  "moonbitlang/core/quickcheck/splitmix",
 }
 
 // Values
@@ -89,6 +90,8 @@ pub fn Graph::vertices(Array[Int]) -> Self
 pub impl GraphSym for Graph
 pub impl Show for Graph
 pub impl @debug.Debug for Graph
+pub impl @moonbitlang/core/quickcheck.Arbitrary for Graph
+pub impl @moonbitlang/quickcheck.Shrink for Graph
 
 // Type aliases
 

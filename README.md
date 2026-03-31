@@ -113,6 +113,8 @@ impl DirectedGraph for MyGraph with for_each_successor(self, v, f) {
 
 **Iterative algorithms:** DFS and SCC use explicit stacks instead of recursion, preventing stack overflow on deep graphs (tested up to 10K+ vertices).
 
+**Property-tested algebraic laws:** All 8 axioms from Mokhov (2017) are verified with property-based testing using [`moonbitlang/quickcheck`](https://github.com/moonbitlang/quickcheck) — overlay commutativity/associativity/identity, connect associativity/identity, left and right distributivity, and decomposition. Each law is tested against 100 random graph expressions with automatic shrinking of counterexamples.
+
 ## Performance
 
 Benchmarks on a 1,000-vertex chain graph (WASM-GC, release mode):
