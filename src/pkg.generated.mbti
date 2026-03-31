@@ -101,9 +101,10 @@ pub impl @moonbitlang/quickcheck.Shrink for Graph
 
 // Traits
 pub(open) trait DirectedGraph {
-  vertex_count(Self) -> Int
   for_each_vertex(Self, (Int) -> Unit) -> Unit
   for_each_successor(Self, Int, (Int) -> Unit) -> Unit
+  vertex_count(Self) -> Int = _
+  has_vertex(Self, Int) -> Bool = _
 }
 
 pub(open) trait GraphSym {

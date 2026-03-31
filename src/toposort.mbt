@@ -104,20 +104,27 @@ pub fn[G : DirectedGraph] has_cycle(graph : G) -> Bool {
 /// if it contains a cycle. Returns `Some([])` for an empty vertex set.
 /// Duplicate vertices in the input are handled correctly.
 ///
-/// **Precondition:** All vertex IDs in `vertices` must be valid vertices
-/// in `graph`. Passing an out-of-range ID may panic on implementations
-/// like `DenseGraph` where `for_each_successor` indexes directly.
+/// **Input validation:** Invalid vertex IDs (not present in the graph)
+/// are silently filtered out rather than causing errors or panics.
+/// This makes `toposort_subset` composable — callers don't need to
+/// pre-validate their vertex list against the graph, which matters
+/// when the list may lag behind graph mutations. The filtering cost
+/// is O(k) with O(1) `has_vertex` overrides (AdjacencyMap, DenseGraph),
+/// or O(k * V) for types using the O(V) default.
 ///
 /// Time: O(V_sub + E_sub). Space: O(V_sub).
 pub fn[G : DirectedGraph] toposort_subset(
   graph : G,
   vertices : Array[Int],
 ) -> Array[Int]? {
-  // Build membership set and deduplicated vertex list (preserves input order)
+  // Build membership set and deduplicated vertex list (preserves input order).
+  // has_vertex filters out IDs not in the graph — prevents panics on
+  // DenseGraph (out-of-bounds) and inconsistent results on AdjacencyMap
+  // (unknown IDs treated as isolated vertices with in-degree 0).
   let subset : @hashset.HashSet[Int] = @hashset.new()
   let unique : Array[Int] = []
   for v in vertices {
-    if !subset.contains(v) {
+    if !subset.contains(v) && G::has_vertex(graph, v) {
       subset.add(v)
       unique.push(v)
     }

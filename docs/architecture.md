@@ -8,9 +8,10 @@ Layer A: Observation                    Layer B: Construction
 
   ┌─────────────────┐                    ┌──────────────────┐
   │ DirectedGraph    │                    │ GraphSym         │
-  │  vertex_count    │                    │  empty, vertex   │
-  │  for_each_vertex │                    │  overlay, connect│
-  │  for_each_succ.  │                    └──────┬───────────┘
+  │  for_each_vertex │                    │  empty, vertex   │
+  │  for_each_succ.  │                    │  overlay, connect│
+  │  vertex_count*   │                    └──────┬───────────┘
+  │  has_vertex*     │
   └──────┬──────────┘                           │
          │                                       │ implements
          │ implements                             │
@@ -31,17 +32,18 @@ Layer A: Observation                    Layer B: Construction
 
 ## Layer A: Observation
 
-The `DirectedGraph` trait is the foundation. It has exactly three methods:
+The `DirectedGraph` trait is the foundation. It has two required methods and two defaulted methods:
 
 ```moonbit
 pub(open) trait DirectedGraph {
-  vertex_count(Self) -> Int
   for_each_vertex(Self, (Int) -> Unit) -> Unit
   for_each_successor(Self, Int, (Int) -> Unit) -> Unit
+  vertex_count(Self) -> Int = _
+  has_vertex(Self, Int) -> Bool = _
 }
 ```
 
-Any type that implements these three methods gets every generic algorithm for free. The trait is deliberately minimal — adding methods increases the implementation burden for new types.
+Any type that implements the two required methods gets every generic algorithm for free — `vertex_count` and `has_vertex` have O(V) defaults derived from `for_each_vertex`. Override them for O(1) when your data structure supports constant-time queries. The trait is deliberately minimal — adding required methods increases the implementation burden for new types.
 
 ### Callback-style iteration
 

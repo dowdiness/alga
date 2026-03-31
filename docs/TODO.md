@@ -12,6 +12,7 @@ Active backlog for alga. Each item links to its source; non-trivial items should
 
 ## Done
 
+- **~~has_vertex trait method + default vertex_count~~** — Added `has_vertex` and defaulted `vertex_count` on `DirectedGraph`. Only 2 methods required now. `toposort_subset` filters invalid vertices. Closes [#20](https://github.com/dowdiness/alga/issues/20)
 - **~~Show/Debug for Graph and DenseGraph~~** — Added `Show` and `Debug` impls for `Graph`, `DenseGraph`, and `AdjacencyMap`. Closed [#11](https://github.com/dowdiness/alga/issues/11)
 - **~~Property-based tests for algebraic graph laws~~** — 8 property tests (100 random cases each) verifying all Mokhov 2017 axioms using `moonbitlang/quickcheck`. Also fixed a shared-mutable-array bug in `to_adjacency_map`. Closes [#14](https://github.com/dowdiness/alga/issues/14)
 - **~~AdjacencyMap::edge confusing logic~~** — Simplified redundant `contains` check. Closed [#15](https://github.com/dowdiness/alga/issues/15)
