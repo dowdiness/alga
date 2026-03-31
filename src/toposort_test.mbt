@@ -187,6 +187,23 @@ test "toposort_subset duplicate vertices" {
 }
 
 ///|
+test "toposort_subset nonexistent vertex in AdjacencyMap" {
+  // AdjacencyMap::for_each_successor is a no-op for unknown vertices,
+  // so nonexistent vertices are treated as isolated (zero in-degree).
+  // Note: DenseGraph would panic on out-of-range IDs — callers must
+  // ensure vertices are valid for the graph implementation used.
+  let g = @alga.AdjacencyMap::from_edges([(0, 1), (1, 2)])
+  let result = @alga.toposort_subset(g, [0, 1, 99])
+  match result {
+    Some(order) => {
+      assert_eq(order.length(), 3)
+      assert_true(order.contains(99))
+    }
+    None => assert_true(false)
+  }
+}
+
+///|
 test "toposort_subset self loop in subset" {
   let g = @alga.AdjacencyMap::from_edges([(1, 1), (1, 2)])
   let result = @alga.toposort_subset(g, [1, 2])

@@ -102,6 +102,11 @@ pub fn[G : DirectedGraph] has_cycle(graph : G) -> Bool {
 /// Only edges where both endpoints are in `vertices` are considered.
 /// Returns `Some(ordering)` if the induced subgraph is a DAG, `None`
 /// if it contains a cycle. Returns `Some([])` for an empty vertex set.
+/// Duplicate vertices in the input are handled correctly.
+///
+/// **Precondition:** All vertex IDs in `vertices` must be valid vertices
+/// in `graph`. Passing an out-of-range ID may panic on implementations
+/// like `DenseGraph` where `for_each_successor` indexes directly.
 ///
 /// Time: O(V_sub + E_sub). Space: O(V_sub).
 pub fn[G : DirectedGraph] toposort_subset(
