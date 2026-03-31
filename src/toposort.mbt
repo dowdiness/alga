@@ -103,10 +103,7 @@ pub fn[G : DirectedGraph] has_cycle(graph : G) -> Bool {
 /// Returns `Some(ordering)` if the induced subgraph is a DAG, `None`
 /// if it contains a cycle. Returns `Some([])` for an empty vertex set.
 /// Duplicate vertices in the input are handled correctly.
-///
-/// **Precondition:** All vertex IDs in `vertices` must be valid vertices
-/// in `graph`. Passing an out-of-range ID may panic on implementations
-/// like `DenseGraph` where `for_each_successor` indexes directly.
+/// Invalid vertex IDs are silently filtered out.
 ///
 /// Time: O(V_sub + E_sub). Space: O(V_sub).
 pub fn[G : DirectedGraph] toposort_subset(
@@ -117,7 +114,7 @@ pub fn[G : DirectedGraph] toposort_subset(
   let subset : @hashset.HashSet[Int] = @hashset.new()
   let unique : Array[Int] = []
   for v in vertices {
-    if !subset.contains(v) {
+    if !subset.contains(v) && G::has_vertex(graph, v) {
       subset.add(v)
       unique.push(v)
     }
