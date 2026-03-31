@@ -334,13 +334,15 @@ test "law: connect distributes over overlay (right)" {
 /// union of two graphs AND adds directed edges from every vertex
 /// in the left graph to every vertex in the right graph.
 ///
-/// We verify both directions:
+/// We verify three properties:
 /// (a) overlay(a, b) is a subgraph of connect(a, b) — no edges lost
 /// (b) every edge in connect(a, b) that isn't in overlay(a, b) is
 ///     a cross-edge u→v where u ∈ vertices(a) and v ∈ vertices(b)
+/// (c) every cross-edge u→v (u ∈ a, v ∈ b) is present in connect(a, b)
 ///
-/// Together these ensure connect can't silently degenerate to overlay
-/// (would fail b) or add spurious non-cross edges (would also fail b).
+/// Together: (a) ensures overlay edges are preserved, (b) ensures no
+/// spurious edges, and (c) ensures all cross-edges are present.
+/// A connect that silently degenerates to overlay would fail (c).
 test "law: connect decomposes to overlay" {
   @qc.quick_check_fn(fn(pair : (@alga.Graph, @alga.Graph)) -> Bool {
     let (a, b) = pair
@@ -360,6 +362,10 @@ test "law: connect decomposes to overlay" {
         overlaid.has_edge(e.0, e.1) ||
         (am_a.has_vertex(e.0) && am_b.has_vertex(e.1))
       })
-    overlay_subset && extras_are_cross
+    // (c) every cross-edge u→v (u ∈ a, v ∈ b) must be in connect(a, b)
+    let all_cross_edges = am_a
+      .vertex_list()
+      .all(fn(u) { am_b.vertex_list().all(fn(v) { connected.has_edge(u, v) }) })
+    overlay_subset && extras_are_cross && all_cross_edges
   })
 }
