@@ -66,6 +66,8 @@ assert_true(am.has_edge(1, 2))
 | Toposort | `toposort(g)` | O(V+E) | Topological ordering (Kahn's algorithm) |
 | Toposort (subset) | `toposort_subset(g, vertices)` | O(V_sub+E_sub) | Topological ordering of induced subgraph |
 | Cycle detection | `has_cycle(g)` | O(V+E) | True if graph contains a directed cycle |
+| Outdegree | `outdegree(g, v)` | O(degree) | Number of outgoing edges from v |
+| Indegree | `indegree(g, v)` | O(V+E) | Number of incoming edges to v |
 | SCC | `g.scc()` | O(V+E) | Strongly connected components (Kosaraju) |
 
 All algorithms except SCC are generic over `DirectedGraph` — they work on any implementing type. SCC requires `transpose`, which is specific to `AdjacencyMap`.
@@ -128,9 +130,18 @@ Benchmarks on a 1,000-vertex chain graph (WASM-GC, release mode):
 | BFS | 68 µs |
 | has_cycle | 122 µs |
 | SCC | 296 µs |
+| outdegree | 0.02 µs |
+| indegree | 20 µs |
 | transpose | 80 µs |
 
 Run benchmarks: `moon bench --release`
+
+## Documentation
+
+- [Philosophy](docs/philosophy.md) — why algebraic graphs, the Mokhov axiom system, design principles
+- [Architecture](docs/architecture.md) — two-layer design, trait system, file map
+- [Performance (2026-03-31)](docs/performance-2026-03-31.md) — benchmark data, optimization history, representation choice guide
+- [TODO](docs/TODO.md) — active backlog
 
 ## References
 

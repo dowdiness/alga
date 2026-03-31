@@ -15,6 +15,7 @@ Active backlog for alga. Each item links to its source; non-trivial items should
 - **~~Show/Debug for Graph and DenseGraph~~** — Added `Show` and `Debug` impls for `Graph`, `DenseGraph`, and `AdjacencyMap`. Closed [#11](https://github.com/dowdiness/alga/issues/11)
 - **~~Property-based tests for algebraic graph laws~~** — 8 property tests (100 random cases each) verifying all Mokhov 2017 axioms using `moonbitlang/quickcheck`. Also fixed a shared-mutable-array bug in `to_adjacency_map`. Closes [#14](https://github.com/dowdiness/alga/issues/14)
 - **~~AdjacencyMap::edge confusing logic~~** — Simplified redundant `contains` check. Closed [#15](https://github.com/dowdiness/alga/issues/15)
+- **~~indegree/outdegree convenience functions~~** — Generic over `DirectedGraph`. outdegree O(degree), indegree O(V+E). Closes [#12](https://github.com/dowdiness/alga/issues/12)
 - **~~Clean up experiment files~~** — Already resolved in [#17](https://github.com/dowdiness/alga/pull/17). Closed [#16](https://github.com/dowdiness/alga/issues/16)
 
 ## Won't Do (unless revisited)

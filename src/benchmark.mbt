@@ -225,6 +225,34 @@ test "bench/foldg/path_1000" (b : @bench.T) {
   b.bench(fn() { b.keep(g.to_adjacency_map()) })
 }
 
+// --- outdegree ---
+
+///|
+test "bench/outdegree/chain_1000" (b : @bench.T) {
+  let g = build_chain(1000)
+  b.bench(fn() { b.keep(outdegree(g, 0)) })
+}
+
+///|
+test "bench/outdegree/diamond_1000" (b : @bench.T) {
+  let g = build_diamond(1000)
+  b.bench(fn() { b.keep(outdegree(g, 0)) })
+}
+
+// --- indegree ---
+
+///|
+test "bench/indegree/chain_1000" (b : @bench.T) {
+  let g = build_chain(1000)
+  b.bench(fn() { b.keep(indegree(g, 500)) })
+}
+
+///|
+test "bench/indegree/diamond_1000" (b : @bench.T) {
+  let g = build_diamond(1000)
+  b.bench(fn() { b.keep(indegree(g, 500)) })
+}
+
 // --- transpose ---
 
 ///|
