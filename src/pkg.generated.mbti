@@ -17,6 +17,10 @@ pub fn[B] foldg_iter(Graph, B, (Int) -> B, (B, B) -> B, (B, B) -> B) -> B
 
 pub fn[G : DirectedGraph] has_cycle(G) -> Bool
 
+pub fn[G : DirectedGraph] indegree(G, Int) -> Int
+
+pub fn[G : DirectedGraph] outdegree(G, Int) -> Int
+
 pub fn[G : DirectedGraph] reachable(G, Int) -> Array[Int]
 
 pub fn[G : DirectedGraph] toposort(G) -> Array[Int]?
