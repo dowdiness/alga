@@ -68,3 +68,156 @@ test "scc disconnected acyclic" {
   let components = g.scc()
   assert_eq(components.length(), 4)
 }
+
+// --- condensation tests ---
+
+///|
+test "condensation dag - each vertex is its own component" {
+  // In a DAG, every vertex is its own SCC.
+  // The condensation should preserve the same edge structure.
+  let g = @alga.AdjacencyMap::from_edges([(1, 2), (2, 3), (3, 4)])
+  let (dag, vtoc) = g.condensation()
+  // 4 components (one per vertex)
+  assert_eq(dag.vertex_count(), 4)
+  // 3 edges preserved
+  assert_eq(dag.edge_count(), 3)
+  // Each vertex maps to a distinct component
+  let c1 = vtoc[1]
+  let c2 = vtoc[2]
+  let c3 = vtoc[3]
+  let c4 = vtoc[4]
+  assert_true(c1 != c2 && c2 != c3 && c3 != c4 && c1 != c4)
+  // Edge structure: c1 -> c2 -> c3 -> c4
+  assert_true(dag.has_edge(c1, c2))
+  assert_true(dag.has_edge(c2, c3))
+  assert_true(dag.has_edge(c3, c4))
+}
+
+///|
+test "condensation single SCC - collapses to one vertex" {
+  // All vertices in one cycle => single component, no edges
+  let g = @alga.AdjacencyMap::from_edges([(1, 2), (2, 3), (3, 1)])
+  let (dag, vtoc) = g.condensation()
+  assert_eq(dag.vertex_count(), 1)
+  assert_eq(dag.edge_count(), 0)
+  // All vertices map to the same component
+  assert_eq(vtoc[1], vtoc[2])
+  assert_eq(vtoc[2], vtoc[3])
+}
+
+///|
+test "condensation two SCCs with edge" {
+  // {1,2} cycle + {3,4} cycle with edge 2->3
+  let g = @alga.AdjacencyMap::from_edges([
+    (1, 2),
+    (2, 1),
+    (2, 3),
+    (3, 4),
+    (4, 3),
+  ])
+  let (dag, vtoc) = g.condensation()
+  assert_eq(dag.vertex_count(), 2)
+  assert_eq(dag.edge_count(), 1)
+  // Vertices 1,2 in same component; vertices 3,4 in same component
+  assert_eq(vtoc[1], vtoc[2])
+  assert_eq(vtoc[3], vtoc[4])
+  assert_true(vtoc[1] != vtoc[3])
+  // Edge from {1,2}'s component to {3,4}'s component
+  let c12 = vtoc[1]
+  let c34 = vtoc[3]
+  assert_true(dag.has_edge(c12, c34))
+  assert_false(dag.has_edge(c34, c12))
+}
+
+///|
+test "condensation chain of SCCs" {
+  // Three SCCs connected linearly: {1,2} -> {3,4} -> {5,6}
+  let g = @alga.AdjacencyMap::from_edges([
+    (1, 2),
+    (2, 1), // SCC A
+    (2, 3), // A -> B
+    (3, 4),
+    (4, 3), // SCC B
+    (4, 5), // B -> C
+    (5, 6),
+    (6, 5), // SCC C
+  ])
+  let (dag, vtoc) = g.condensation()
+  assert_eq(dag.vertex_count(), 3)
+  assert_eq(dag.edge_count(), 2)
+  let ca = vtoc[1]
+  let cb = vtoc[3]
+  let cc = vtoc[5]
+  assert_true(ca != cb && cb != cc && ca != cc)
+  assert_true(dag.has_edge(ca, cb))
+  assert_true(dag.has_edge(cb, cc))
+  // No transitive shortcut — condensation preserves only direct
+  // inter-component edges, not the transitive closure
+  assert_false(dag.has_edge(ca, cc))
+}
+
+///|
+test "condensation disconnected SCCs" {
+  // Two separate cycles with no inter-component edges
+  let g = @alga.AdjacencyMap::from_edges([(1, 2), (2, 1), (3, 4), (4, 3)])
+  let (dag, vtoc) = g.condensation()
+  assert_eq(dag.vertex_count(), 2)
+  assert_eq(dag.edge_count(), 0)
+  assert_eq(vtoc[1], vtoc[2])
+  assert_eq(vtoc[3], vtoc[4])
+  assert_true(vtoc[1] != vtoc[3])
+}
+
+///|
+test "condensation single vertex" {
+  let g = @alga.AdjacencyMap::vertex(42)
+  let (dag, vtoc) = g.condensation()
+  assert_eq(dag.vertex_count(), 1)
+  assert_eq(dag.edge_count(), 0)
+  assert_eq(vtoc[42], 0)
+}
+
+///|
+test "condensation self-loop" {
+  // A self-loop forms its own SCC
+  let g = @alga.AdjacencyMap::from_edges([(1, 1)])
+  let (dag, vtoc) = g.condensation()
+  assert_eq(dag.vertex_count(), 1)
+  assert_eq(dag.edge_count(), 0)
+  assert_eq(vtoc[1], 0)
+}
+
+///|
+test "condensation empty graph" {
+  let g = @alga.AdjacencyMap::empty()
+  let (dag, vtoc) = g.condensation()
+  assert_eq(dag.vertex_count(), 0)
+  assert_eq(dag.edge_count(), 0)
+  assert_eq(vtoc.length(), 0)
+}
+
+///|
+test "condensation deduplicates parallel inter-component edges" {
+  // Multiple original edges between the same pair of components
+  // should collapse to a single condensed edge.
+  // Vertices 1,2,3,4 are each their own SCC (no cycles).
+  // Edges: 1→3, 1→4, 2→3, 2→4 — but since each vertex is its own
+  // component, there are 4 distinct component pairs. No dedup needed here.
+  // Better: {1,2} cycle → component A, {3,4} cycle → component B
+  // Edges 1→3 and 2→4 both map to A→B — should produce ONE condensed edge.
+  let g = @alga.AdjacencyMap::from_edges([
+    (1, 2),
+    (2, 1), // SCC A: {1,2}
+    (3, 4),
+    (4, 3), // SCC B: {3,4}
+    (1, 3), // A→B via 1→3
+    (2, 4), // A→B via 2→4 (same component pair, should dedup)
+  ])
+  let (dag, vtoc) = g.condensation()
+  assert_eq(dag.vertex_count(), 2)
+  // Only 1 edge despite 2 original inter-component edges
+  assert_eq(dag.edge_count(), 1)
+  assert_eq(vtoc[1], vtoc[2]) // same component
+  assert_eq(vtoc[3], vtoc[4]) // same component
+  assert_true(dag.has_edge(vtoc[1], vtoc[3]))
+}

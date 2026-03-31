@@ -114,3 +114,74 @@ pub fn AdjacencyMap::scc(self : AdjacencyMap) -> Array[Array[Int]] {
   }
   components
 }
+
+///|
+/// # Condensation — DAG of strongly connected components
+///
+/// Condensation collapses each strongly connected component (SCC) into a
+/// single vertex, producing a directed acyclic graph (DAG). The result is
+/// always a DAG because any cycle in the condensed graph would imply that
+/// the involved components should have been merged into a single SCC.
+///
+/// ## Returns
+///
+/// A tuple `(condensed_dag, vertex_to_component)`:
+///
+/// - `condensed_dag`: An `AdjacencyMap` whose vertices are component IDs
+///   `0..k-1`, where `k` is the number of SCCs. There is an edge from
+///   component `i` to component `j` if and only if some vertex in
+///   component `i` has an edge to some vertex in component `j` in the
+///   original graph.
+///
+/// - `vertex_to_component`: A `Map[Int, Int]` mapping each original vertex
+///   to its component ID. Component IDs correspond to the indices of the
+///   arrays returned by `scc()` (Kosaraju's reverse-finish order).
+///
+/// ## Use cases
+///
+/// Condensation reduces cyclic graphs to DAGs, enabling topological
+/// analysis (toposort, longest path, dependency ordering) on graphs
+/// that would otherwise contain cycles. For example, in a module
+/// dependency graph, mutually-recursive modules form SCCs that can be
+/// collapsed to reason about the overall build order.
+///
+/// Time: O(V + E). Space: O(V + E).
+pub fn AdjacencyMap::condensation(
+  self : AdjacencyMap,
+) -> (AdjacencyMap, Map[Int, Int]) {
+  let components = self.scc()
+  // Build vertex → component_id mapping
+  let vertex_to_component : Map[Int, Int] = Map::new()
+  for i, component in components {
+    for v in component {
+      vertex_to_component[v] = i
+    }
+  }
+  // Collect inter-component edges. Duplicates are fine — from_edges deduplicates.
+  let num_components = components.length()
+  let condensed_edges : Array[(Int, Int)] = []
+  for u, succs in self.adjacency {
+    let cu = match vertex_to_component.get(u) {
+      Some(c) => c
+      None => continue
+    }
+    for v in succs {
+      let cv = match vertex_to_component.get(v) {
+        Some(c) => c
+        None => continue
+      }
+      if cu != cv {
+        condensed_edges.push((cu, cv))
+      }
+    }
+  }
+  // Build the condensed AdjacencyMap — from_edges handles edge dedup internally
+  let dag = AdjacencyMap::from_edges(condensed_edges)
+  // Add isolated components (no inter-component edges) as vertices
+  for i = 0; i < num_components; i = i + 1 {
+    if !dag.adjacency.contains(i) {
+      dag.adjacency[i] = []
+    }
+  }
+  (dag, vertex_to_component)
+}

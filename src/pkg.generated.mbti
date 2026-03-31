@@ -41,6 +41,7 @@ pub fn[G : DirectedGraph] toposort_subset(G, Array[Int]) -> Array[Int]?
 pub struct AdjacencyMap {
   adjacency : Map[Int, Array[Int]]
 }
+pub fn AdjacencyMap::condensation(Self) -> (Self, Map[Int, Int])
 pub fn AdjacencyMap::connect(Self, Self) -> Self
 pub fn AdjacencyMap::edge(Int, Int) -> Self
 pub fn AdjacencyMap::edge_count(Self) -> Int

@@ -142,6 +142,7 @@ All generic algorithms follow the same pattern: take `G : DirectedGraph`, use `f
 | Outdegree | `degree.mbt` | O(degree) | Counts via for_each_successor |
 | Indegree | `degree.mbt` | O(V+E) | Full scan — no reverse index |
 | SCC | `scc.mbt` | O(V+E) | Kosaraju, requires transpose (AdjacencyMap-specific) |
+| Condensation | `scc.mbt` | O(V+E) | Collapse SCCs into DAG (AdjacencyMap-specific) |
 
 DenseGraph provides optimized versions of DFS, toposort, SCC, and reachable that bypass trait dispatch for 8-23x speedup.
 

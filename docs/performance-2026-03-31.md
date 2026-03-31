@@ -17,6 +17,8 @@ This is a dated snapshot. New measurements go in new files; old ones are not upd
 | BFS | 68 µs | 38 µs | Queue-based |
 | has_cycle | 122 µs | — | Derived from toposort |
 | SCC | 296 µs | — | Kosaraju (includes transpose) |
+| condensation (acyclic) | 855 µs | — | SCC + DAG construction |
+| condensation (cyclic) | 594 µs | — | Fewer components → less DAG work |
 | transpose | 80 µs | — | Builds reverse adjacency |
 | outdegree | 0.02 µs | 0.04 µs | O(degree), single vertex |
 | indegree | 20 µs | 31 µs | O(V+E), full scan |
