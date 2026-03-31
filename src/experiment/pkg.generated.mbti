@@ -1,0 +1,96 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "dowdiness/alga/experiment"
+
+import {
+  "dowdiness/alga",
+}
+
+// Values
+pub fn bfs_count_direct(@alga.DenseGraph, Int, FixedArray[Int], Int) -> Int
+
+pub fn bfs_count_trait(@alga.DenseGraph, Int, FixedArray[Int], Int) -> Int
+
+pub fn[G : @alga.DirectedGraph, Acc] bfs_fold_array(G, Int, Acc, (Acc, Int) -> (Acc, Bool)) -> Acc
+
+pub fn[G : @alga.DirectedGraph, Acc] bfs_fold_bitset(G, Int, Acc, (Acc, Int) -> (Acc, Bool)) -> Acc
+
+pub fn[G : @alga.DirectedGraph, Acc] bfs_fold_fixedarray(G, Int, Acc, (Acc, Int) -> (Acc, Bool)) -> Acc
+
+pub fn[G : @alga.DirectedGraph, Acc] bfs_fold_gen(G, Int, Acc, (Acc, Int) -> (Acc, Bool), FixedArray[Int], Int) -> Acc
+
+pub fn[G : @alga.DirectedGraph, Acc] bfs_fold_hashset(G, Int, Acc, (Acc, Int) -> (Acc, Bool)) -> Acc
+
+pub fn[G : @alga.DirectedGraph, Acc] dfs_fold_array(G, Int, Acc, (Acc, Int) -> (Acc, Bool)) -> Acc
+
+pub fn[G : @alga.DirectedGraph, Acc] dfs_fold_fixedarray(G, Int, Acc, (Acc, Int) -> (Acc, Bool)) -> Acc
+
+pub fn[G : @alga.DirectedGraph, Acc] dfs_fold_hashset(G, Int, Acc, (Acc, Int) -> (Acc, Bool)) -> Acc
+
+pub fn[B] foldg_cps(@alga.Graph, B, (Int) -> B, (B, B) -> B, (B, B) -> B) -> B
+
+pub fn[B] foldg_inner_fn(@alga.Graph, B, (Int) -> B, (B, B) -> B, (B, B) -> B) -> B
+
+pub fn[B] foldg_letrec(@alga.Graph, B, (Int) -> B, (B, B) -> B, (B, B) -> B) -> B
+
+pub fn[G : @alga.DirectedGraph] has_cycle_array(G) -> Bool
+
+pub fn[G : @alga.DirectedGraph] has_cycle_hashset(G) -> Bool
+
+pub fn[G : @alga.DirectedGraph] reachable_array(G, Int) -> Array[Int]
+
+pub fn[G : @alga.DirectedGraph] reachable_bitset(G, Int) -> Array[Int]
+
+pub fn reachable_callback_no_temp(@alga.DenseGraph, Int, FixedArray[Int], Int) -> Array[Int]
+
+pub fn reachable_direct(@alga.DenseGraph, Int, FixedArray[Int], Int) -> Array[Int]
+
+pub fn[G : @alga.DirectedGraph] reachable_fixedarray(G, Int) -> Array[Int]
+
+pub fn[G : @alga.DirectedGraph] reachable_gen(G, Int, FixedArray[Int], Int) -> Array[Int]
+
+pub fn[G : @alga.DirectedGraph] reachable_hashset(G, Int) -> Array[Int]
+
+pub fn reachable_mark_rev(@alga.DenseGraph, Int, FixedArray[Int], Int) -> Array[Int]
+
+pub fn reachable_reuse_buf(@alga.DenseGraph, Int, FixedArray[Int], Int) -> Array[Int]
+
+pub fn reachable_trait(@alga.DenseGraph, Int, FixedArray[Int], Int) -> Array[Int]
+
+pub fn scc_array(@alga.AdjacencyMap) -> Array[Array[Int]]
+
+pub fn scc_bitset(@alga.AdjacencyMap) -> Array[Array[Int]]
+
+pub fn scc_direct(@alga.DenseGraph) -> Array[Array[Int]]
+
+pub fn scc_fixedarray(@alga.AdjacencyMap) -> Array[Array[Int]]
+
+pub fn scc_gen(@alga.AdjacencyMap, FixedArray[Int], Int) -> Array[Array[Int]]
+
+pub fn scc_hashset(@alga.AdjacencyMap) -> Array[Array[Int]]
+
+pub fn to_adjacency_map_cps(@alga.Graph) -> @alga.AdjacencyMap
+
+pub fn to_adjacency_map_inner_fn(@alga.Graph) -> @alga.AdjacencyMap
+
+pub fn to_adjacency_map_iter(@alga.Graph) -> @alga.AdjacencyMap
+
+pub fn to_adjacency_map_letrec(@alga.Graph) -> @alga.AdjacencyMap
+
+pub fn to_adjacency_map_recursive(@alga.Graph) -> @alga.AdjacencyMap
+
+pub fn[G : @alga.DirectedGraph] toposort_array(G) -> Array[Int]?
+
+pub fn toposort_direct(@alga.DenseGraph) -> Array[Int]?
+
+pub fn[G : @alga.DirectedGraph] toposort_hashset(G) -> Array[Int]?
+
+pub fn toposort_trait(@alga.DenseGraph) -> Array[Int]?
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits
+

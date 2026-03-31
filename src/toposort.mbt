@@ -20,6 +20,12 @@
 /// systems (Make), package managers (dependency resolution), and
 /// spreadsheet recalculation order.
 ///
+/// ## Subset variant
+///
+/// `toposort_subset` sorts only a given subset of vertices, considering
+/// only edges in the induced subgraph (both endpoints in the subset).
+/// Scales with the subset size, not the full graph.
+///
 /// ## Cycle detection
 ///
 /// Kahn's algorithm naturally detects cycles: if the result is shorter
@@ -88,4 +94,81 @@ pub fn[G : DirectedGraph] toposort(graph : G) -> Array[Int]? {
 /// A self-loop (v → v) counts as a cycle.
 pub fn[G : DirectedGraph] has_cycle(graph : G) -> Bool {
   toposort(graph) is None
+}
+
+///|
+/// Topological sort over the induced subgraph of `vertices`.
+///
+/// Only edges where both endpoints are in `vertices` are considered.
+/// Returns `Some(ordering)` if the induced subgraph is a DAG, `None`
+/// if it contains a cycle. Returns `Some([])` for an empty vertex set.
+/// Duplicate vertices in the input are handled correctly.
+///
+/// **Precondition:** All vertex IDs in `vertices` must be valid vertices
+/// in `graph`. Passing an out-of-range ID may panic on implementations
+/// like `DenseGraph` where `for_each_successor` indexes directly.
+///
+/// Time: O(V_sub + E_sub). Space: O(V_sub).
+pub fn[G : DirectedGraph] toposort_subset(
+  graph : G,
+  vertices : Array[Int],
+) -> Array[Int]? {
+  // Build membership set and deduplicated vertex list (preserves input order)
+  let subset : @hashset.HashSet[Int] = @hashset.new()
+  let unique : Array[Int] = []
+  for v in vertices {
+    if !subset.contains(v) {
+      subset.add(v)
+      unique.push(v)
+    }
+  }
+  let n = unique.length()
+  if n == 0 {
+    return Some([])
+  }
+  // Compute in-degrees within the induced subgraph
+  let in_degree : @hashmap.HashMap[Int, Int] = @hashmap.new()
+  for v in unique {
+    G::for_each_successor(graph, v, fn(w) {
+      if subset.contains(w) {
+        match in_degree.get(w) {
+          Some(d) => in_degree[w] = d + 1
+          None => in_degree[w] = 1
+        }
+      }
+    })
+  }
+  // Seed queue with zero-in-degree subset vertices (input order)
+  let queue : Array[Int] = []
+  for v in unique {
+    if !in_degree.contains(v) {
+      queue.push(v)
+    }
+  }
+  // Process queue
+  let result : Array[Int] = []
+  let mut head = 0
+  while head < queue.length() {
+    let v = queue[head]
+    head = head + 1
+    result.push(v)
+    G::for_each_successor(graph, v, fn(w) {
+      if subset.contains(w) {
+        match in_degree.get(w) {
+          Some(d) => {
+            in_degree[w] = d - 1
+            if d - 1 == 0 {
+              queue.push(w)
+            }
+          }
+          None => ()
+        }
+      }
+    })
+  }
+  if result.length() == n {
+    Some(result)
+  } else {
+    None
+  }
 }

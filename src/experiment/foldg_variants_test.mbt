@@ -73,7 +73,7 @@ test "correctness/foldg_iter/connect_order" {
 test "correctness/to_adjacency_map_letrec/path" {
   let g = @alga.Graph::path([1, 2, 3, 4, 5])
   let expected = g.to_adjacency_map()
-  let actual = g.to_adjacency_map_letrec()
+  let actual = to_adjacency_map_letrec(g)
   inspect(actual == expected, content="true")
 }
 
@@ -81,7 +81,7 @@ test "correctness/to_adjacency_map_letrec/path" {
 test "correctness/to_adjacency_map_letrec/clique" {
   let g = @alga.Graph::clique([1, 2, 3, 4])
   let expected = g.to_adjacency_map()
-  let actual = g.to_adjacency_map_letrec()
+  let actual = to_adjacency_map_letrec(g)
   inspect(actual == expected, content="true")
 }
 
@@ -89,7 +89,7 @@ test "correctness/to_adjacency_map_letrec/clique" {
 test "correctness/to_adjacency_map_letrec/star" {
   let g = @alga.Graph::star(0, [1, 2, 3, 4])
   let expected = g.to_adjacency_map()
-  let actual = g.to_adjacency_map_letrec()
+  let actual = to_adjacency_map_letrec(g)
   inspect(actual == expected, content="true")
 }
 
@@ -97,7 +97,7 @@ test "correctness/to_adjacency_map_letrec/star" {
 test "correctness/to_adjacency_map_letrec/circuit" {
   let g = @alga.Graph::circuit([1, 2, 3])
   let expected = g.to_adjacency_map()
-  let actual = g.to_adjacency_map_letrec()
+  let actual = to_adjacency_map_letrec(g)
   inspect(actual == expected, content="true")
 }
 
@@ -191,4 +191,84 @@ test "correctness/foldg_iter/gmap" {
   inspect(rec_result == iter_result, content="true")
   inspect(rec_result.has_edge(2, 4), content="true")
   inspect(rec_result.has_edge(4, 6), content="true")
+}
+
+// === foldg_inner_fn and foldg_letrec produce same results as foldg ===
+
+///|
+test "correctness/foldg_inner_fn/vertex_count" {
+  let g = @alga.Graph::path(Array::makei(10, fn(i) { i }))
+  let count_rec = @alga.foldg(g, 0, fn(_v) { 1 }, fn(a, b) { a + b }, fn(a, b) {
+    a + b
+  })
+  let count_inner = foldg_inner_fn(g, 0, fn(_v) { 1 }, fn(a, b) { a + b }, fn(
+    a,
+    b,
+  ) {
+    a + b
+  })
+  inspect(count_rec == count_inner, content="true")
+}
+
+///|
+test "correctness/foldg_letrec/vertex_count" {
+  let g = @alga.Graph::path(Array::makei(10, fn(i) { i }))
+  let count_rec = @alga.foldg(g, 0, fn(_v) { 1 }, fn(a, b) { a + b }, fn(a, b) {
+    a + b
+  })
+  let count_letrec = foldg_letrec(g, 0, fn(_v) { 1 }, fn(a, b) { a + b }, fn(
+    a,
+    b,
+  ) {
+    a + b
+  })
+  inspect(count_rec == count_letrec, content="true")
+}
+
+///|
+test "correctness/foldg_cps/vertex_count" {
+  let g = @alga.Graph::path(Array::makei(10, fn(i) { i }))
+  let count_rec = @alga.foldg(g, 0, fn(_v) { 1 }, fn(a, b) { a + b }, fn(a, b) {
+    a + b
+  })
+  let count_cps = foldg_cps(g, 0, fn(_v) { 1 }, fn(a, b) { a + b }, fn(a, b) {
+    a + b
+  })
+  inspect(count_rec == count_cps, content="true")
+}
+
+///|
+test "correctness/to_adjacency_map_cps/path" {
+  let g = @alga.Graph::path([1, 2, 3, 4, 5])
+  let expected = g.to_adjacency_map()
+  let actual = to_adjacency_map_cps(g)
+  inspect(actual == expected, content="true")
+}
+
+///|
+test "correctness/to_adjacency_map_inner_fn/path" {
+  let g = @alga.Graph::path([1, 2, 3, 4, 5])
+  let expected = g.to_adjacency_map()
+  let actual = to_adjacency_map_inner_fn(g)
+  inspect(actual == expected, content="true")
+}
+
+///|
+test "correctness/to_adjacency_map_cps/connect_order" {
+  let g = @alga.Graph::Connect(@alga.Graph::Vertex(1), @alga.Graph::Vertex(2))
+  let expected = g.to_adjacency_map()
+  let actual = to_adjacency_map_cps(g)
+  inspect(actual == expected, content="true")
+  inspect(actual.has_edge(1, 2), content="true")
+  inspect(actual.has_edge(2, 1), content="false")
+}
+
+///|
+test "correctness/to_adjacency_map_inner_fn/connect_order" {
+  let g = @alga.Graph::Connect(@alga.Graph::Vertex(1), @alga.Graph::Vertex(2))
+  let expected = g.to_adjacency_map()
+  let actual = to_adjacency_map_inner_fn(g)
+  inspect(actual == expected, content="true")
+  inspect(actual.has_edge(1, 2), content="true")
+  inspect(actual.has_edge(2, 1), content="false")
 }

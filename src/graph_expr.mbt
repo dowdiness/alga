@@ -143,7 +143,7 @@ pub fn Graph::to_adjacency_map(self : Graph) -> AdjacencyMap {
   let g = AdjacencyMap::from_edges(all_edges)
   // Register isolated vertices (Vertex nodes with no edges)
   for v in all_vertices {
-    if not(g.adjacency.contains(v)) {
+    if !g.adjacency.contains(v) {
       g.adjacency[v] = []
     }
   }

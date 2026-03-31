@@ -11,7 +11,7 @@ test "single vertex" {
   assert_eq(g.vertex_count(), 1)
   assert_eq(g.edge_count(), 0)
   assert_true(g.has_vertex(42))
-  assert_true(not(g.has_vertex(0)))
+  assert_true(!g.has_vertex(0))
 }
 
 ///|
@@ -22,7 +22,7 @@ test "single edge" {
   assert_true(g.has_vertex(1))
   assert_true(g.has_vertex(2))
   assert_true(g.has_edge(1, 2))
-  assert_true(not(g.has_edge(2, 1)))
+  assert_true(!g.has_edge(2, 1))
 }
 
 ///|
@@ -43,7 +43,7 @@ test "overlay" {
   assert_eq(g.vertex_count(), 4)
   assert_true(g.has_edge(1, 2))
   assert_true(g.has_edge(3, 4))
-  assert_true(not(g.has_edge(1, 3)))
+  assert_true(!g.has_edge(1, 3))
 }
 
 ///|
@@ -53,7 +53,7 @@ test "connect" {
   let g = a.connect(b)
   assert_eq(g.vertex_count(), 2)
   assert_true(g.has_edge(1, 2))
-  assert_true(not(g.has_edge(2, 1)))
+  assert_true(!g.has_edge(2, 1))
 }
 
 ///|
@@ -68,7 +68,7 @@ test "connect multiple" {
   assert_true(g.has_edge(1, 4))
   assert_true(g.has_edge(2, 3))
   assert_true(g.has_edge(2, 4))
-  assert_true(not(g.has_edge(3, 1)))
+  assert_true(!g.has_edge(3, 1))
 }
 
 ///|
@@ -78,7 +78,7 @@ test "transpose" {
   assert_eq(t.vertex_count(), 3)
   assert_true(t.has_edge(2, 1))
   assert_true(t.has_edge(3, 2))
-  assert_true(not(t.has_edge(1, 2)))
+  assert_true(!t.has_edge(1, 2))
   assert_true(t.has_vertex(1))
   assert_true(t.has_vertex(2))
   assert_true(t.has_vertex(3))
@@ -151,8 +151,8 @@ test "remove_self_loops" {
   assert_eq(cleaned.vertex_count(), 3)
   assert_true(cleaned.has_edge(1, 2))
   assert_true(cleaned.has_edge(2, 3))
-  assert_true(not(cleaned.has_edge(1, 1)))
-  assert_true(not(cleaned.has_edge(2, 2)))
+  assert_true(!cleaned.has_edge(1, 1))
+  assert_true(!cleaned.has_edge(2, 2))
   assert_eq(cleaned.edge_count(), 2)
 }
 

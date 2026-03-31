@@ -60,7 +60,7 @@ pub fn DenseGraph::from_edges(
         "DenseGraph::from_edges: vertex out of range 0..\{vertex_count - 1}: edge (\{u}, \{v})",
       )
     }
-    if not(seen[u].contains(v)) {
+    if !seen[u].contains(v) {
       seen[u].add(v)
       succs[u].push(v)
     }
@@ -181,7 +181,7 @@ pub fn DenseGraph::reachable(self : DenseGraph, start : Int) -> Array[Int] {
     let succs = self.successors[v]
     for i in (succs.length() - 1)>=..0 {
       let w = succs[i]
-      if not(visited[w]) {
+      if !visited[w] {
         stack.push(w)
       }
     }
@@ -303,7 +303,7 @@ pub fn DenseGraph::scc(self : DenseGraph) -> Array[Array[Int]] {
       if si < succs.length() {
         stack[top_idx] = (v, si + 1)
         let w = succs[si]
-        if not(visited[w]) {
+        if !visited[w] {
           visited[w] = true
           stack.push((w, 0))
         }
@@ -332,7 +332,7 @@ pub fn DenseGraph::scc(self : DenseGraph) -> Array[Array[Int]] {
       let succs = transposed.successors[v]
       for j in (succs.length() - 1)>=..0 {
         let w = succs[j]
-        if not(visited2[w]) {
+        if !visited2[w] {
           visited2[w] = true
           stack.push(w)
         }

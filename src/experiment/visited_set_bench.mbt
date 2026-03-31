@@ -6,12 +6,69 @@
 //
 // Naming: bench/<algorithm>/<variant>/<graph_shape>
 
+// === Graph builders (shared edge generators + type-specific wrappers) ===
+
+///|
+fn build_chain_edges(n : Int) -> Array[(Int, Int)] {
+  let edges : Array[(Int, Int)] = []
+  for i = 0; i < n - 1; i = i + 1 {
+    edges.push((i, i + 1))
+  }
+  edges
+}
+
+///|
+fn build_diamond_edges(n : Int) -> Array[(Int, Int)] {
+  let edges : Array[(Int, Int)] = []
+  let width = 10
+  let layers = n / width
+  for layer = 0; layer < layers - 1; layer = layer + 1 {
+    for i = 0; i < width; i = i + 1 {
+      let from = layer * width + i
+      for j = 0; j < width; j = j + 1 {
+        let to = (layer + 1) * width + j
+        if (i + j) % 3 == 0 {
+          edges.push((from, to))
+        }
+      }
+    }
+  }
+  edges
+}
+
+///|
+fn build_cyclic_edges(n : Int) -> Array[(Int, Int)] {
+  let edges : Array[(Int, Int)] = []
+  for i = 0; i < n; i = i + 1 {
+    edges.push((i, (i + 1) % n))
+  }
+  for i = 0; i < n / 2; i = i + 1 {
+    edges.push((i, (i * 7 + 3) % n))
+  }
+  edges
+}
+
+///|
+fn build_chain(n : Int) -> @alga.AdjacencyMap {
+  @alga.AdjacencyMap::from_edges(build_chain_edges(n))
+}
+
+///|
+fn build_diamond(n : Int) -> @alga.AdjacencyMap {
+  @alga.AdjacencyMap::from_edges(build_diamond_edges(n))
+}
+
+///|
+fn build_cyclic(n : Int) -> @alga.AdjacencyMap {
+  @alga.AdjacencyMap::from_edges(build_cyclic_edges(n))
+}
+
 // === DFS reachable ===
 
 ///|
 test "bench/reachable/map/chain_1000" (b : @bench.T) {
   let g = build_chain(1000)
-  b.bench(fn() { b.keep(reachable(g, 0)) })
+  b.bench(fn() { b.keep(@alga.reachable(g, 0)) })
 }
 
 ///|
@@ -29,7 +86,7 @@ test "bench/reachable/array/chain_1000" (b : @bench.T) {
 ///|
 test "bench/reachable/map/chain_10000" (b : @bench.T) {
   let g = build_chain(10000)
-  b.bench(fn() { b.keep(reachable(g, 0)) })
+  b.bench(fn() { b.keep(@alga.reachable(g, 0)) })
 }
 
 ///|
@@ -47,7 +104,7 @@ test "bench/reachable/array/chain_10000" (b : @bench.T) {
 ///|
 test "bench/reachable/map/diamond_1000" (b : @bench.T) {
   let g = build_diamond(1000)
-  b.bench(fn() { b.keep(reachable(g, 0)) })
+  b.bench(fn() { b.keep(@alga.reachable(g, 0)) })
 }
 
 ///|
@@ -67,7 +124,9 @@ test "bench/reachable/array/diamond_1000" (b : @bench.T) {
 ///|
 test "bench/bfs/map/chain_1000" (b : @bench.T) {
   let g = build_chain(1000)
-  b.bench(fn() { b.keep(bfs_fold(g, 0, 0, fn(acc, _v) { (acc + 1, true) })) })
+  b.bench(fn() {
+    b.keep(@alga.bfs_fold(g, 0, 0, fn(acc, _v) { (acc + 1, true) }))
+  })
 }
 
 ///|
@@ -89,7 +148,9 @@ test "bench/bfs/array/chain_1000" (b : @bench.T) {
 ///|
 test "bench/bfs/map/diamond_1000" (b : @bench.T) {
   let g = build_diamond(1000)
-  b.bench(fn() { b.keep(bfs_fold(g, 0, 0, fn(acc, _v) { (acc + 1, true) })) })
+  b.bench(fn() {
+    b.keep(@alga.bfs_fold(g, 0, 0, fn(acc, _v) { (acc + 1, true) }))
+  })
 }
 
 ///|
@@ -113,7 +174,7 @@ test "bench/bfs/array/diamond_1000" (b : @bench.T) {
 ///|
 test "bench/toposort/map/chain_1000" (b : @bench.T) {
   let g = build_chain(1000)
-  b.bench(fn() { b.keep(toposort(g)) })
+  b.bench(fn() { b.keep(@alga.toposort(g)) })
 }
 
 ///|
@@ -131,7 +192,7 @@ test "bench/toposort/array/chain_1000" (b : @bench.T) {
 ///|
 test "bench/toposort/map/chain_10000" (b : @bench.T) {
   let g = build_chain(10000)
-  b.bench(fn() { b.keep(toposort(g)) })
+  b.bench(fn() { b.keep(@alga.toposort(g)) })
 }
 
 ///|
@@ -149,7 +210,7 @@ test "bench/toposort/array/chain_10000" (b : @bench.T) {
 ///|
 test "bench/toposort/map/diamond_1000" (b : @bench.T) {
   let g = build_diamond(1000)
-  b.bench(fn() { b.keep(toposort(g)) })
+  b.bench(fn() { b.keep(@alga.toposort(g)) })
 }
 
 ///|
@@ -169,7 +230,7 @@ test "bench/toposort/array/diamond_1000" (b : @bench.T) {
 ///|
 test "bench/has_cycle/map/acyclic_1000" (b : @bench.T) {
   let g = build_chain(1000)
-  b.bench(fn() { b.keep(has_cycle(g)) })
+  b.bench(fn() { b.keep(@alga.has_cycle(g)) })
 }
 
 ///|
@@ -187,7 +248,7 @@ test "bench/has_cycle/array/acyclic_1000" (b : @bench.T) {
 ///|
 test "bench/has_cycle/map/cyclic_1000" (b : @bench.T) {
   let g = build_cyclic(1000)
-  b.bench(fn() { b.keep(has_cycle(g)) })
+  b.bench(fn() { b.keep(@alga.has_cycle(g)) })
 }
 
 ///|
@@ -213,13 +274,13 @@ test "bench/scc/map/acyclic_1000" (b : @bench.T) {
 ///|
 test "bench/scc/hashset/acyclic_1000" (b : @bench.T) {
   let g = build_chain(1000)
-  b.bench(fn() { b.keep(g.scc_hashset()) })
+  b.bench(fn() { b.keep(scc_hashset(g)) })
 }
 
 ///|
 test "bench/scc/array/acyclic_1000" (b : @bench.T) {
   let g = build_chain(1000)
-  b.bench(fn() { b.keep(g.scc_array()) })
+  b.bench(fn() { b.keep(scc_array(g)) })
 }
 
 ///|
@@ -231,13 +292,13 @@ test "bench/scc/map/cyclic_1000" (b : @bench.T) {
 ///|
 test "bench/scc/hashset/cyclic_1000" (b : @bench.T) {
   let g = build_cyclic(1000)
-  b.bench(fn() { b.keep(g.scc_hashset()) })
+  b.bench(fn() { b.keep(scc_hashset(g)) })
 }
 
 ///|
 test "bench/scc/array/cyclic_1000" (b : @bench.T) {
   let g = build_cyclic(1000)
-  b.bench(fn() { b.keep(g.scc_array()) })
+  b.bench(fn() { b.keep(scc_array(g)) })
 }
 
 // ============================================================
@@ -382,7 +443,7 @@ test "bench/bfs/bitset/diamond_1000" (b : @bench.T) {
 ///|
 test "bench/scc/fixedarray/acyclic_1000" (b : @bench.T) {
   let g = build_chain(1000)
-  b.bench(fn() { b.keep(g.scc_fixedarray()) })
+  b.bench(fn() { b.keep(scc_fixedarray(g)) })
 }
 
 ///|
@@ -392,14 +453,14 @@ test "bench/scc/gen/acyclic_1000" (b : @bench.T) {
   let mut gen = 0
   b.bench(fn() {
     gen = gen + 2
-    b.keep(g.scc_gen(visited, gen))
+    b.keep(scc_gen(g, visited, gen))
   })
 }
 
 ///|
 test "bench/scc/bitset/acyclic_1000" (b : @bench.T) {
   let g = build_chain(1000)
-  b.bench(fn() { b.keep(g.scc_bitset()) })
+  b.bench(fn() { b.keep(scc_bitset(g)) })
 }
 
 // === SCC — cyclic_1000 ===
@@ -407,7 +468,7 @@ test "bench/scc/bitset/acyclic_1000" (b : @bench.T) {
 ///|
 test "bench/scc/fixedarray/cyclic_1000" (b : @bench.T) {
   let g = build_cyclic(1000)
-  b.bench(fn() { b.keep(g.scc_fixedarray()) })
+  b.bench(fn() { b.keep(scc_fixedarray(g)) })
 }
 
 ///|
@@ -417,12 +478,12 @@ test "bench/scc/gen/cyclic_1000" (b : @bench.T) {
   let mut gen = 0
   b.bench(fn() {
     gen = gen + 2
-    b.keep(g.scc_gen(visited, gen))
+    b.keep(scc_gen(g, visited, gen))
   })
 }
 
 ///|
 test "bench/scc/bitset/cyclic_1000" (b : @bench.T) {
   let g = build_cyclic(1000)
-  b.bench(fn() { b.keep(g.scc_bitset()) })
+  b.bench(fn() { b.keep(scc_bitset(g)) })
 }

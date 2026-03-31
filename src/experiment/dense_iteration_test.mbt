@@ -1,5 +1,5 @@
 // Correctness tests for DenseGraph
-// (sorted / sorted_components helpers are in experiment_test.mbt)
+// (sorted / sorted_components helpers are in visited_set_test.mbt in the same package)
 
 // === DFS reachable ===
 
@@ -9,9 +9,12 @@ test "correctness/flat/reachable/chain" {
   let dg = @alga.DenseGraph::from_adjacency_map(am)
   let expected = sorted(@alga.reachable(am, 0))
   let visited = FixedArray::make(5, 0)
-  inspect(sorted(dg.reachable_trait(0, visited, 1)) == expected, content="true")
   inspect(
-    sorted(dg.reachable_direct(0, visited, 2)) == expected,
+    sorted(reachable_trait(dg, 0, visited, 1)) == expected,
+    content="true",
+  )
+  inspect(
+    sorted(reachable_direct(dg, 0, visited, 2)) == expected,
     content="true",
   )
 }
@@ -28,9 +31,12 @@ test "correctness/flat/reachable/diamond" {
   let dg = @alga.DenseGraph::from_adjacency_map(am)
   let expected = sorted(@alga.reachable(am, 0))
   let visited = FixedArray::make(5, 0)
-  inspect(sorted(dg.reachable_trait(0, visited, 1)) == expected, content="true")
   inspect(
-    sorted(dg.reachable_direct(0, visited, 2)) == expected,
+    sorted(reachable_trait(dg, 0, visited, 1)) == expected,
+    content="true",
+  )
+  inspect(
+    sorted(reachable_direct(dg, 0, visited, 2)) == expected,
     content="true",
   )
 }
@@ -41,9 +47,12 @@ test "correctness/flat/reachable/cycle" {
   let dg = @alga.DenseGraph::from_adjacency_map(am)
   let expected = sorted(@alga.reachable(am, 0))
   let visited = FixedArray::make(4, 0)
-  inspect(sorted(dg.reachable_trait(0, visited, 1)) == expected, content="true")
   inspect(
-    sorted(dg.reachable_direct(0, visited, 2)) == expected,
+    sorted(reachable_trait(dg, 0, visited, 1)) == expected,
+    content="true",
+  )
+  inspect(
+    sorted(reachable_direct(dg, 0, visited, 2)) == expected,
     content="true",
   )
 }
@@ -56,8 +65,8 @@ test "correctness/flat/bfs/chain" {
   let dg = @alga.DenseGraph::from_adjacency_map(am)
   let expected = @alga.bfs_fold(am, 0, 0, fn(acc, _v) { (acc + 1, true) })
   let visited = FixedArray::make(4, 0)
-  inspect(dg.bfs_count_trait(0, visited, 1) == expected, content="true")
-  inspect(dg.bfs_count_direct(0, visited, 2) == expected, content="true")
+  inspect(bfs_count_trait(dg, 0, visited, 1) == expected, content="true")
+  inspect(bfs_count_direct(dg, 0, visited, 2) == expected, content="true")
 }
 
 // === Toposort ===
@@ -67,9 +76,9 @@ test "correctness/flat/toposort/chain" {
   let am = @alga.AdjacencyMap::from_edges([(0, 1), (1, 2), (2, 3)])
   let dg = @alga.DenseGraph::from_adjacency_map(am)
   // Both should produce valid topological orderings
-  inspect(dg.toposort_trait() is Some(_), content="true")
-  inspect(dg.toposort_direct() is Some(_), content="true")
-  match dg.toposort_direct() {
+  inspect(toposort_trait(dg) is Some(_), content="true")
+  inspect(toposort_direct(dg) is Some(_), content="true")
+  match toposort_direct(dg) {
     Some(order) => inspect(order.length(), content="4")
     None => inspect(false, content="true")
   }
@@ -78,8 +87,8 @@ test "correctness/flat/toposort/chain" {
 ///|
 test "correctness/flat/toposort/cycle" {
   let dg = @alga.DenseGraph::from_edges(3, [(0, 1), (1, 2), (2, 0)])
-  inspect(dg.toposort_trait() is None, content="true")
-  inspect(dg.toposort_direct() is None, content="true")
+  inspect(toposort_trait(dg) is None, content="true")
+  inspect(toposort_direct(dg) is None, content="true")
 }
 
 // === SCC ===
@@ -89,7 +98,7 @@ test "correctness/flat/scc/dag" {
   let am = @alga.AdjacencyMap::from_edges([(0, 1), (1, 2), (2, 3)])
   let dg = @alga.DenseGraph::from_adjacency_map(am)
   let expected = sorted_components(am.scc())
-  inspect(sorted_components(dg.scc_direct()) == expected, content="true")
+  inspect(sorted_components(scc_direct(dg)) == expected, content="true")
 }
 
 ///|
@@ -97,7 +106,7 @@ test "correctness/flat/scc/single_cycle" {
   let am = @alga.AdjacencyMap::from_edges([(0, 1), (1, 2), (2, 0)])
   let dg = @alga.DenseGraph::from_adjacency_map(am)
   let expected = sorted_components(am.scc())
-  inspect(sorted_components(dg.scc_direct()) == expected, content="true")
+  inspect(sorted_components(scc_direct(dg)) == expected, content="true")
 }
 
 ///|
@@ -112,7 +121,7 @@ test "correctness/flat/scc/multiple_components" {
   ])
   let dg = @alga.DenseGraph::from_adjacency_map(am)
   let expected = sorted_components(am.scc())
-  inspect(sorted_components(dg.scc_direct()) == expected, content="true")
+  inspect(sorted_components(scc_direct(dg)) == expected, content="true")
 }
 
 // === Transpose ===
@@ -141,7 +150,7 @@ test "correctness/flat/reachable/large" {
   let expected = sorted(@alga.reachable(am, 0))
   let visited = FixedArray::make(1000, 0)
   inspect(
-    sorted(dg.reachable_direct(0, visited, 1)) == expected,
+    sorted(reachable_direct(dg, 0, visited, 1)) == expected,
     content="true",
   )
   inspect(expected.length(), content="1000")

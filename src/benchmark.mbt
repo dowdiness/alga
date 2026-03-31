@@ -102,6 +102,29 @@ test "bench/toposort/diamond_1000" (b : @bench.T) {
   b.bench(fn() { b.keep(toposort(g)) })
 }
 
+// --- toposort_subset ---
+
+///|
+test "bench/toposort_subset/chain_1000_full" (b : @bench.T) {
+  let g = build_chain(1000)
+  let vertices = Array::makei(1000, fn(i) { i })
+  b.bench(fn() { b.keep(toposort_subset(g, vertices)) })
+}
+
+///|
+test "bench/toposort_subset/chain_1000_half" (b : @bench.T) {
+  let g = build_chain(1000)
+  let vertices = Array::makei(500, fn(i) { i * 2 })
+  b.bench(fn() { b.keep(toposort_subset(g, vertices)) })
+}
+
+///|
+test "bench/toposort_subset/diamond_1000_full" (b : @bench.T) {
+  let g = build_diamond(1000)
+  let vertices = Array::makei(1000, fn(i) { i })
+  b.bench(fn() { b.keep(toposort_subset(g, vertices)) })
+}
+
 // --- dfs reachable ---
 
 ///|
