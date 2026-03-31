@@ -132,7 +132,7 @@ pub fn Graph::to_adjacency_map(self : Graph) -> AdjacencyMap {
       all_vertices.push(v)
       [v]
     },
-    fn(a, b) { merge(a, b) },
+    merge,
     fn(a, b) {
       for u in a {
         for v in b {
