@@ -135,7 +135,7 @@ pub fn AdjacencyMap::scc(self : AdjacencyMap) -> Array[Array[Int]] {
 ///
 /// - `vertex_to_component`: A `Map[Int, Int]` mapping each original vertex
 ///   to its component ID. Component IDs correspond to the indices of the
-///   arrays returned by `scc()`.
+///   arrays returned by `scc()` (Kosaraju's reverse-finish order).
 ///
 /// ## Use cases
 ///
@@ -157,10 +157,9 @@ pub fn AdjacencyMap::condensation(
       vertex_to_component[v] = i
     }
   }
-  // Build condensed DAG edges
+  // Collect inter-component edges. Duplicates are fine — from_edges deduplicates.
   let num_components = components.length()
   let condensed_edges : Array[(Int, Int)] = []
-  let seen : Map[Int, @hashset.HashSet[Int]] = Map::new()
   for u, succs in self.adjacency {
     let cu = match vertex_to_component.get(u) {
       Some(c) => c
@@ -172,22 +171,11 @@ pub fn AdjacencyMap::condensation(
         None => continue
       }
       if cu != cv {
-        let set = match seen.get(cu) {
-          Some(s) => s
-          None => {
-            let s : @hashset.HashSet[Int] = @hashset.new()
-            seen[cu] = s
-            s
-          }
-        }
-        if !set.contains(cv) {
-          set.add(cv)
-          condensed_edges.push((cu, cv))
-        }
+        condensed_edges.push((cu, cv))
       }
     }
   }
-  // Build the condensed AdjacencyMap — ensure all component vertices exist
+  // Build the condensed AdjacencyMap — from_edges handles edge dedup internally
   let dag = AdjacencyMap::from_edges(condensed_edges)
   // Add isolated components (no inter-component edges) as vertices
   for i = 0; i < num_components; i = i + 1 {

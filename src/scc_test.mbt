@@ -86,7 +86,7 @@ test "condensation dag - each vertex is its own component" {
   let c2 = vtoc[2]
   let c3 = vtoc[3]
   let c4 = vtoc[4]
-  assert_true(c1 != c2 && c2 != c3 && c3 != c4)
+  assert_true(c1 != c2 && c2 != c3 && c3 != c4 && c1 != c4)
   // Edge structure: c1 -> c2 -> c3 -> c4
   assert_true(dag.has_edge(c1, c2))
   assert_true(dag.has_edge(c2, c3))
@@ -151,6 +151,8 @@ test "condensation chain of SCCs" {
   assert_true(ca != cb && cb != cc && ca != cc)
   assert_true(dag.has_edge(ca, cb))
   assert_true(dag.has_edge(cb, cc))
+  // No transitive shortcut — condensation preserves only direct
+  // inter-component edges, not the transitive closure
   assert_false(dag.has_edge(ca, cc))
 }
 
@@ -183,4 +185,39 @@ test "condensation self-loop" {
   assert_eq(dag.vertex_count(), 1)
   assert_eq(dag.edge_count(), 0)
   assert_eq(vtoc[1], 0)
+}
+
+///|
+test "condensation empty graph" {
+  let g = @alga.AdjacencyMap::empty()
+  let (dag, vtoc) = g.condensation()
+  assert_eq(dag.vertex_count(), 0)
+  assert_eq(dag.edge_count(), 0)
+  assert_eq(vtoc.length(), 0)
+}
+
+///|
+test "condensation deduplicates parallel inter-component edges" {
+  // Multiple original edges between the same pair of components
+  // should collapse to a single condensed edge.
+  // Vertices 1,2,3,4 are each their own SCC (no cycles).
+  // Edges: 1→3, 1→4, 2→3, 2→4 — but since each vertex is its own
+  // component, there are 4 distinct component pairs. No dedup needed here.
+  // Better: {1,2} cycle → component A, {3,4} cycle → component B
+  // Edges 1→3 and 2→4 both map to A→B — should produce ONE condensed edge.
+  let g = @alga.AdjacencyMap::from_edges([
+    (1, 2),
+    (2, 1), // SCC A: {1,2}
+    (3, 4),
+    (4, 3), // SCC B: {3,4}
+    (1, 3), // A→B via 1→3
+    (2, 4), // A→B via 2→4 (same component pair, should dedup)
+  ])
+  let (dag, vtoc) = g.condensation()
+  assert_eq(dag.vertex_count(), 2)
+  // Only 1 edge despite 2 original inter-component edges
+  assert_eq(dag.edge_count(), 1)
+  assert_eq(vtoc[1], vtoc[2]) // same component
+  assert_eq(vtoc[3], vtoc[4]) // same component
+  assert_true(dag.has_edge(vtoc[1], vtoc[3]))
 }
