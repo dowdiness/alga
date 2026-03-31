@@ -12,6 +12,7 @@ Active backlog for alga. Each item links to its source; non-trivial items should
 
 ## Done
 
+- **~~Topological levels~~** — `topo_levels(graph) -> Map[Int, Int]?`. Longest-path distance from sources, for glitch-free reactive scheduling. Closes [#8](https://github.com/dowdiness/alga/issues/8)
 - **~~Multi-source BFS/DFS~~** — `bfs_fold_multi`, `dfs_fold_multi`, `reachable_multi`. Frontier-based traversal from multiple starts. Closes [#7](https://github.com/dowdiness/alga/issues/7)
 - **~~has_vertex trait method + default vertex_count~~** — Added `has_vertex` and defaulted `vertex_count` on `DirectedGraph`. Only 2 methods required now. `toposort_subset` filters invalid vertices. Closes [#20](https://github.com/dowdiness/alga/issues/20)
 - **~~Show/Debug for Graph and DenseGraph~~** — Added `Show` and `Debug` impls for `Graph`, `DenseGraph`, and `AdjacencyMap`. Closed [#11](https://github.com/dowdiness/alga/issues/11)
