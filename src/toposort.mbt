@@ -113,7 +113,7 @@ pub fn[G : DirectedGraph] toposort_subset(
   graph : G,
   vertices : Array[Int],
 ) -> Array[Int]? {
-  // Build subsetship set (deduplicates) for O(1) lookup
+  // Build membership set (deduplicates) for O(1) lookup
   let subset : @hashset.HashSet[Int] = @hashset.new()
   for v in vertices {
     subset.add(v)
