@@ -12,9 +12,10 @@ Layer A: Observation                    Layer B: Construction
 
   ┌─────────────────┐                    ┌──────────────────┐
   │ DirectedGraph    │                    │ GraphSym         │
-  │  vertex_count    │                    │  empty, vertex   │
-  │  for_each_vertex │                    │  overlay, connect│
-  │  for_each_succ.  │                    └──────┬───────────┘
+  │  for_each_vertex │                    │  empty, vertex   │
+  │  for_each_succ.  │                    │  overlay, connect│
+  │  vertex_count*   │                    └──────┬───────────┘
+  │  has_vertex*     │
   └──────┬──────────┘                           │
          │                                       │ implements
          │ implements                             │
@@ -68,6 +69,7 @@ assert_true(am.has_edge(1, 2))
 | Cycle detection | `has_cycle(g)` | O(V+E) | True if graph contains a directed cycle |
 | Outdegree | `outdegree(g, v)` | O(degree) | Number of outgoing edges from v |
 | Indegree | `indegree(g, v)` | O(V+E) | Number of incoming edges to v |
+| Vertex membership | `has_vertex(g, v)` | O(1)* | True if v is a vertex in the graph |
 | SCC | `g.scc()` | O(V+E) | Strongly connected components (Kosaraju) |
 
 All algorithms except SCC are generic over `DirectedGraph` — they work on any implementing type. SCC requires `transpose`, which is specific to `AdjacencyMap`.
@@ -85,14 +87,10 @@ All algorithms except SCC are generic over `DirectedGraph` — they work on any 
 
 ## Implementing DirectedGraph for your types
 
-The trait has only three methods. Implement them and all algorithms just work:
+The trait requires only two methods. Implement them and all algorithms just work:
 
 ```moonbit
 struct MyGraph { edges : Array[Array[Int]] }
-
-impl DirectedGraph for MyGraph with vertex_count(self) {
-  self.edges.length()
-}
 
 impl DirectedGraph for MyGraph with for_each_vertex(self, f) {
   for i in 0..<self.edges.length() { f(i) }
@@ -101,6 +99,11 @@ impl DirectedGraph for MyGraph with for_each_vertex(self, f) {
 impl DirectedGraph for MyGraph with for_each_successor(self, v, f) {
   for w in self.edges[v] { f(w) }
 }
+
+// vertex_count and has_vertex work via O(V) defaults.
+// Override for O(1) if your type supports it:
+// impl DirectedGraph for MyGraph with vertex_count(self) { self.edges.length() }
+// impl DirectedGraph for MyGraph with has_vertex(self, v) { v >= 0 && v < self.edges.length() }
 
 // Now you can use:
 // toposort(my_graph), toposort_subset(my_graph, vertices),
