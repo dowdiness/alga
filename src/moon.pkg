@@ -3,4 +3,7 @@ import {
   "moonbitlang/core/debug",
   "moonbitlang/core/hashmap",
   "moonbitlang/core/hashset",
+  "moonbitlang/core/quickcheck" @coreqc,
+  "moonbitlang/core/quickcheck/splitmix" @splitmix,
+  "moonbitlang/quickcheck" @qc,
 }

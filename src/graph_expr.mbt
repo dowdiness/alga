@@ -116,28 +116,30 @@ pub fn[B] foldg(
 pub fn Graph::to_adjacency_map(self : Graph) -> AdjacencyMap {
   let all_edges : Array[(Int, Int)] = []
   let all_vertices : Array[Int] = []
-  // Fold where each subtree returns its vertex set (Array[Int]).
-  // Connect accumulates cross-edges as a side effect.
-  // Uses foldg_iter for stack safety on deep expressions.
-  let _vertex_set : Array[Int] = foldg_iter(
+  // Fresh merge avoids aliasing the shared `empty` array across Empty nodes.
+  fn merge(a : Array[Int], b : Array[Int]) -> Array[Int] {
+    let result : Array[Int] = Array::new(capacity=a.length() + b.length())
+    result.append(a)
+    result.append(b)
+    result
+  }
+
+  // Uses foldg_iter for stack safety on deep expressions — see doc comment.
+  let _ : Array[Int] = foldg_iter(
     self,
     [],
     fn(v) {
       all_vertices.push(v)
       [v]
     },
-    fn(a, b) {
-      a.append(b)
-      a
-    },
+    fn(a, b) { merge(a, b) },
     fn(a, b) {
       for u in a {
         for v in b {
           all_edges.push((u, v))
         }
       }
-      a.append(b)
-      a
+      merge(a, b)
     },
   )
   let g = AdjacencyMap::from_edges(all_edges)
