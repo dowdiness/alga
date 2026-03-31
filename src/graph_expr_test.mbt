@@ -363,9 +363,10 @@ test "law: connect decomposes to overlay" {
         (am_a.has_vertex(e.0) && am_b.has_vertex(e.1))
       })
     // (c) every cross-edge u→v (u ∈ a, v ∈ b) must be in connect(a, b)
+    let b_verts = am_b.vertex_list()
     let all_cross_edges = am_a
       .vertex_list()
-      .all(fn(u) { am_b.vertex_list().all(fn(v) { connected.has_edge(u, v) }) })
+      .all(fn(u) { b_verts.all(fn(v) { connected.has_edge(u, v) }) })
     overlay_subset && extras_are_cross && all_cross_edges
   })
 }
