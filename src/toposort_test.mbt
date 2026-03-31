@@ -248,3 +248,120 @@ test "has_cycle" {
   let single = @alga.AdjacencyMap::vertex(1)
   assert_true(!@alga.has_cycle(single))
 }
+
+// === topo_levels ===
+
+///|
+test "topo_levels linear chain" {
+  // 1→2→3→4: each vertex one step further from the source
+  let g = @alga.AdjacencyMap::from_edges([(1, 2), (2, 3), (3, 4)])
+  let result = @alga.topo_levels(g)
+  match result {
+    Some(levels) => {
+      assert_eq(levels[1], 0)
+      assert_eq(levels[2], 1)
+      assert_eq(levels[3], 2)
+      assert_eq(levels[4], 3)
+    }
+    None => assert_true(false)
+  }
+}
+
+///|
+test "topo_levels diamond" {
+  // 1→2, 1→3, 2→4, 3→4: vertex 4 is at level 2 (longest path)
+  let g = @alga.AdjacencyMap::from_edges([(1, 2), (1, 3), (2, 4), (3, 4)])
+  let result = @alga.topo_levels(g)
+  match result {
+    Some(levels) => {
+      assert_eq(levels[1], 0)
+      assert_eq(levels[2], 1)
+      assert_eq(levels[3], 1)
+      assert_eq(levels[4], 2)
+    }
+    None => assert_true(false)
+  }
+}
+
+///|
+test "topo_levels multiple sources" {
+  // Two disconnected chains: 1→2, 3→4 — each source at level 0
+  let g = @alga.AdjacencyMap::from_edges([(1, 2), (3, 4)])
+  let result = @alga.topo_levels(g)
+  match result {
+    Some(levels) => {
+      assert_eq(levels[1], 0)
+      assert_eq(levels[2], 1)
+      assert_eq(levels[3], 0)
+      assert_eq(levels[4], 1)
+    }
+    None => assert_true(false)
+  }
+}
+
+///|
+test "topo_levels single vertex" {
+  let g = @alga.AdjacencyMap::vertex(42)
+  let result = @alga.topo_levels(g)
+  match result {
+    Some(levels) => assert_eq(levels[42], 0)
+    None => assert_true(false)
+  }
+}
+
+///|
+test "topo_levels empty graph" {
+  let g = @alga.AdjacencyMap::empty()
+  let result = @alga.topo_levels(g)
+  match result {
+    Some(levels) => assert_eq(levels.length(), 0)
+    None => assert_true(false)
+  }
+}
+
+///|
+test "topo_levels cycle returns None" {
+  let g = @alga.AdjacencyMap::from_edges([(1, 2), (2, 3), (3, 1)])
+  let result = @alga.topo_levels(g)
+  assert_true(result is None)
+}
+
+///|
+test "topo_levels self loop returns None" {
+  let g = @alga.AdjacencyMap::from_edges([(1, 1)])
+  let result = @alga.topo_levels(g)
+  assert_true(result is None)
+}
+
+///|
+test "topo_levels DenseGraph" {
+  // Verify genericity: same diamond on DenseGraph (dense 0-based IDs)
+  let g = @alga.DenseGraph::from_edges(4, [(0, 1), (0, 2), (1, 3), (2, 3)])
+  let result = @alga.topo_levels(g)
+  match result {
+    Some(levels) => {
+      assert_eq(levels[0], 0)
+      assert_eq(levels[1], 1)
+      assert_eq(levels[2], 1)
+      assert_eq(levels[3], 2)
+    }
+    None => assert_true(false)
+  }
+}
+
+///|
+test "topo_levels wide star" {
+  // Star: hub 0 → spokes 1,2,3,4 — hub at level 0, all spokes at level 1
+  let g = @alga.AdjacencyMap::from_edges([(0, 1), (0, 2), (0, 3), (0, 4)])
+  let result = @alga.topo_levels(g)
+  match result {
+    Some(levels) => {
+      assert_eq(levels[0], 0)
+      assert_eq(levels[1], 1)
+      assert_eq(levels[2], 1)
+      assert_eq(levels[3], 1)
+      assert_eq(levels[4], 1)
+    }
+    None => assert_true(false)
+  }
+}

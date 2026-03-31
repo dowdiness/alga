@@ -29,6 +29,8 @@ pub fn[G : DirectedGraph] reachable(G, Int) -> Array[Int]
 
 pub fn[G : DirectedGraph] reachable_multi(G, Array[Int]) -> Array[Int]
 
+pub fn[G : DirectedGraph] topo_levels(G) -> Map[Int, Int]?
+
 pub fn[G : DirectedGraph] toposort(G) -> Array[Int]?
 
 pub fn[G : DirectedGraph] toposort_subset(G, Array[Int]) -> Array[Int]?
