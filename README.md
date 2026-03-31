@@ -70,7 +70,7 @@ assert_true(am.has_edge(1, 2))
 | Multi-source reachability | `reachable_multi(g, starts)` | O(V+E) | All vertices reachable from any start |
 | Toposort | `toposort(g)` | O(V+E) | Topological ordering (Kahn's algorithm) |
 | Toposort (subset) | `toposort_subset(g, vertices)` | O(V_sub+E_sub) | Topological ordering of induced subgraph |
-| Topo levels | `topo_levels(g)` | O(V+E) | Distance from nearest source for each vertex |
+| Topo levels | `topo_levels(g)` | O(V+E) | Longest-path distance from source(s) for each vertex |
 | Cycle detection | `has_cycle(g)` | O(V+E) | True if graph contains a directed cycle |
 | Outdegree | `outdegree(g, v)` | O(degree) | Number of outgoing edges from v |
 | Indegree | `indegree(g, v)` | O(V+E) | Number of incoming edges to v |

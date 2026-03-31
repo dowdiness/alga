@@ -36,14 +36,9 @@
 /// Time: O(V + E). Space: O(V).
 
 ///|
-/// Topological sort via Kahn's algorithm.
-/// Returns `Some(ordering)` for DAGs, `None` if the graph has a cycle.
-///
-/// **Warning:** Self-loops (edges v -> v) are treated as cycles and cause
-/// this function to return `None`. If your graph may contain self-loops
-/// that you want to ignore, call `remove_self_loops()` first.
-pub fn[G : DirectedGraph] toposort(graph : G) -> Array[Int]? {
-  // Step 1: Compute in-degrees
+/// Compute in-degrees for all vertices. Shared by toposort and topo_levels.
+/// Returns a Map where every vertex has an entry (0 if no incoming edges).
+fn[G : DirectedGraph] compute_in_degrees(graph : G) -> Map[Int, Int] {
   let in_degree : Map[Int, Int] = Map::new()
   G::for_each_vertex(graph, fn(v) { in_degree[v] = 0 })
   G::for_each_vertex(graph, fn(v) {
@@ -55,14 +50,26 @@ pub fn[G : DirectedGraph] toposort(graph : G) -> Array[Int]? {
       in_degree[w] = d + 1
     })
   })
-  // Step 2: Seed queue with zero-in-degree vertices
+  in_degree
+}
+
+///|
+/// Topological sort via Kahn's algorithm.
+/// Returns `Some(ordering)` for DAGs, `None` if the graph has a cycle.
+///
+/// **Warning:** Self-loops (edges v -> v) are treated as cycles and cause
+/// this function to return `None`. If your graph may contain self-loops
+/// that you want to ignore, call `remove_self_loops()` first.
+pub fn[G : DirectedGraph] toposort(graph : G) -> Array[Int]? {
+  let in_degree = compute_in_degrees(graph)
+  // Seed queue with zero-in-degree vertices
   let queue : Array[Int] = []
   for v, d in in_degree {
     if d == 0 {
       queue.push(v)
     }
   }
-  // Step 3: Process queue, building topological order
+  // Process queue, building topological order
   let result : Array[Int] = []
   let mut head = 0
   while head < queue.length() {
@@ -80,7 +87,7 @@ pub fn[G : DirectedGraph] toposort(graph : G) -> Array[Int]? {
       }
     })
   }
-  // Step 4: Check completeness — incomplete means a cycle exists
+  // Check completeness — incomplete means a cycle exists
   let vc = G::vertex_count(graph)
   if result.length() == vc {
     Some(result)
@@ -130,19 +137,8 @@ pub fn[G : DirectedGraph] has_cycle(graph : G) -> Bool {
 ///
 /// Time: O(V + E). Space: O(V).
 pub fn[G : DirectedGraph] topo_levels(graph : G) -> Map[Int, Int]? {
-  // Step 1: Compute in-degrees
-  let in_degree : Map[Int, Int] = Map::new()
-  G::for_each_vertex(graph, fn(v) { in_degree[v] = 0 })
-  G::for_each_vertex(graph, fn(v) {
-    G::for_each_successor(graph, v, fn(w) {
-      let d = match in_degree.get(w) {
-        Some(n) => n
-        None => 0
-      }
-      in_degree[w] = d + 1
-    })
-  })
-  // Step 2: Seed queue with sources (in-degree 0) at level 0
+  let in_degree = compute_in_degrees(graph)
+  // Step 1: Seed queue with sources (in-degree 0) at level 0
   let levels : Map[Int, Int] = Map::new()
   let queue : Array[Int] = []
   for v, d in in_degree {
