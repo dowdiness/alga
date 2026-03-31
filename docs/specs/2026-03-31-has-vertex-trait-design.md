@@ -31,7 +31,11 @@ pub(open) trait DirectedGraph {
 - `for_each_vertex` and `for_each_successor` are irreducible — they can't be derived from anything else
 - `vertex_count` can be derived by counting `for_each_vertex` callbacks — O(V) but correct
 - `has_vertex` can be derived by scanning `for_each_vertex` — O(V) but correct
-- Both `AdjacencyMap` and `DenseGraph` override with O(1) implementations, so no regression for existing code
+- Both `AdjacencyMap` and `DenseGraph` provide O(1) overrides, so no regression for existing code
+
+### Contract
+
+`for_each_vertex` must yield each vertex exactly once. The default `vertex_count` and `has_vertex` depend on this invariant.
 
 ### Implementor experience
 
@@ -56,62 +60,75 @@ impl DirectedGraph for MyGraph with for_each_successor(self, v, f) {
 
 ## Default implementations
 
+Default implementations must NOT use `pub` (MoonBit error E4010). Use trait-qualified calls to avoid dot-syntax method resolution ambiguity.
+
 ```moonbit
 // O(V) — counts by iterating all vertices
-pub impl DirectedGraph with vertex_count(self) {
+impl DirectedGraph with vertex_count(self) {
   let mut n = 0
-  self.for_each_vertex(fn(_) { n = n + 1 })
+  DirectedGraph::for_each_vertex(self, fn(_) { n = n + 1 })
   n
 }
 
 // O(V) — scans all vertices looking for a match
-pub impl DirectedGraph with has_vertex(self, v) {
+impl DirectedGraph with has_vertex(self, v) {
   let mut found = false
-  self.for_each_vertex(fn(u) { if u == v { found = true } })
+  DirectedGraph::for_each_vertex(self, fn(u) { if u == v { found = true } })
   found
 }
 ```
 
+**Why trait-qualified calls:** MoonBit's dot syntax (`self.for_each_vertex(...)`) prefers standalone methods over trait methods. Inside a default trait implementation, this could dispatch to an unrelated standalone method on the concrete type. Using `DirectedGraph::for_each_vertex(self, ...)` ensures the trait method is always called.
+
 ## Algorithm changes
 
-### toposort_subset
+### toposort_subset — behavior change
 
-Add input validation using `has_vertex`:
+**Current behavior:** invalid vertex IDs are silently included in the output on AdjacencyMap (treated as isolated vertices with in-degree 0) but panic on DenseGraph.
 
-```moonbit
-// Before processing, filter out vertices not in the graph.
-// This makes behavior consistent: invalid IDs are skipped
-// instead of silently ignored (AdjacencyMap) or panicking (DenseGraph).
-```
+**New behavior:** invalid vertex IDs are filtered out before processing. This is a semantic change — tests that relied on unknown IDs appearing in the output must be updated.
 
-The validation cost is O(k) where k = number of input vertices, using the graph's `has_vertex` (O(1) for both existing types).
+Validation cost:
+- O(k) with O(1) `has_vertex` override (AdjacencyMap, DenseGraph)
+- O(k * V) with O(V) default `has_vertex` (minimal implementors)
+
+The spec documents this trade-off so implementors know to override `has_vertex` for performance-sensitive subset operations.
 
 ### Other algorithms
 
-No other algorithms currently accept user-provided vertex IDs that need validation. `dfs_fold`, `bfs_fold`, and `reachable` take a `start` vertex — these could optionally validate, but returning empty results for invalid starts is already safe behavior. No changes needed now.
+No other algorithms currently accept user-provided vertex IDs that need validation. `dfs_fold`, `bfs_fold`, and `reachable` take a `start` vertex — returning empty results for invalid starts is already safe behavior. No changes needed now.
 
-## Existing implementations — changes
+## Existing implementations — required changes
 
 ### AdjacencyMap
 
-Already has `has_vertex` and `vertex_count` as standalone methods. These become trait method overrides:
+`has_vertex` currently exists as a standalone method (`pub fn AdjacencyMap::has_vertex`). Must add an explicit trait impl:
 
 ```moonbit
-// No code change needed — existing impl signatures already match.
-// pub impl DirectedGraph for AdjacencyMap with vertex_count(self) { ... }
-// pub impl DirectedGraph for AdjacencyMap with has_vertex(self, v) { ... }
-// These were standalone methods; now they're also trait overrides.
+pub impl DirectedGraph for AdjacencyMap with has_vertex(self, v) {
+  self.adjacency.contains(v)
+}
 ```
 
-Verify: the existing `pub fn AdjacencyMap::has_vertex` must be changed to `pub impl DirectedGraph for AdjacencyMap with has_vertex`. Check if both can coexist or if the standalone method must be removed.
+The standalone method can coexist — MoonBit allows both. Dot syntax on a concrete `AdjacencyMap` value will prefer the standalone method; generic `G : DirectedGraph` code will use the trait impl. Both have the same body, so behavior is identical.
+
+`vertex_count` already has a trait impl (`pub impl DirectedGraph for AdjacencyMap with vertex_count`). No change needed — it becomes an override of the new default.
 
 ### DenseGraph
 
-Same situation — standalone `has_vertex` and `vertex_count` become trait overrides.
+Same pattern — add explicit trait impl for `has_vertex`:
+
+```moonbit
+pub impl DirectedGraph for DenseGraph with has_vertex(self, v) {
+  v >= 0 && v < self.successors.length()
+}
+```
+
+`vertex_count` already has a trait impl. No change needed.
 
 ### integration_wbtest.mbt ArrayGraph
 
-Currently implements `vertex_count` explicitly. Still works — override takes precedence over default.
+Currently implements `vertex_count` explicitly. Still works — explicit impl overrides the default. Does NOT implement `has_vertex`, so it will use the O(V) default. This is acceptable for a test type.
 
 ## Benchmarks
 
@@ -119,12 +136,12 @@ Currently implements `vertex_count` explicitly. Still works — override takes p
 
 | Benchmark | What it measures | Expected |
 |---|---|---|
-| `has_vertex/AdjacencyMap/1000` | O(1) override | ~0 µs |
-| `has_vertex/DenseGraph/1000` | O(1) override | ~0 µs |
+| `has_vertex/AdjacencyMap/1000` | O(1) trait override | ~0 µs |
+| `has_vertex/DenseGraph/1000` | O(1) trait override | ~0 µs |
 | `has_vertex/default/1000` | O(V) default fallback | ~few µs |
 | `vertex_count/default/1000` | O(V) default fallback | ~few µs |
 
-Default benchmarks use a minimal 2-method-only type (similar to `ArrayGraph` from integration tests) to measure the actual cost users pay when they don't override.
+Default benchmarks use a minimal 2-method-only type (whitebox test, similar to `ArrayGraph`) to measure the actual cost users pay when they don't override.
 
 ### Regression check
 
@@ -133,18 +150,23 @@ Run full `moon bench --release` before and after to verify no performance regres
 ## Testing
 
 1. **Default impls work** — implement a type with only `for_each_vertex` + `for_each_successor`, verify `vertex_count` and `has_vertex` return correct results
-2. **Overrides take precedence** — verify AdjacencyMap and DenseGraph still use O(1) implementations
-3. **toposort_subset with invalid vertex IDs** — verify consistent behavior (skip, don't panic) on both AdjacencyMap and DenseGraph
-4. **Property tests still pass** — all 8 algebraic law tests, 146+ existing tests
-5. **Benchmark defaults** — measure O(V) fallback cost for documentation
+2. **Overrides take precedence** — verify AdjacencyMap and DenseGraph use O(1) trait impls via generic function calls
+3. **toposort_subset with invalid vertex IDs** — verify invalid IDs are filtered out (not included in output, not panicking) on both AdjacencyMap and DenseGraph
+4. **Negative vertex IDs** — verify `has_vertex` returns false for negative IDs on DenseGraph
+5. **Property tests still pass** — all 8 algebraic law tests, 146+ existing tests
+6. **Benchmark defaults** — measure O(V) fallback cost
 
 ## Breaking change assessment
 
 - **Existing DirectedGraph implementors:** NOT broken. `vertex_count` becomes optional (gets a default). `has_vertex` is new but also defaulted.
-- **Existing callers:** NOT broken. `has_vertex` is additive — new method, previously didn't exist on trait.
-- **API surface:** `has_vertex` moves from type-specific methods to trait, gaining generic accessibility. The standalone methods may need to be removed if MoonBit doesn't allow both a trait impl and a standalone method with the same name.
+- **Existing callers:** NOT broken. `has_vertex` is additive.
+- **toposort_subset callers:** BEHAVIOR CHANGE. Invalid vertex IDs were previously included in output (AdjacencyMap) or caused panics (DenseGraph). Now they are silently filtered out. Update tests accordingly.
+- **API surface:** Standalone `has_vertex` methods on AdjacencyMap and DenseGraph remain. New trait impls are added alongside them. The `.mbti` interface will show both the standalone methods and the trait impls.
 
-## Open questions
+## Trait documentation update
 
-1. Can MoonBit have both `pub fn AdjacencyMap::has_vertex(self, v)` (standalone) and `pub impl DirectedGraph for AdjacencyMap with has_vertex(self, v)` (trait)? If not, the standalone must be removed/converted.
-2. Does `vertex_count` defaulting change the `.mbti` interface in a way that affects downstream consumers?
+Update `src/traits.mbt` doc comment:
+- Change "Three methods, no more" to "Two required methods + two defaulted"
+- Update example to show 2-method minimum
+- Document `for_each_vertex` contract (each vertex yielded exactly once)
+- Note that `vertex_count` and `has_vertex` have O(V) defaults; override for O(1)
