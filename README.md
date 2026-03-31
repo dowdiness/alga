@@ -143,6 +143,7 @@ Benchmarks on a 1,000-vertex chain graph (WASM-GC, release mode):
 | BFS multi (3 starts) | 75 µs |
 | has_cycle | 122 µs |
 | SCC | 296 µs |
+| condensation | 594 µs |
 | outdegree | 0.02 µs |
 | indegree | 20 µs |
 | transpose | 80 µs |
