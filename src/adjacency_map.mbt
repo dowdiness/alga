@@ -425,3 +425,8 @@ pub impl DirectedGraph for AdjacencyMap with for_each_successor(self, v, f) {
     None => ()
   }
 }
+
+///|
+pub impl DirectedGraph for AdjacencyMap with has_vertex(self, v) {
+  self.adjacency.contains(v)
+}

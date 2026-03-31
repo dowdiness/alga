@@ -197,6 +197,11 @@ pub impl DirectedGraph for DenseGraph with for_each_successor(self, v, f) {
   }
 }
 
+///|
+pub impl DirectedGraph for DenseGraph with has_vertex(self, v) {
+  v >= 0 && v < self.successors.length()
+}
+
 // ============================================================
 // Optimized algorithms — bypass trait dispatch + callbacks
 // ============================================================
