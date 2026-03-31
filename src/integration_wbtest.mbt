@@ -86,9 +86,7 @@ test "external impl: dfs_fold" {
 
 ///|
 test "default has_vertex works on ArrayGraph" {
-  let g = ArrayGraph::{
-    successors: [[1, 2], [2], [3], []],
-  }
+  let g = ArrayGraph::{ successors: [[1, 2], [2], [3], []] }
   assert_true(DirectedGraph::has_vertex(g, 0))
   assert_true(DirectedGraph::has_vertex(g, 3))
   assert_true(!DirectedGraph::has_vertex(g, 4))
