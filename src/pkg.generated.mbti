@@ -9,7 +9,11 @@ import {
 // Values
 pub fn[G : DirectedGraph, Acc] bfs_fold(G, Int, Acc, (Acc, Int) -> (Acc, Bool)) -> Acc
 
+pub fn[G : DirectedGraph, Acc] bfs_fold_multi(G, Array[Int], Acc, (Acc, Int) -> (Acc, Bool)) -> Acc
+
 pub fn[G : DirectedGraph, Acc] dfs_fold(G, Int, Acc, (Acc, Int) -> (Acc, Bool)) -> Acc
+
+pub fn[G : DirectedGraph, Acc] dfs_fold_multi(G, Array[Int], Acc, (Acc, Int) -> (Acc, Bool)) -> Acc
 
 pub fn[B] foldg(Graph, B, (Int) -> B, (B, B) -> B, (B, B) -> B) -> B
 
@@ -22,6 +26,8 @@ pub fn[G : DirectedGraph] indegree(G, Int) -> Int
 pub fn[G : DirectedGraph] outdegree(G, Int) -> Int
 
 pub fn[G : DirectedGraph] reachable(G, Int) -> Array[Int]
+
+pub fn[G : DirectedGraph] reachable_multi(G, Array[Int]) -> Array[Int]
 
 pub fn[G : DirectedGraph] toposort(G) -> Array[Int]?
 

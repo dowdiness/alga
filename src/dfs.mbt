@@ -83,3 +83,95 @@ pub fn[G : DirectedGraph] reachable(graph : G, start : Int) -> Array[Int] {
     (arr, true)
   })
 }
+
+///|
+/// Multi-source DFS fold over vertices reachable from any vertex in `starts`.
+///
+/// Seeds the DFS stack with all start vertices instead of one, enabling
+/// frontier-based traversal. Same motivation as `bfs_fold_multi` — see
+/// its doc comment for the multi-source vs looping-single-source rationale.
+///
+/// ## Ordering
+///
+/// Start vertices are pushed in reverse order so `starts[0]` is on top
+/// of the stack and processed first. When source sub-trees are disjoint,
+/// `starts[0]` is fully explored before `starts[1]`. When sub-trees
+/// overlap, vertices reachable from multiple starts are visited on first
+/// encounter (from whichever source reaches them first in DFS order).
+///
+/// ## Seeding
+///
+/// - Invalid starts (not in the graph) are silently skipped via `has_vertex`
+/// - Duplicate starts are deduplicated before traversal begins
+///
+/// Time: O(V + E) where V and E are the reachable vertices and edges.
+/// Seed validation calls `has_vertex` — override it for O(1) on custom types.
+pub fn[G : DirectedGraph, Acc] dfs_fold_multi(
+  graph : G,
+  starts : Array[Int],
+  init : Acc,
+  f : (Acc, Int) -> (Acc, Bool),
+) -> Acc {
+  let visited : Map[Int, Bool] = Map::new()
+  let stack : Array[Int] = []
+  // Seed in reverse order so starts[0] ends up on top of the stack (LIFO).
+  // Use visited for dedup — seeds are pushed but NOT marked as visited,
+  // so the main loop's visited-check + fold runs normally for each seed.
+  // After seeding, clear visited so the main loop starts fresh.
+  let seen : @hashset.HashSet[Int] = @hashset.new()
+  let mut i = starts.length() - 1
+  while i >= 0 {
+    let s = starts[i]
+    if !seen.contains(s) && G::has_vertex(graph, s) {
+      seen.add(s)
+      stack.push(s)
+    }
+    i = i - 1
+  }
+  let mut acc = init
+  while stack.length() > 0 {
+    let v = stack.unsafe_pop()
+    if visited.contains(v) {
+      continue
+    }
+    visited[v] = true
+    let result = f(acc, v)
+    acc = result.0
+    if !result.1 {
+      break
+    }
+    // Push successors directly, then reverse in place so first successor
+    // is on top of the stack. Avoids per-vertex temporary array allocation.
+    let mark = stack.length()
+    G::for_each_successor(graph, v, fn(w) {
+      if !visited.contains(w) {
+        stack.push(w)
+      }
+    })
+    let mut lo = mark
+    let mut hi = stack.length() - 1
+    while lo < hi {
+      let tmp = stack[lo]
+      stack[lo] = stack[hi]
+      stack[hi] = tmp
+      lo = lo + 1
+      hi = hi - 1
+    }
+  }
+  acc
+}
+
+///|
+/// All vertices reachable from any vertex in `starts`, in DFS pre-order.
+///
+/// Convenience wrapper around `dfs_fold_multi` — collects all reachable
+/// vertices into an array. Same relationship as `reachable` to `dfs_fold`.
+pub fn[G : DirectedGraph] reachable_multi(
+  graph : G,
+  starts : Array[Int],
+) -> Array[Int] {
+  dfs_fold_multi(graph, starts, [], fn(arr, v) {
+    arr.push(v)
+    (arr, true)
+  })
+}
