@@ -346,6 +346,33 @@ pub impl Show for AdjacencyMap with output(self, logger) {
 }
 
 ///|
+/// Debug implementation for AdjacencyMap.
+/// Produces structured Repr for inspect/debugging tools.
+pub impl Debug for AdjacencyMap with to_repr(self) {
+  let entries : Array[(@debug.Repr, @debug.Repr)] = []
+  let keys : Array[Int] = []
+  for k, _ in self.adjacency {
+    keys.push(k)
+  }
+  keys.sort()
+  for k in keys {
+    let succs = match self.adjacency.get(k) {
+      Some(s) => s
+      None => []
+    }
+    let sorted = succs.copy()
+    sorted.sort()
+    entries.push(
+      (
+        @debug.to_repr(k),
+        @debug.Repr::array(sorted.map(fn(v) { @debug.to_repr(v) })),
+      ),
+    )
+  }
+  @debug.Repr::opaque_("AdjacencyMap", @debug.Repr::map(entries))
+}
+
+///|
 /// Eq implementation for AdjacencyMap.
 /// Two graphs are equal if they have the same vertices and edges.
 /// Successor arrays are sorted before comparison since order may differ.

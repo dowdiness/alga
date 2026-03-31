@@ -148,3 +148,21 @@ test "edges combinator" {
   assert_true(am.has_edge(3, 4))
   assert_eq(am.edge_count(), 2)
 }
+
+///|
+test "Graph Show" {
+  inspect(
+    @alga.Graph::path([1, 2, 3]),
+    content="Overlay(Overlay(Vertex(1), Connect(Vertex(1), Vertex(2))), Connect(Vertex(2), Vertex(3)))",
+  )
+  inspect(@alga.Empty, content="Empty")
+  inspect(@alga.Vertex(42), content="Vertex(42)")
+}
+
+///|
+test "DenseGraph Show" {
+  let g = @alga.DenseGraph::from_edges(3, [(0, 1), (0, 2), (1, 2)])
+  inspect(g, content="DenseGraph(3 vertices, [0 -> [1, 2], 1 -> [2]])")
+  let empty = @alga.DenseGraph::from_edges(2, [])
+  inspect(empty, content="DenseGraph(2 vertices, [])")
+}

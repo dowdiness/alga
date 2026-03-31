@@ -132,6 +132,52 @@ pub fn DenseGraph::edge_count(self : DenseGraph) -> Int {
 }
 
 ///|
+/// Show implementation for DenseGraph.
+/// Format: `DenseGraph(3 vertices, [0 -> [1, 2], 1 -> [2]])`
+pub impl Show for DenseGraph with output(self, logger) {
+  let n = self.successors.length()
+  logger.write_string("DenseGraph(")
+  logger.write_string(n.to_string())
+  logger.write_string(" vertices, [")
+  let mut first = true
+  for v = 0; v < n; v = v + 1 {
+    let succs = self.successors[v]
+    if succs.length() > 0 {
+      if !first {
+        logger.write_string(", ")
+      }
+      first = false
+      logger.write_string(v.to_string())
+      logger.write_string(" -> [")
+      for j, w in succs {
+        if j > 0 {
+          logger.write_string(", ")
+        }
+        logger.write_string(w.to_string())
+      }
+      logger.write_string("]")
+    }
+  }
+  logger.write_string("])")
+}
+
+///|
+/// Debug implementation for DenseGraph.
+/// Produces structured Repr showing vertex count and edges.
+pub impl Debug for DenseGraph with to_repr(self) {
+  let fields : Map[String, @debug.Repr] = Map::new()
+  fields["vertex_count"] = @debug.to_repr(self.successors.length())
+  let edges : Array[@debug.Repr] = []
+  for v = 0; v < self.successors.length(); v = v + 1 {
+    for w in self.successors[v] {
+      edges.push(@debug.Repr::tuple([@debug.to_repr(v), @debug.to_repr(w)]))
+    }
+  }
+  fields["edges"] = @debug.Repr::array(edges)
+  @debug.Repr::opaque_("DenseGraph", @debug.Repr::record(fields))
+}
+
+///|
 /// DirectedGraph trait — enables all generic algorithms (toposort, DFS, BFS).
 pub impl DirectedGraph for DenseGraph with vertex_count(self) {
   self.successors.length()

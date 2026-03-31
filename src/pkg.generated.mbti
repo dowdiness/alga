@@ -1,6 +1,10 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "dowdiness/alga"
 
+import {
+  "moonbitlang/core/debug",
+}
+
 // Values
 pub fn[G : DirectedGraph, Acc] bfs_fold(G, Int, Acc, (Acc, Int) -> (Acc, Bool)) -> Acc
 
@@ -44,6 +48,7 @@ pub impl DirectedGraph for AdjacencyMap
 pub impl GraphSym for AdjacencyMap
 pub impl Eq for AdjacencyMap
 pub impl Show for AdjacencyMap
+pub impl @debug.Debug for AdjacencyMap
 
 pub(all) struct DenseGraph {
   successors : Array[Array[Int]]
@@ -61,6 +66,8 @@ pub fn DenseGraph::toposort(Self) -> Array[Int]?
 pub fn DenseGraph::transpose(Self) -> Self
 pub fn DenseGraph::vertex_count(Self) -> Int
 pub impl DirectedGraph for DenseGraph
+pub impl Show for DenseGraph
+pub impl @debug.Debug for DenseGraph
 
 pub(all) enum Graph {
   Empty
@@ -80,6 +87,8 @@ pub fn Graph::star(Int, Array[Int]) -> Self
 pub fn Graph::to_adjacency_map(Self) -> AdjacencyMap
 pub fn Graph::vertices(Array[Int]) -> Self
 pub impl GraphSym for Graph
+pub impl Show for Graph
+pub impl @debug.Debug for Graph
 
 // Type aliases
 
