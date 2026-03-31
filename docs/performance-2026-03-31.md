@@ -20,6 +20,7 @@ This is a dated snapshot. New measurements go in new files; old ones are not upd
 | transpose | 80 µs | — | Builds reverse adjacency |
 | outdegree | 0.02 µs | 0.04 µs | O(degree), single vertex |
 | indegree | 20 µs | 31 µs | O(V+E), full scan |
+| topo_levels | 235 µs | 407 µs | Modified Kahn's with longest-path level tracking |
 | dfs_fold_multi (3 starts) | 70 µs | — | Negligible overhead vs single-source |
 | bfs_fold_multi (3 starts) | 75 µs | — | Negligible overhead vs single-source |
 

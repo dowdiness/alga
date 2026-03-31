@@ -48,6 +48,7 @@ let g = AdjacencyMap::from_edges([(1, 2), (2, 3), (3, 4)])
 let r = reachable(g, 1)       // [1, 2, 3, 4]
 let order = toposort(g)       // Some([1, 2, 3, 4])
 let sub = toposort_subset(g, [2, 3]) // Some([2, 3])
+let lvls = topo_levels(g)    // Some({1:0, 2:1, 3:2, 4:3})
 let cyclic = has_cycle(g)     // false
 let components = g.scc()      // [[1], [2], [3], [4]]
 
@@ -69,6 +70,7 @@ assert_true(am.has_edge(1, 2))
 | Multi-source reachability | `reachable_multi(g, starts)` | O(V+E) | All vertices reachable from any start |
 | Toposort | `toposort(g)` | O(V+E) | Topological ordering (Kahn's algorithm) |
 | Toposort (subset) | `toposort_subset(g, vertices)` | O(V_sub+E_sub) | Topological ordering of induced subgraph |
+| Topo levels | `topo_levels(g)` | O(V+E) | Longest-path distance from source(s) for each vertex |
 | Cycle detection | `has_cycle(g)` | O(V+E) | True if graph contains a directed cycle |
 | Outdegree | `outdegree(g, v)` | O(degree) | Number of outgoing edges from v |
 | Indegree | `indegree(g, v)` | O(V+E) | Number of incoming edges to v |
@@ -132,6 +134,7 @@ Benchmarks on a 1,000-vertex chain graph (WASM-GC, release mode):
 | from_edges | 62 µs |
 | toposort | 139 µs |
 | toposort_subset (half) | 37 µs |
+| topo_levels | 235 µs |
 | reachable (DFS) | 97 µs |
 | reachable_multi (3 starts) | 70 µs |
 | BFS | 68 µs |

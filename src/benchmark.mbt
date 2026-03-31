@@ -102,6 +102,20 @@ test "bench/toposort/diamond_1000" (b : @bench.T) {
   b.bench(fn() { b.keep(toposort(g)) })
 }
 
+// --- topo_levels ---
+
+///|
+test "bench/topo_levels/chain_1000" (b : @bench.T) {
+  let g = build_chain(1000)
+  b.bench(fn() { b.keep(topo_levels(g)) })
+}
+
+///|
+test "bench/topo_levels/diamond_1000" (b : @bench.T) {
+  let g = build_diamond(1000)
+  b.bench(fn() { b.keep(topo_levels(g)) })
+}
+
 // --- toposort_subset ---
 
 ///|

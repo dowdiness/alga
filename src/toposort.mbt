@@ -36,14 +36,9 @@
 /// Time: O(V + E). Space: O(V).
 
 ///|
-/// Topological sort via Kahn's algorithm.
-/// Returns `Some(ordering)` for DAGs, `None` if the graph has a cycle.
-///
-/// **Warning:** Self-loops (edges v -> v) are treated as cycles and cause
-/// this function to return `None`. If your graph may contain self-loops
-/// that you want to ignore, call `remove_self_loops()` first.
-pub fn[G : DirectedGraph] toposort(graph : G) -> Array[Int]? {
-  // Step 1: Compute in-degrees
+/// Compute in-degrees for all vertices. Shared by toposort and topo_levels.
+/// Returns a Map where every vertex has an entry (0 if no incoming edges).
+fn[G : DirectedGraph] compute_in_degrees(graph : G) -> Map[Int, Int] {
   let in_degree : Map[Int, Int] = Map::new()
   G::for_each_vertex(graph, fn(v) { in_degree[v] = 0 })
   G::for_each_vertex(graph, fn(v) {
@@ -55,14 +50,26 @@ pub fn[G : DirectedGraph] toposort(graph : G) -> Array[Int]? {
       in_degree[w] = d + 1
     })
   })
-  // Step 2: Seed queue with zero-in-degree vertices
+  in_degree
+}
+
+///|
+/// Topological sort via Kahn's algorithm.
+/// Returns `Some(ordering)` for DAGs, `None` if the graph has a cycle.
+///
+/// **Warning:** Self-loops (edges v -> v) are treated as cycles and cause
+/// this function to return `None`. If your graph may contain self-loops
+/// that you want to ignore, call `remove_self_loops()` first.
+pub fn[G : DirectedGraph] toposort(graph : G) -> Array[Int]? {
+  let in_degree = compute_in_degrees(graph)
+  // Seed queue with zero-in-degree vertices
   let queue : Array[Int] = []
   for v, d in in_degree {
     if d == 0 {
       queue.push(v)
     }
   }
-  // Step 3: Process queue, building topological order
+  // Process queue, building topological order
   let result : Array[Int] = []
   let mut head = 0
   while head < queue.length() {
@@ -80,7 +87,7 @@ pub fn[G : DirectedGraph] toposort(graph : G) -> Array[Int]? {
       }
     })
   }
-  // Step 4: Check completeness — incomplete means a cycle exists
+  // Check completeness — incomplete means a cycle exists
   let vc = G::vertex_count(graph)
   if result.length() == vc {
     Some(result)
@@ -94,6 +101,91 @@ pub fn[G : DirectedGraph] toposort(graph : G) -> Array[Int]? {
 /// A self-loop (v → v) counts as a cycle.
 pub fn[G : DirectedGraph] has_cycle(graph : G) -> Bool {
   toposort(graph) is None
+}
+
+///|
+/// # Topological Levels
+///
+/// Computes the length of the longest path from any source (zero-in-degree
+/// vertex) to each vertex in a DAG. Sources get level 0, their successors
+/// get level 1, and so on.
+///
+/// ## Why longest path, not shortest?
+///
+/// Shortest-path levels are insufficient for glitch-free scheduling.
+/// Consider: if vertex C has predecessors A (level 0) and B (level 1),
+/// shortest-path would assign C level 1, allowing C to fire before B
+/// updates — a glitch. Longest-path assigns C level 2, guaranteeing
+/// both A and B fire before C.
+///
+/// This is exactly the level-sorted BFS schedule used by reactive
+/// frameworks like incr for glitch-free push propagation: process
+/// vertices in ascending level order and every node sees all its
+/// dependencies before it fires.
+///
+/// ## Cycle detection
+///
+/// Like `toposort`, this is a modified Kahn's algorithm. If not all
+/// vertices are processed, a cycle exists and the function returns `None`.
+/// Self-loops (v → v) count as cycles.
+///
+/// ## Return value
+///
+/// `Map[Int, Int]?` mapping each vertex to its level, or `None` if the
+/// graph has a cycle. The map preserves the original vertex IDs (works
+/// for both sparse `AdjacencyMap` and dense `DenseGraph` IDs).
+///
+/// Time: O(V + E). Space: O(V).
+pub fn[G : DirectedGraph] topo_levels(graph : G) -> Map[Int, Int]? {
+  let in_degree = compute_in_degrees(graph)
+  // Step 1: Seed queue with sources (in-degree 0) at level 0
+  let levels : Map[Int, Int] = Map::new()
+  let queue : Array[Int] = []
+  for v, d in in_degree {
+    if d == 0 {
+      levels[v] = 0
+      queue.push(v)
+    }
+  }
+  // Step 3: BFS — propagate levels through the graph.
+  // Each vertex's level = max(predecessor_level + 1) across all predecessors.
+  // This ensures longest-path semantics for glitch-free scheduling.
+  let mut head = 0
+  let mut processed = 0
+  while head < queue.length() {
+    let v = queue[head]
+    head = head + 1
+    processed = processed + 1
+    let v_level = match levels.get(v) {
+      Some(l) => l
+      None => 0
+    }
+    G::for_each_successor(graph, v, fn(w) {
+      let d = match in_degree.get(w) {
+        Some(n) => n
+        None => 0
+      }
+      in_degree[w] = d - 1
+      // Update w's level to the max across all predecessors
+      let current_level = match levels.get(w) {
+        Some(l) => l
+        None => 0
+      }
+      let new_level = v_level + 1
+      if new_level > current_level {
+        levels[w] = new_level
+      }
+      if d - 1 == 0 {
+        queue.push(w)
+      }
+    })
+  }
+  // Step 4: Check completeness — if fewer vertices processed than exist,
+  // the remainder are in a cycle and could never reach in-degree 0.
+  if processed != in_degree.length() {
+    return None
+  }
+  Some(levels)
 }
 
 ///|

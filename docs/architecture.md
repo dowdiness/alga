@@ -137,6 +137,7 @@ All generic algorithms follow the same pattern: take `G : DirectedGraph`, use `f
 | Reachable | `dfs.mbt` | O(V+E) | Built on dfs_fold |
 | Toposort | `toposort.mbt` | O(V+E) | Kahn's algorithm |
 | Toposort subset | `toposort.mbt` | O(V_sub+E_sub) | Induced subgraph ordering |
+| Topo levels | `toposort.mbt` | O(V+E) | Longest-path distance from sources |
 | Cycle detection | `toposort.mbt` | O(V+E) | Derived from toposort (None = cycle) |
 | Outdegree | `degree.mbt` | O(degree) | Counts via for_each_successor |
 | Indegree | `degree.mbt` | O(V+E) | Full scan — no reverse index |
