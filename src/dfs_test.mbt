@@ -375,3 +375,168 @@ test "dfs_events total edge count" {
   }
   assert_eq(edge_count, 4)
 }
+
+// --- reversed ---
+
+///|
+test "reversed successors are predecessors" {
+  // 0 → 1 → 2
+  let g = @alga.AdjacencyMap::from_edges([(0, 1), (1, 2)])
+  let rev = @alga.reversed(g)
+  // Reversed successors of 2 = predecessors of 2 = [1]
+  assert_eq(@alga.DirectedGraph::successors(rev, 2).collect(), [1])
+  // Reversed successors of 0 = predecessors of 0 = []
+  assert_eq(@alga.DirectedGraph::successors(rev, 0).collect(), [])
+}
+
+///|
+test "reversed predecessors are successors" {
+  let g = @alga.AdjacencyMap::from_edges([(0, 1), (1, 2)])
+  let rev = @alga.reversed(g)
+  assert_eq(@alga.Predecessors::predecessors(rev, 0).collect(), [1])
+}
+
+///|
+test "reversed vertex count unchanged" {
+  let g = @alga.AdjacencyMap::from_edges([(0, 1), (1, 2), (2, 3)])
+  let rev = @alga.reversed(g)
+  assert_eq(@alga.DirectedGraph::vertex_count(rev), 4)
+}
+
+///|
+test "reversed has_vertex unchanged" {
+  let g = @alga.AdjacencyMap::from_edges([(0, 1)])
+  let rev = @alga.reversed(g)
+  assert_true(@alga.DirectedGraph::has_vertex(rev, 0))
+  assert_true(@alga.DirectedGraph::has_vertex(rev, 1))
+  assert_true(!@alga.DirectedGraph::has_vertex(rev, 99))
+}
+
+///|
+test "reversed involution" {
+  // reversed(reversed(g)) has same successors as g
+  let g = @alga.AdjacencyMap::from_edges([(0, 1), (1, 2), (0, 2)])
+  let rr = @alga.reversed(@alga.reversed(g))
+  for v in @alga.DirectedGraph::iter(g) {
+    let orig = @alga.DirectedGraph::successors(g, v).collect()
+    let double = @alga.DirectedGraph::successors(rr, v).collect()
+    orig.sort()
+    double.sort()
+    assert_eq(orig, double)
+  }
+}
+
+///|
+test "reversed works with dfs_events" {
+  // 0 → 1 → 2: reversed DFS from 2 should discover 2, then 1, then 0
+  let g = @alga.AdjacencyMap::from_edges([(0, 1), (1, 2)])
+  let rev = @alga.reversed(g)
+  let events = @alga.dfs_events(rev).collect()
+  let mut discovers = 0
+  let mut finishes = 0
+  for e in events.iter() {
+    match e {
+      @alga.Discover(_) => discovers = discovers + 1
+      @alga.Finish(_) => finishes = finishes + 1
+      _ => ()
+    }
+  }
+  assert_eq(discovers, 3)
+  assert_eq(finishes, 3)
+}
+
+///|
+test "reversed works with reachable" {
+  // 0 → 1 → 2 → 3: reverse-reachable from 3 = all vertices
+  let g = @alga.AdjacencyMap::from_edges([(0, 1), (1, 2), (2, 3)])
+  let rev = @alga.reversed(g)
+  let r = @alga.reachable(rev, 3)
+  assert_eq(r.length(), 4)
+}
+
+///|
+test "reversed DenseGraph" {
+  let g = @alga.DenseGraph::from_edges(3, [(0, 1), (1, 2)])
+  let rev = @alga.reversed(g)
+  assert_eq(@alga.DirectedGraph::successors(rev, 2).collect(), [1])
+  assert_eq(@alga.DirectedGraph::successors(rev, 0).collect(), [])
+}
+
+///|
+test "reversed empty graph" {
+  let g = @alga.AdjacencyMap::empty()
+  let rev = @alga.reversed(g)
+  assert_eq(@alga.dfs_events(rev).collect().length(), 0)
+}
+
+///|
+test "reversed self loop" {
+  let g = @alga.AdjacencyMap::from_edges([(1, 1)])
+  let rev = @alga.reversed(g)
+  // Self-loop stays a self-loop when reversed
+  assert_eq(@alga.DirectedGraph::successors(rev, 1).collect(), [1])
+}
+
+///|
+test "predecessors on DenseGraph" {
+  let g = @alga.DenseGraph::from_edges(3, [(0, 1), (1, 2), (0, 2)])
+  assert_eq(@alga.Predecessors::predecessors(g, 0).collect(), [])
+  assert_eq(@alga.Predecessors::predecessors(g, 1).collect(), [0])
+  let preds_2 = @alga.Predecessors::predecessors(g, 2).collect()
+  assert_eq(preds_2.length(), 2)
+  assert_true(preds_2.contains(1))
+  assert_true(preds_2.contains(0))
+}
+
+///|
+test "DenseGraph transpose regression" {
+  let g = @alga.DenseGraph::from_edges(3, [(0, 1), (1, 2)])
+  let t = g.transpose()
+  assert_eq(@alga.DirectedGraph::successors(t, 2).collect(), [1])
+  assert_eq(@alga.Predecessors::predecessors(t, 0).collect(), [1])
+}
+
+///|
+test "reversed works with toposort" {
+  // 0 → 1 → 2: toposort = [0, 1, 2], reversed toposort = [2, 1, 0]
+  let g = @alga.AdjacencyMap::from_edges([(0, 1), (1, 2)])
+  let rev_topo = @alga.toposort(@alga.reversed(g))
+  match rev_topo {
+    Some(order) => assert_eq(order, [2, 1, 0])
+    None => assert_true(false)
+  }
+}
+
+///|
+test "reversed works with tarjan_scc" {
+  // 0→1→2→0 (cycle), 3→4: reversed has same SCCs
+  let g = @alga.AdjacencyMap::from_edges([(0, 1), (1, 2), (2, 0), (3, 4)])
+  let orig_sccs = @alga.tarjan_scc(g)
+  let rev_sccs = @alga.tarjan_scc(@alga.reversed(g))
+  // Same number of SCCs
+  assert_eq(orig_sccs.length(), rev_sccs.length())
+  // The cyclic SCC {0,1,2} should appear in both (order may differ)
+  fn find_scc_containing(sccs : Array[Array[Int]], v : Int) -> Array[Int] {
+    for scc in sccs {
+      if scc.contains(v) {
+        return scc
+      }
+    }
+    []
+  }
+
+  let orig_cycle = find_scc_containing(orig_sccs, 0)
+  let rev_cycle = find_scc_containing(rev_sccs, 0)
+  orig_cycle.sort()
+  rev_cycle.sort()
+  assert_eq(orig_cycle, rev_cycle)
+}
+
+///|
+test "reversed preserves has_cycle" {
+  // Cycles are invariant under reversal
+  let cyclic = @alga.AdjacencyMap::from_edges([(0, 1), (1, 0)])
+  assert_true(@alga.has_cycle(@alga.reversed(cyclic)))
+  let acyclic = @alga.AdjacencyMap::from_edges([(0, 1), (1, 2)])
+  assert_true(!@alga.has_cycle(@alga.reversed(acyclic)))
+}

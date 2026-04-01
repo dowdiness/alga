@@ -31,6 +31,8 @@ pub fn[G : DirectedGraph] reachable(G, Int) -> Array[Int]
 
 pub fn[G : DirectedGraph] reachable_multi(G, Array[Int]) -> Array[Int]
 
+pub fn[G : DirectedGraph + Predecessors] reversed(G) -> Reversed[G]
+
 pub fn[G : DirectedGraph] tarjan_scc(G) -> Array[Array[Int]]
 
 pub fn[G : DirectedGraph] topo_levels(G) -> Map[Int, Int]?
@@ -44,6 +46,7 @@ pub fn[G : DirectedGraph] toposort_subset(G, Array[Int]) -> Array[Int]?
 // Types and methods
 pub struct AdjacencyMap {
   adjacency : Map[Int, Array[Int]]
+  predecessors : Map[Int, Array[Int]]
 }
 pub fn AdjacencyMap::condensation(Self) -> (Self, Map[Int, Int])
 pub fn AdjacencyMap::connect(Self, Self) -> Self
@@ -64,12 +67,14 @@ pub fn AdjacencyMap::vertex_count(Self) -> Int
 pub fn AdjacencyMap::vertex_list(Self) -> Array[Int]
 pub impl DirectedGraph for AdjacencyMap
 pub impl GraphSym for AdjacencyMap
+pub impl Predecessors for AdjacencyMap
 pub impl Eq for AdjacencyMap
 pub impl Show for AdjacencyMap
 pub impl @debug.Debug for AdjacencyMap
 
 pub(all) struct DenseGraph {
   successors : Array[Array[Int]]
+  predecessors : Array[Array[Int]]
 }
 pub fn DenseGraph::edge_count(Self) -> Int
 pub fn DenseGraph::from_adjacency_map(AdjacencyMap) -> Self
@@ -84,6 +89,7 @@ pub fn DenseGraph::toposort(Self) -> Array[Int]?
 pub fn DenseGraph::transpose(Self) -> Self
 pub fn DenseGraph::vertex_count(Self) -> Int
 pub impl DirectedGraph for DenseGraph
+pub impl Predecessors for DenseGraph
 pub impl Show for DenseGraph
 pub impl @debug.Debug for DenseGraph
 
@@ -93,7 +99,7 @@ pub(all) enum DfsEvent {
   TreeEdge(Int, Int)
   BackEdge(Int, Int)
   CrossForwardEdge(Int, Int)
-}
+} derive(Eq)
 
 pub(all) enum Graph {
   Empty
@@ -118,6 +124,12 @@ pub impl @debug.Debug for Graph
 pub impl @moonbitlang/core/quickcheck.Arbitrary for Graph
 pub impl @moonbitlang/quickcheck.Shrink for Graph
 
+pub struct Reversed[G] {
+  graph : G
+}
+pub impl[G : DirectedGraph + Predecessors] DirectedGraph for Reversed[G]
+pub impl[G : DirectedGraph + Predecessors] Predecessors for Reversed[G]
+
 // Type aliases
 
 // Traits
@@ -135,5 +147,9 @@ pub(open) trait GraphSym {
   vertex(Int) -> Self
   overlay(Self, Self) -> Self
   connect(Self, Self) -> Self
+}
+
+pub(open) trait Predecessors {
+  predecessors(Self, Int) -> Iter[Int]
 }
 

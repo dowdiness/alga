@@ -60,17 +60,23 @@ Any type that implements `iter` and `successors` gets every generic algorithm fo
 
 ### Two implementations
 
-**AdjacencyMap** — `Map[Int, Array[Int]]`
+**AdjacencyMap** — `Map[Int, Array[Int]]` (bidirectional)
 - Sparse, non-contiguous vertex IDs (any Int)
 - Supports algebraic operations (overlay, connect)
 - O(log V) successor lookup via tree map
+- Stores both forward (adjacency) and reverse (predecessors) maps
+- O(1) transpose via field swap
 - Production default for general use
 
-**DenseGraph** — `Array[Array[Int]]`
+**DenseGraph** — `Array[Array[Int]]` (bidirectional)
 - Dense vertex IDs in 0..n-1
 - O(1) successor lookup via array index
+- Stores both successors and predecessors arrays
+- O(1) transpose via field swap
 - 8-23x faster than AdjacencyMap for algorithms
 - Convert from AdjacencyMap via `DenseGraph::from_adjacency_map`
+
+Both types implement `DirectedGraph + Predecessors`, enabling the `Reversed[G]` zero-cost adaptor for reverse-direction traversal.
 
 ## Layer B: Construction
 
@@ -147,9 +153,11 @@ All generic algorithms take `G : DirectedGraph`. Most use the defaulted `each_ve
 | Topo levels | `toposort.mbt` | O(V+E) | Longest-path distance from sources |
 | Cycle detection | `toposort.mbt` | O(V+E) | Derived from toposort (None = cycle) |
 | Outdegree | `degree.mbt` | O(degree) | Counts via `Iter::count` on successors |
-| Indegree | `degree.mbt` | O(V+E) | Full scan — no reverse index |
+| Indegree | `degree.mbt` | O(V+E) | Full scan via `DirectedGraph` (could be O(degree) with `Predecessors`) |
+| DFS events | `dfs.mbt` | O(V+E) | Pull-based DFS with edge classification (tree/back/cross-forward) |
+| Reversed view | `reversed.mbt` | O(1) | Zero-cost reverse-direction adaptor (requires `Predecessors`) |
 | Tarjan SCC | `scc.mbt` | O(V+E) | Generic over `DirectedGraph`, no transpose, uses `Iter.next()` |
-| Kosaraju SCC | `scc.mbt` | O(V+E) | AdjacencyMap-specific, requires transpose, reverse topo order |
+| Kosaraju SCC | `scc.mbt` | O(V+E) | AdjacencyMap-specific, O(1) transpose, reverse topo order |
 | Condensation | `scc.mbt` | O(V+E) | Collapse SCCs into DAG (AdjacencyMap-specific) |
 
 DenseGraph provides optimized versions of DFS, toposort, SCC, and reachable that bypass trait dispatch for 8-23x speedup.

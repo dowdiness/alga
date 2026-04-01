@@ -27,6 +27,11 @@
 /// `each_vertex` and `each_successor` delegate to `Iter::each` for push-style
 /// algorithms (DFS, BFS, toposort).
 ///
+/// **Reverse-direction queries:**
+/// Types that also implement `Predecessors` can be wrapped with `Reversed[G]`
+/// for zero-cost reverse traversal. `AdjacencyMap` and `DenseGraph` both
+/// implement `Predecessors` via bidirectional adjacency storage.
+///
 /// ## Example: minimal implementation (2 methods)
 ///
 /// ```
@@ -75,4 +80,17 @@ impl DirectedGraph with vertex_count(self) {
 /// supports constant-time membership.
 impl DirectedGraph with has_vertex(self, v) {
   DirectedGraph::iter(self).contains(v)
+}
+
+///|
+/// # Predecessors — reverse-direction observation capability
+///
+/// Types that can efficiently answer "which vertices point to v?"
+/// implement this trait alongside `DirectedGraph`. No default
+/// implementation is provided — an O(V+E) scan default would be
+/// a performance trap.
+///
+/// Used by `Reversed[G]` to swap `successors` and `predecessors`.
+pub(open) trait Predecessors {
+  predecessors(Self, Int) -> Iter[Int]
 }
