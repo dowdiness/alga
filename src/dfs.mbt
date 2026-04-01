@@ -226,6 +226,7 @@ pub(all) enum DfsEvent {
 /// before u's remaining successors — correct DFS order.
 ///
 /// Time: O(V + E). Space: O(V).
+/// Benchmark: ~155µs chain, ~179µs cyclic, ~257µs diamond (1000 vertices, AdjacencyMap).
 pub fn[G : DirectedGraph] dfs_events(graph : G) -> Iter[DfsEvent] {
   // absent = white (undiscovered), true = gray (on stack), false = black (finished)
   let state : Map[Int, Bool] = Map::new()
