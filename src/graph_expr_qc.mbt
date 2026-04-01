@@ -97,3 +97,48 @@ test "prop: tarjan_scc matches kosaraju scc" {
     max_success=100,
   )
 }
+
+///|
+/// Property: dfs_events emits exactly one Discover and one Finish per vertex.
+test "prop: dfs_events Discover/Finish count matches vertex_count" {
+  @qc.quick_check_fn(
+    fn(g : Graph) -> Bool {
+      let am = g.to_adjacency_map()
+      let events = dfs_events(am).collect()
+      let mut discovers = 0
+      let mut finishes = 0
+      for e in events.iter() {
+        match e {
+          Discover(_) => discovers = discovers + 1
+          Finish(_) => finishes = finishes + 1
+          _ => ()
+        }
+      }
+      let vc = am.vertex_count()
+      discovers == vc && finishes == vc
+    },
+    max_success=100,
+  )
+}
+
+///|
+/// Property: every edge is classified exactly once.
+/// Total classified edges (tree + back + cross/forward) equals edge_count.
+test "prop: dfs_events classifies all edges" {
+  @qc.quick_check_fn(
+    fn(g : Graph) -> Bool {
+      let am = g.to_adjacency_map()
+      let events = dfs_events(am).collect()
+      let mut edge_events = 0
+      for e in events.iter() {
+        match e {
+          TreeEdge(_, _) | BackEdge(_, _) | CrossForwardEdge(_, _) =>
+            edge_events = edge_events + 1
+          _ => ()
+        }
+      }
+      edge_events == am.edge_count()
+    },
+    max_success=100,
+  )
+}
