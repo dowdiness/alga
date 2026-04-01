@@ -46,13 +46,15 @@ priv struct AdjacencyMap {
 }
 ```
 
-`transpose()` becomes trivial — swap the two maps:
+`transpose()` becomes trivial — construct a new struct with swapped fields:
 
 ```moonbit
 pub fn transpose(self : AdjacencyMap) -> AdjacencyMap {
   { adjacency: self.reverse, reverse: self.adjacency }
 }
 ```
+
+Note: this is a shallow copy of the Map handles. The original and transposed graph share underlying map data. This is safe because `AdjacencyMap` is treated as immutable after construction — all "mutation" sites (`condensation`, `Graph::to_adjacency_map`) mutate freshly-built graphs before returning them, never graphs visible to callers. If this invariant is ever broken, transpose must deep-copy instead.
 
 #### DenseGraph
 
@@ -116,7 +118,7 @@ The spike verified:
 
 ### Properties
 
-- **Zero allocation**: `Reversed[G]` holds only a reference to the original graph. No copying.
+- **Lightweight**: `Reversed[G]` holds the original graph value. For alga's types (`AdjacencyMap`, `DenseGraph`), this is a shallow handle copy — no edge data is duplicated. For arbitrary custom `G`, the cost depends on the type's copy semantics.
 - **Involution**: `Reversed(Reversed(g))` produces the same traversal as `g`. Successors of the double-reversed graph call predecessors of the reversed graph, which call successors of the original.
 - **Full composability**: `Reversed[G]` implements `DirectedGraph + Predecessors`, so it works with all existing algorithms: `dfs_events`, `dfs_fold`, `bfs_fold`, `reachable`, `toposort`, `tarjan_scc`, `has_cycle`, `topo_levels`, `indegree`, `outdegree`.
 
@@ -135,6 +137,7 @@ All `AdjacencyMap` construction methods must maintain both maps:
 | `transpose()` | Swap maps | Swap maps |
 | `remove_self_loops()` | — | Remove self-loops from reverse map too |
 | `condensation()` | — | Fix direct `adjacency` mutation (line 183) to also touch `reverse` |
+| `Graph::to_adjacency_map()` | — | Fix direct `adjacency` mutation for isolated vertices (graph_expr.mbt:148) to also touch `reverse` |
 
 For `DenseGraph`:
 
@@ -169,9 +172,9 @@ let same_as_g = reversed(reversed(g))
 |---|---|
 | `AdjacencyMap` / `DenseGraph` construction | +1 insert per edge (negligible) |
 | Memory | 2x edge storage. 1000 vertices, 3000 edges: ~24KB → ~36KB |
-| `reversed(g)` | Zero — struct wrapping only |
+| `reversed(g)` | Shallow handle copy — no edge data duplicated for alga types |
 | `Reversed` queries | Same as original (delegation) |
-| `transpose()` | O(1) — swap two references (was O(V+E)) |
+| `transpose()` | O(1) — swap two handles, shallow copy (was O(V+E) rebuild) |
 
 ## API surface
 
@@ -209,7 +212,7 @@ pub impl[G : DirectedGraph + Predecessors] Predecessors for Reversed[G]
 
 - For random graphs: `reversed(g).successors(v).collect()` sorted == `g.predecessors(v).collect()` sorted
 - For random graphs: `dfs_events(reversed(reversed(g)))` == `dfs_events(g)` (involution)
-- For random graphs: `reversed(g).edge_count()` == `g.edge_count()` (edge preservation)
+- For random graphs: count edges via `dfs_events(reversed(g))` edge events == `am.edge_count()` (edge preservation)
 
 ### Regression
 
