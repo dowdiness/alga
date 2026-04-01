@@ -8,6 +8,10 @@ Active backlog for alga. Each item links to its source; non-trivial items should
 
 ## Investigate
 
+- **Zero-copy graph adaptors** — `Reversed[G]`, `NodeFiltered[G]` implementing `DirectedGraph` without allocation. Enables generic SCC (no transpose copy) and cheap subgraph views. Source: [petgraph analysis](specs/2026-04-01-petgraph-analysis.md#1-zero-copy-graph-adaptors)
+- **DFS edge classification** — `dfs_classify` reporting `TreeEdge`, `BackEdge`, `CrossForwardEdge`, `Finish`. Makes DFS a universal building block for cycle detection, bridges, etc. Source: [petgraph analysis](specs/2026-04-01-petgraph-analysis.md#2-dfs-edge-classification)
+- **Tarjan SCC** — Single-pass, no transpose required. Would lift the "SCC is AdjacencyMap-only" limitation. Source: [petgraph analysis](specs/2026-04-01-petgraph-analysis.md#3-tarjan-scc-single-pass-no-transpose)
+- **Traversal control flow** — Early termination for callbacks (`Bool` return or `ControlFlow` enum). Fixes O(V) `has_vertex` scan. Source: [petgraph analysis](specs/2026-04-01-petgraph-analysis.md#4-traversal-control-flow)
 - **GenCounter for visited sets** — Proven 2.4–5.5x faster than `Array[Bool]`, but production algorithms still use `Array[Bool]`. Tied to DenseGraph decision (requires dense vertex IDs). Source: [EXPERIMENT_REPORT.md](../src/experiment/EXPERIMENT_REPORT.md#what-remains)
 
 ## Done
