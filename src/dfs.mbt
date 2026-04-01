@@ -175,3 +175,31 @@ pub fn[G : DirectedGraph] reachable_multi(
     (arr, true)
   })
 }
+
+///|
+/// # DFS Edge Classification
+///
+/// Events emitted during a depth-first traversal. Every edge in the graph
+/// is classified into exactly one of three types (tree, back, cross/forward),
+/// and every vertex emits Discover (pre-order) and Finish (post-order).
+///
+/// ## Vertex coloring
+///
+/// - **White** (undiscovered): not yet seen by the DFS
+/// - **Gray** (in progress): discovered but not finished — on the DFS stack
+/// - **Black** (finished): all descendants fully explored
+///
+/// Edge classification follows from the target vertex's color when the edge
+/// is examined: white → TreeEdge, gray → BackEdge, black → CrossForwardEdge.
+pub(all) enum DfsEvent {
+  /// Vertex entered — pre-order. Vertex transitions white → gray.
+  Discover(Int)
+  /// All descendants done — post-order. Vertex transitions gray → black.
+  Finish(Int)
+  /// (u, v): v was white. v will be discovered on the next `.next()` call.
+  TreeEdge(Int, Int)
+  /// (u, v): v is gray (ancestor on stack). Indicates a cycle: v →...→ u → v.
+  BackEdge(Int, Int)
+  /// (u, v): v is black (already finished). Merged forward + cross edges.
+  CrossForwardEdge(Int, Int)
+}
