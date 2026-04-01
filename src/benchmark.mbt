@@ -245,6 +245,26 @@ test "bench/scc/cyclic_1000" (b : @bench.T) {
   b.bench(fn() { b.keep(g.scc()) })
 }
 
+// --- dfs_events ---
+
+///|
+test "bench/dfs_events/chain_1000" (b : @bench.T) {
+  let g = build_chain(1000)
+  b.bench(fn() { b.keep(dfs_events(g).collect()) })
+}
+
+///|
+test "bench/dfs_events/diamond_1000" (b : @bench.T) {
+  let g = build_diamond(1000)
+  b.bench(fn() { b.keep(dfs_events(g).collect()) })
+}
+
+///|
+test "bench/dfs_events/cyclic_1000" (b : @bench.T) {
+  let g = build_cyclic(1000)
+  b.bench(fn() { b.keep(dfs_events(g).collect()) })
+}
+
 // --- foldg ---
 
 ///|
