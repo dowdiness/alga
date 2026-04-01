@@ -22,26 +22,39 @@ pub fn[G : DirectedGraph + Predecessors] reversed(graph : G) -> Reversed[G] {
 }
 
 ///|
-pub impl[G : DirectedGraph + Predecessors] DirectedGraph for Reversed[G] with iter(self) {
+pub impl[G : DirectedGraph + Predecessors] DirectedGraph for Reversed[G] with iter(
+  self,
+) {
   G::iter(self.graph)
 }
 
 ///|
-pub impl[G : DirectedGraph + Predecessors] DirectedGraph for Reversed[G] with successors(self, v) {
+pub impl[G : DirectedGraph + Predecessors] DirectedGraph for Reversed[G] with successors(
+  self,
+  v,
+) {
   G::predecessors(self.graph, v)
 }
 
 ///|
-pub impl[G : DirectedGraph + Predecessors] DirectedGraph for Reversed[G] with has_vertex(self, v) {
+pub impl[G : DirectedGraph + Predecessors] DirectedGraph for Reversed[G] with has_vertex(
+  self,
+  v,
+) {
   G::has_vertex(self.graph, v)
 }
 
 ///|
-pub impl[G : DirectedGraph + Predecessors] DirectedGraph for Reversed[G] with vertex_count(self) {
+pub impl[G : DirectedGraph + Predecessors] DirectedGraph for Reversed[G] with vertex_count(
+  self,
+) {
   G::vertex_count(self.graph)
 }
 
 ///|
-pub impl[G : DirectedGraph + Predecessors] Predecessors for Reversed[G] with predecessors(self, v) {
+pub impl[G : DirectedGraph + Predecessors] Predecessors for Reversed[G] with predecessors(
+  self,
+  v,
+) {
   G::successors(self.graph, v)
 }
