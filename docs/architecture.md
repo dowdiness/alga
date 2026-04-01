@@ -60,17 +60,23 @@ Any type that implements `iter` and `successors` gets every generic algorithm fo
 
 ### Two implementations
 
-**AdjacencyMap** — `Map[Int, Array[Int]]`
+**AdjacencyMap** — `Map[Int, Array[Int]]` (bidirectional)
 - Sparse, non-contiguous vertex IDs (any Int)
 - Supports algebraic operations (overlay, connect)
 - O(log V) successor lookup via tree map
+- Stores both forward (adjacency) and reverse (predecessors) maps
+- O(1) transpose via field swap
 - Production default for general use
 
-**DenseGraph** — `Array[Array[Int]]`
+**DenseGraph** — `Array[Array[Int]]` (bidirectional)
 - Dense vertex IDs in 0..n-1
 - O(1) successor lookup via array index
+- Stores both successors and predecessors arrays
+- O(1) transpose via field swap
 - 8-23x faster than AdjacencyMap for algorithms
 - Convert from AdjacencyMap via `DenseGraph::from_adjacency_map`
+
+Both types implement `DirectedGraph + Predecessors`, enabling the `Reversed[G]` zero-cost adaptor for reverse-direction traversal.
 
 ## Layer B: Construction
 

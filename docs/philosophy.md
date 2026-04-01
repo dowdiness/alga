@@ -39,7 +39,7 @@ The library separates two concerns into independent layers:
 
 **Layer A — Observation ("What does this graph look like?")**
 
-The `DirectedGraph` trait defines how to query any graph: iterate vertices (`iter`) and iterate successors (`successors`). Any type that implements these two methods gets all algorithms (DFS, BFS, toposort, SCC, reachability, cycle detection, degree queries) for free. This layer doesn't know or care how the graph was built.
+The `DirectedGraph` trait defines how to query any graph: iterate vertices (`iter`) and iterate successors (`successors`). Any type that implements these two methods gets all algorithms (DFS, BFS, toposort, SCC, reachability, cycle detection, degree queries) for free. Types can optionally implement the `Predecessors` capability trait to enable reverse-direction queries via the `Reversed[G]` zero-cost adaptor. This layer doesn't know or care how the graph was built.
 
 **Layer B — Construction ("How do I build a graph?")**
 

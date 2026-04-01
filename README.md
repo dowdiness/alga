@@ -8,7 +8,7 @@ The library has two independent layers connected by a bridge:
 
 ```
 Layer A: Observation                    Layer B: Construction
-(DirectedGraph trait)                   (GraphSym trait + Graph enum)
+(DirectedGraph + Predecessors traits)  (GraphSym trait + Graph enum)
 
   ┌─────────────────┐                    ┌──────────────────┐
   │ DirectedGraph    │                    │ GraphSym         │
@@ -16,23 +16,24 @@ Layer A: Observation                    Layer B: Construction
   │  successors      │                    │  overlay, connect│
   │  each_vertex*    │                    └──────┬───────────┘
   │  each_successor* │
-  │  vertex_count*   │
-  │  has_vertex*     │
-  └──────┬──────────┘                           │
-         │                                       │ implements
-         │ implements                             │
-         │                                  ┌────┴────┐
-   ┌─────┴─────┐    bridge:               │  Graph   │
-   │AdjacencyMap│◄──────────── foldg ◄─────│  (enum)  │
-   └─────┬─────┘  to_adjacency_map         └──────────┘
+  │  vertex_count*   │                           │ implements
+  │  has_vertex*     │                           │
+  ├─────────────────┤                      ┌────┴────┐
+  │ Predecessors     │    bridge:          │  Graph   │
+  │  predecessors    │   foldg             │  (enum)  │
+  └──────┬──────────┘                      └──────────┘
+         │ implements
          │
-         │ algorithms
-         ▼
-   dfs_fold, bfs_fold
-   reachable, toposort
-   toposort_subset
-   has_cycle, tarjan_scc
-   scc (AdjacencyMap)
+   ┌─────┴─────┐   ┌────────────┐
+   │AdjacencyMap│   │ DenseGraph │  ◄── bidirectional storage
+   └─────┬─────┘   └─────┬──────┘
+         │               │
+         │  ┌─────────────┘
+         │  │  algorithms
+         ▼  ▼
+   dfs_events, dfs_fold, bfs_fold
+   reachable, toposort, has_cycle
+   tarjan_scc, scc, reversed(g)
 ```
 
 **Layer A (Observation)** answers "what does this graph look like?" Any data structure implementing `DirectedGraph` gets all algorithms for free.
@@ -80,11 +81,13 @@ assert_true(am.has_edge(1, 2))
 | Outdegree | `outdegree(g, v)` | O(degree) | Number of outgoing edges from v |
 | Indegree | `indegree(g, v)` | O(V+E) | Number of incoming edges to v |
 | Vertex membership | `has_vertex(g, v)` | O(1)* | True if v is a vertex in the graph |
+| DFS events | `dfs_events(g)` | O(V+E) | Pull-based DFS with edge classification (tree/back/cross-forward) |
+| Reversed view | `reversed(g)` | O(1) | Zero-cost reverse-direction view (requires `Predecessors`) |
 | SCC (generic) | `tarjan_scc(g)` | O(V+E) | Strongly connected components (Tarjan, any DirectedGraph) |
 | SCC (Kosaraju) | `g.scc()` | O(V+E) | Strongly connected components (AdjacencyMap, reverse topo order) |
 | Condensation | `g.condensation()` | O(V+E) | DAG of SCCs — collapse each SCC to a single vertex |
 
-All algorithms except Kosaraju SCC and condensation are generic over `DirectedGraph` — they work on any implementing type. Kosaraju and condensation require `transpose`, which is specific to `AdjacencyMap`. Use `tarjan_scc` for generic SCC on any graph type.
+All algorithms are generic over `DirectedGraph` except Kosaraju SCC and condensation (AdjacencyMap-specific). Types implementing both `DirectedGraph` and `Predecessors` (AdjacencyMap, DenseGraph) support `reversed(g)` for zero-cost reverse traversal. `transpose()` is O(1) on both types.
 
 ## Graph construction combinators
 

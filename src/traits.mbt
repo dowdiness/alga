@@ -27,6 +27,11 @@
 /// `each_vertex` and `each_successor` delegate to `Iter::each` for push-style
 /// algorithms (DFS, BFS, toposort).
 ///
+/// **Reverse-direction queries:**
+/// Types that also implement `Predecessors` can be wrapped with `Reversed[G]`
+/// for zero-cost reverse traversal. `AdjacencyMap` and `DenseGraph` both
+/// implement `Predecessors` via bidirectional adjacency storage.
+///
 /// ## Example: minimal implementation (2 methods)
 ///
 /// ```
