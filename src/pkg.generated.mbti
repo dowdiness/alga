@@ -53,7 +53,7 @@ pub fn AdjacencyMap::has_vertex(Self, Int) -> Bool
 pub fn AdjacencyMap::overlay(Self, Self) -> Self
 pub fn AdjacencyMap::remove_self_loops(Self) -> Self
 pub fn AdjacencyMap::scc(Self) -> Array[Array[Int]]
-pub fn AdjacencyMap::successors(Self, Int) -> Array[Int]
+pub fn AdjacencyMap::successor_list(Self, Int) -> Array[Int]
 pub fn AdjacencyMap::transpose(Self) -> Self
 pub fn AdjacencyMap::vertex(Int) -> Self
 pub fn AdjacencyMap::vertex_count(Self) -> Int
@@ -110,8 +110,10 @@ pub impl @moonbitlang/quickcheck.Shrink for Graph
 
 // Traits
 pub(open) trait DirectedGraph {
-  for_each_vertex(Self, (Int) -> Unit) -> Unit
-  for_each_successor(Self, Int, (Int) -> Unit) -> Unit
+  iter(Self) -> Iter[Int]
+  successors(Self, Int) -> Iter[Int]
+  each_vertex(Self, (Int) -> Unit) -> Unit = _
+  each_successor(Self, Int, (Int) -> Unit) -> Unit = _
   vertex_count(Self) -> Int = _
   has_vertex(Self, Int) -> Bool = _
 }

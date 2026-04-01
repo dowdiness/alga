@@ -51,7 +51,7 @@ pub fn[G : DirectedGraph, Acc] bfs_fold(
     if !result.1 {
       break
     }
-    G::for_each_successor(graph, v, fn(w) {
+    G::each_successor(graph, v, fn(w) {
       if visited.get(w) != Some(true) {
         visited[w] = true
         queue.push(w)
@@ -108,7 +108,7 @@ pub fn[G : DirectedGraph, Acc] bfs_fold_multi(
     if !result.1 {
       break
     }
-    G::for_each_successor(graph, v, fn(w) {
+    G::each_successor(graph, v, fn(w) {
       if !visited.contains(w) {
         visited[w] = true
         queue.push(w)

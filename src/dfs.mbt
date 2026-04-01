@@ -12,7 +12,7 @@
 /// this at ~10K vertices in WASM). The iterative version uses an explicit
 /// `Array` as a stack, making it safe for arbitrarily deep graphs.
 ///
-/// Successors are pushed directly from the `for_each_successor` callback
+/// Successors are pushed directly from the `each_successor` callback
 /// then reversed in place (mark-and-reverse), so the first successor is
 /// processed first (matching recursive DFS order) without per-vertex
 /// temporary array allocation.
@@ -57,7 +57,7 @@ pub fn[G : DirectedGraph, Acc] dfs_fold(
     // Push successors directly, then reverse in place so first successor
     // is on top of the stack. Avoids per-vertex temporary array allocation.
     let mark = stack.length()
-    G::for_each_successor(graph, v, fn(w) {
+    G::each_successor(graph, v, fn(w) {
       if visited.get(w) != Some(true) {
         stack.push(w)
       }
@@ -143,7 +143,7 @@ pub fn[G : DirectedGraph, Acc] dfs_fold_multi(
     // Push successors directly, then reverse in place so first successor
     // is on top of the stack. Avoids per-vertex temporary array allocation.
     let mark = stack.length()
-    G::for_each_successor(graph, v, fn(w) {
+    G::each_successor(graph, v, fn(w) {
       if !visited.contains(w) {
         stack.push(w)
       }

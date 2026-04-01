@@ -88,7 +88,7 @@ test "transpose" {
 test "invariant: edge targets exist as keys" {
   let g = @alga.AdjacencyMap::edge(1, 2)
   assert_true(g.has_vertex(2))
-  assert_eq(g.successors(2).length(), 0)
+  assert_eq(g.successor_list(2).length(), 0)
 }
 
 ///|
@@ -101,9 +101,9 @@ test "vertex_list and edge_list" {
 }
 
 ///|
-test "successors" {
+test "successor_list" {
   let g = @alga.AdjacencyMap::from_edges([(1, 2), (1, 3), (2, 3)])
-  let s = g.successors(1)
+  let s = g.successor_list(1)
   assert_eq(s.length(), 2)
   assert_true(s.contains(2))
   assert_true(s.contains(3))

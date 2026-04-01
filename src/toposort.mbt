@@ -40,9 +40,9 @@
 /// Returns a Map where every vertex has an entry (0 if no incoming edges).
 fn[G : DirectedGraph] compute_in_degrees(graph : G) -> Map[Int, Int] {
   let in_degree : Map[Int, Int] = Map::new()
-  G::for_each_vertex(graph, fn(v) { in_degree[v] = 0 })
-  G::for_each_vertex(graph, fn(v) {
-    G::for_each_successor(graph, v, fn(w) {
+  G::each_vertex(graph, fn(v) { in_degree[v] = 0 })
+  G::each_vertex(graph, fn(v) {
+    G::each_successor(graph, v, fn(w) {
       let d = match in_degree.get(w) {
         Some(n) => n
         None => 0
@@ -76,7 +76,7 @@ pub fn[G : DirectedGraph] toposort(graph : G) -> Array[Int]? {
     let v = queue[head]
     head = head + 1
     result.push(v)
-    G::for_each_successor(graph, v, fn(w) {
+    G::each_successor(graph, v, fn(w) {
       let d = match in_degree.get(w) {
         Some(n) => n
         None => 0
@@ -160,7 +160,7 @@ pub fn[G : DirectedGraph] topo_levels(graph : G) -> Map[Int, Int]? {
       Some(l) => l
       None => 0
     }
-    G::for_each_successor(graph, v, fn(w) {
+    G::each_successor(graph, v, fn(w) {
       let d = match in_degree.get(w) {
         Some(n) => n
         None => 0
@@ -228,7 +228,7 @@ pub fn[G : DirectedGraph] toposort_subset(
   // Compute in-degrees within the induced subgraph
   let in_degree : @hashmap.HashMap[Int, Int] = @hashmap.new()
   for v in unique {
-    G::for_each_successor(graph, v, fn(w) {
+    G::each_successor(graph, v, fn(w) {
       if subset.contains(w) {
         match in_degree.get(w) {
           Some(d) => in_degree[w] = d + 1
@@ -251,7 +251,7 @@ pub fn[G : DirectedGraph] toposort_subset(
     let v = queue[head]
     head = head + 1
     result.push(v)
-    G::for_each_successor(graph, v, fn(w) {
+    G::each_successor(graph, v, fn(w) {
       if subset.contains(w) {
         match in_degree.get(w) {
           Some(d) => {
