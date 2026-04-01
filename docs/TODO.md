@@ -11,6 +11,8 @@ Active backlog for alga. Each item links to its source; non-trivial items should
 - **Zero-copy graph adaptors** — `Reversed[G]`, `NodeFiltered[G]` implementing `DirectedGraph` without allocation. Enables generic SCC (no transpose copy) and cheap subgraph views. Source: [petgraph analysis](specs/2026-04-01-petgraph-analysis.md#1-zero-copy-graph-adaptors)
 - **Traversal control flow** — Early termination for push-style callbacks beyond what `Iter::contains` provides. `has_vertex` short-circuiting is now solved by the iter-based trait. Remaining: `dfs_fold`/`bfs_fold` callback could benefit from `ControlFlow` enum. Source: [petgraph analysis](specs/2026-04-01-petgraph-analysis.md#4-traversal-control-flow)
 - **GenCounter for visited sets** — Proven 2.4–5.5x faster than `Array[Bool]`, but production algorithms still use `Array[Bool]`. Tied to DenseGraph decision (requires dense vertex IDs). Source: [EXPERIMENT_REPORT.md](../src/experiment/EXPERIMENT_REPORT.md#what-remains)
+- **Specialized `DenseGraph::dfs_events`** — Generic `dfs_events` uses `Map[Int, Bool]` for state (O(log V) per op). A `DenseGraph`-specialized version could use `FixedArray[Bool]` for O(1) lookups, matching the pattern of `DenseGraph::reachable` and `DenseGraph::scc`. Tied to DenseGraph promotion. Source: code review of `dfs_events`
+- **DFS event test helpers** — `dfs_events` tests repeat a count/filter-by-variant pattern 9 times across `dfs_test.mbt` and `graph_expr_qc.mbt`. If more `dfs_events`-consuming tests are added, extract shared helpers (e.g., `count_events(events, pred)`, `collect_edges(events, variant)`). Source: code review of `dfs_events`
 
 ## Done
 

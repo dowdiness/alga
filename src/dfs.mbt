@@ -216,7 +216,7 @@ pub(all) enum DfsEvent {
 /// The closure captures:
 /// - `enter_pending`: vertex awaiting Discover (checked first each call)
 /// - `frames`: stack of `(vertex, Iter[Int])` for successor processing
-/// - `state`: `Map[Int, Int]` — absent = white, >= 0 = gray (discovery index), -1 = black
+/// - `state`: `Map[Int, Bool]` — absent = white, `true` = gray, `false` = black
 /// - `roots`: `Iter[Int]` from `graph.iter()` for finding unvisited roots
 ///
 /// ## Event ordering
@@ -227,29 +227,23 @@ pub(all) enum DfsEvent {
 ///
 /// Time: O(V + E). Space: O(V).
 pub fn[G : DirectedGraph] dfs_events(graph : G) -> Iter[DfsEvent] {
-  // Vertex state: absent = white, >= 0 = gray (discovery index), -1 = black
-  let state : Map[Int, Int] = Map::new()
+  // absent = white (undiscovered), true = gray (on stack), false = black (finished)
+  let state : Map[Int, Bool] = Map::new()
   let frames : Array[(Int, Iter[Int])] = []
   let roots = G::iter(graph)
-  let mut counter = 0
-  // Vertex awaiting Discover — checked first on each .next() call.
-  // When set, the next event is Discover(v) and a processing frame is pushed.
+  // When set, the next event is Discover(v) and a frame is pushed.
   let mut enter_pending : Int? = None
   Iter::new(fn() {
-    // Loop until we produce an event or exhaust the graph
     while true {
-      // Priority 1: pending vertex needs Discover
       match enter_pending {
         Some(v) => {
           enter_pending = None
-          state[v] = counter
-          counter = counter + 1
+          state[v] = true
           frames.push((v, G::successors(graph, v)))
           break Some(Discover(v))
         }
         None => ()
       }
-      // Priority 2: process top stack frame
       if frames.length() > 0 {
         let top_idx = frames.length() - 1
         let v = frames[top_idx].0
@@ -258,28 +252,19 @@ pub fn[G : DirectedGraph] dfs_events(graph : G) -> Iter[DfsEvent] {
           Some(w) =>
             match state.get(w) {
               None => {
-                // White: tree edge, schedule Discover(w) for next call
                 enter_pending = Some(w)
                 break Some(TreeEdge(v, w))
               }
-              Some(s) =>
-                if s >= 0 {
-                  // Gray: back edge (w is ancestor on stack)
-                  break Some(BackEdge(v, w))
-                } else {
-                  // Black (s == -1): cross/forward edge
-                  break Some(CrossForwardEdge(v, w))
-                }
+              Some(true) => break Some(BackEdge(v, w))
+              Some(false) => break Some(CrossForwardEdge(v, w))
             }
           None => {
-            // All successors exhausted — finish v
-            state[v] = -1
+            state[v] = false
             let _ = frames.unsafe_pop()
             break Some(Finish(v))
           }
         }
       }
-      // Priority 3: find next unvisited root
       let mut found_root = false
       while roots.next() is Some(r) {
         if !state.contains(r) {
@@ -291,7 +276,6 @@ pub fn[G : DirectedGraph] dfs_events(graph : G) -> Iter[DfsEvent] {
       if !found_root {
         break None
       }
-      // Loop back to process enter_pending
     } nobreak {
       None
     }
