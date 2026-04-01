@@ -70,8 +70,7 @@ Replace the entire content of `src/traits.mbt` with:
 ///
 /// **Callback methods defaulted:**
 /// `each_vertex` and `each_successor` delegate to `Iter::each` for push-style
-/// algorithms (DFS, BFS, toposort). Effect-polymorphic `raise?` matches
-/// MoonBit stdlib convention (`Map::each`, `HashSet::each`).
+/// algorithms (DFS, BFS, toposort).
 ///
 /// ## Example: minimal implementation (2 methods)
 ///
@@ -89,8 +88,8 @@ Replace the entire content of `src/traits.mbt` with:
 pub(open) trait DirectedGraph {
   iter(Self) -> Iter[Int]
   successors(Self, Int) -> Iter[Int]
-  each_vertex(Self, (Int) -> Unit raise?) -> Unit raise? = _
-  each_successor(Self, Int, (Int) -> Unit raise?) -> Unit raise? = _
+  each_vertex(Self, (Int) -> Unit) -> Unit = _
+  each_successor(Self, Int, (Int) -> Unit) -> Unit = _
   vertex_count(Self) -> Int = _
   has_vertex(Self, Int) -> Bool = _
 }
@@ -136,7 +135,7 @@ git add src/traits.mbt
 git commit -m "refactor: rewrite DirectedGraph trait with iter-based required methods
 
 Required: iter(Self) -> Iter[Int], successors(Self, Int) -> Iter[Int]
-Defaulted: each_vertex, each_successor (raise?-polymorphic), vertex_count, has_vertex
+Defaulted: each_vertex, each_successor, vertex_count, has_vertex
 has_vertex now short-circuits via Iter::contains."
 ```
 

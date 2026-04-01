@@ -40,20 +40,23 @@ pub(open) trait DirectedGraph {
   successors(Self, Int) -> Iter[Int]                   // outgoing neighbors
 
   // Defaulted from iter/successors:
-  each_vertex(Self, (Int) -> Unit raise?) -> Unit raise? = _
-  each_successor(Self, Int, (Int) -> Unit raise?) -> Unit raise? = _
+  each_vertex(Self, (Int) -> Unit) -> Unit = _
+  each_successor(Self, Int, (Int) -> Unit) -> Unit = _
   vertex_count(Self) -> Int = _
   has_vertex(Self, Int) -> Bool = _
 }
 ```
 
+**Note on `raise?`:** MoonBit's `Iter::each` accepts `raise?`-polymorphic callbacks,
+but trait declarations do not support error polymorphism (compiler error 4168:
+"Error polymorphism is not supported here"). So `each_vertex`/`each_successor`
+use plain `(Int) -> Unit`. This is a MoonBit language limitation — if a future
+compiler version supports `raise?` in traits, these signatures should be updated.
+
 **Defaults (using Iter API):**
 
 `Iter[X]` is `struct Iter[X](fn() -> X?)` — a closure wrapper. `next()` calls the closure.
 `Iter::contains` short-circuits on match. `Iter::count` folds internally.
-`Iter::each` has signature `(Iter[X], (X) -> Unit raise?) -> Unit raise?` — effect-polymorphic:
-when the callback doesn't raise, the call doesn't raise either. This matches MoonBit stdlib
-convention (`Map::each`, `HashSet::each`).
 
 ```moonbit
 impl DirectedGraph with each_vertex(self, f) {
@@ -170,8 +173,8 @@ for root in graph.iter():
 ## Migration
 
 **Breaking changes:**
-- `for_each_vertex` → `each_vertex` (rename, now `raise?`-polymorphic)
-- `for_each_successor` → `each_successor` (rename, now `raise?`-polymorphic)
+- `for_each_vertex` → `each_vertex` (rename)
+- `for_each_successor` → `each_successor` (rename)
 - Required methods change from callback-based to iter-based (`iter`, `successors`)
 - `AdjacencyMap::successors` renamed to `successor_list()` (returns `Array[Int]`); trait `successors` returns `Iter[Int]`
 
