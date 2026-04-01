@@ -342,7 +342,13 @@ test "dfs_events works on DenseGraph" {
 ///|
 test "dfs_events early termination via break" {
   // Large chain, but we break after first BackEdge
-  let g = @alga.AdjacencyMap::from_edges([(1, 2), (2, 3), (3, 1), (3, 4), (4, 5)])
+  let g = @alga.AdjacencyMap::from_edges([
+    (1, 2),
+    (2, 3),
+    (3, 1),
+    (3, 4),
+    (4, 5),
+  ])
   let mut found_cycle = false
   for event in @alga.dfs_events(g) {
     if event is @alga.BackEdge(_, _) {
@@ -361,8 +367,9 @@ test "dfs_events total edge count" {
   let mut edge_count = 0
   for e in events.iter() {
     match e {
-      @alga.TreeEdge(_, _) | @alga.BackEdge(_, _) | @alga.CrossForwardEdge(_, _) =>
-        edge_count = edge_count + 1
+      @alga.TreeEdge(_, _)
+      | @alga.BackEdge(_, _)
+      | @alga.CrossForwardEdge(_, _) => edge_count = edge_count + 1
       _ => ()
     }
   }
