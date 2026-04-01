@@ -400,24 +400,62 @@ pub impl Predecessors for AdjacencyMap with predecessors(self, v) {
 }
 ```
 
-- [ ] **Step 12: Run `moon check`**
+- [ ] **Step 12: Fix `Graph::to_adjacency_map` isolated vertex registration**
+
+This must be fixed before running tests — existing QC tests call `g.to_adjacency_map().scc()` which would fail with an incomplete reverse map.
+
+Change `src/graph_expr.mbt:145-152`:
+
+```moonbit
+  let g = AdjacencyMap::from_edges(all_edges)
+  // Register isolated vertices (Vertex nodes with no edges)
+  for v in all_vertices {
+    if !g.adjacency.contains(v) {
+      g.adjacency[v] = []
+      g.reverse[v] = []
+    }
+  }
+  g
+```
+
+- [ ] **Step 13: Fix `AdjacencyMap::condensation` isolated component registration**
+
+Change `src/scc.mbt:179-186`:
+
+```moonbit
+  let dag = AdjacencyMap::from_edges(condensed_edges)
+  // Add isolated components (no inter-component edges) as vertices
+  for i = 0; i < num_components; i = i + 1 {
+    if !dag.adjacency.contains(i) {
+      dag.adjacency[i] = []
+      dag.reverse[i] = []
+    }
+  }
+  (dag, vertex_to_component)
+```
+
+- [ ] **Step 14: Run `moon check`**
 
 Run: `moon check`
 Expected: Pass.
 
-- [ ] **Step 13: Run tests**
+- [ ] **Step 15: Run tests**
 
 Run: `moon test`
-Expected: All 211 existing tests pass (internal structure change only).
+Expected: All 211 existing tests pass.
 
-- [ ] **Step 14: Commit**
+- [ ] **Step 16: Commit**
 
 ```bash
-git add src/adjacency_map.mbt
+git add src/adjacency_map.mbt src/graph_expr.mbt src/scc.mbt
 git commit -m "feat: bidirectional adjacency storage + Predecessors for AdjacencyMap
 
 Add reverse map to AdjacencyMap, maintained by all constructors.
-transpose() is now O(1) (swap maps). Impl Predecessors trait."
+Fix direct mutation sites in graph_expr and scc to maintain reverse map.
+transpose() is now O(1) (swap maps). Impl Predecessors trait.
+
+Note: adding reverse field to pub struct AdjacencyMap is a public API
+break for direct construction, acceptable at v0.1.0."
 ```
 
 ---
@@ -554,62 +592,7 @@ transpose() is now O(1) (swap arrays). Impl Predecessors trait."
 
 ---
 
-### Task 4: Fix direct mutation sites
-
-**Files:**
-- Modify: `src/graph_expr.mbt:145-152`
-- Modify: `src/scc.mbt:179-186`
-
-- [ ] **Step 1: Fix `Graph::to_adjacency_map` isolated vertex registration**
-
-Change `src/graph_expr.mbt:145-152`:
-
-```moonbit
-  let g = AdjacencyMap::from_edges(all_edges)
-  // Register isolated vertices (Vertex nodes with no edges)
-  for v in all_vertices {
-    if !g.adjacency.contains(v) {
-      g.adjacency[v] = []
-      g.reverse[v] = []
-    }
-  }
-  g
-```
-
-- [ ] **Step 2: Fix `AdjacencyMap::condensation` isolated component registration**
-
-Change `src/scc.mbt:179-186`:
-
-```moonbit
-  let dag = AdjacencyMap::from_edges(condensed_edges)
-  // Add isolated components (no inter-component edges) as vertices
-  for i = 0; i < num_components; i = i + 1 {
-    if !dag.adjacency.contains(i) {
-      dag.adjacency[i] = []
-      dag.reverse[i] = []
-    }
-  }
-  (dag, vertex_to_component)
-```
-
-- [ ] **Step 3: Run `moon check && moon test`**
-
-Run: `moon check && moon test`
-Expected: All tests pass.
-
-- [ ] **Step 4: Commit**
-
-```bash
-git add src/graph_expr.mbt src/scc.mbt
-git commit -m "fix: maintain reverse map in direct mutation sites
-
-Update Graph::to_adjacency_map and AdjacencyMap::condensation
-to write both adjacency and reverse maps for isolated vertices."
-```
-
----
-
-### Task 5: Add `Reversed[G]` struct and impls
+### Task 4: Add `Reversed[G]` struct and impls
 
 **Files:**
 - Create: `src/reversed.mbt`
@@ -666,15 +649,34 @@ pub impl[G : DirectedGraph + Predecessors] Predecessors for Reversed[G] with pre
 }
 ```
 
-- [ ] **Step 2: Run `moon check`**
+- [ ] **Step 2: Add `derive(Eq)` to `DfsEvent`**
+
+In `src/dfs.mbt`, change the DfsEvent enum to derive Eq (needed for property tests in Task 6):
+
+```moonbit
+pub(all) enum DfsEvent {
+  /// Vertex entered — pre-order. Vertex transitions white → gray.
+  Discover(Int)
+  /// All descendants done — post-order. Vertex transitions gray → black.
+  Finish(Int)
+  /// (u, v): v was white. v will be discovered on the next `.next()` call.
+  TreeEdge(Int, Int)
+  /// (u, v): v is gray (ancestor on stack). Indicates a cycle: v →...→ u → v.
+  BackEdge(Int, Int)
+  /// (u, v): v is black (already finished). Merged forward + cross edges.
+  CrossForwardEdge(Int, Int)
+} derive(Eq)
+```
+
+- [ ] **Step 3: Run `moon check`**
 
 Run: `moon check`
 Expected: Pass.
 
-- [ ] **Step 3: Commit**
+- [ ] **Step 4: Commit**
 
 ```bash
-git add src/reversed.mbt
+git add src/reversed.mbt src/dfs.mbt
 git commit -m "feat: add Reversed[G] zero-cost graph adaptor
 
 Newtype wrapper that swaps successors/predecessors. Implements
@@ -684,7 +686,7 @@ Lightweight (shallow handle copy), involutive, fully composable."
 
 ---
 
-### Task 6: Add unit tests
+### Task 5: Add unit tests
 
 **Files:**
 - Modify: `src/adjacency_map_test.mbt` (append)
@@ -842,25 +844,100 @@ test "reversed self loop" {
 }
 ```
 
-- [ ] **Step 3: Run tests**
+- [ ] **Step 3: Add DenseGraph predecessor tests and overlay/connect/transpose regression tests**
+
+Append to `src/adjacency_map_test.mbt`:
+
+```moonbit
+///|
+test "predecessors after overlay" {
+  let g1 = @alga.AdjacencyMap::from_edges([(0, 1)])
+  let g2 = @alga.AdjacencyMap::from_edges([(2, 1)])
+  let g = g1.overlay(g2)
+  let preds_1 = @alga.Predecessors::predecessors(g, 1).collect()
+  assert_eq(preds_1.length(), 2)
+  assert_true(preds_1.contains(0))
+  assert_true(preds_1.contains(2))
+}
+
+///|
+test "predecessors after connect" {
+  let g1 = @alga.AdjacencyMap::vertex(0)
+  let g2 = @alga.AdjacencyMap::vertex(1)
+  let g = g1.connect(g2)
+  // connect(0, 1) creates edge 0→1
+  assert_eq(@alga.Predecessors::predecessors(g, 1).collect(), [0])
+  assert_eq(@alga.Predecessors::predecessors(g, 0).collect(), [])
+}
+
+///|
+test "transpose regression: transpose preserves predecessors" {
+  let g = @alga.AdjacencyMap::from_edges([(0, 1), (0, 2)])
+  let t = g.transpose()
+  // In transposed graph, successors of 1 = [0]
+  assert_eq(t.successor_list(1), [0])
+  // Predecessors of 0 in transposed = [1, 2]
+  let preds = @alga.Predecessors::predecessors(t, 0).collect()
+  assert_eq(preds.length(), 2)
+  assert_true(preds.contains(1))
+  assert_true(preds.contains(2))
+}
+```
+
+Append to `src/dfs_test.mbt`:
+
+```moonbit
+///|
+test "predecessors on DenseGraph" {
+  let g = @alga.DenseGraph::from_edges(3, [(0, 1), (1, 2), (0, 2)])
+  assert_eq(@alga.Predecessors::predecessors(g, 0).collect(), [])
+  assert_eq(@alga.Predecessors::predecessors(g, 1).collect(), [0])
+  let preds_2 = @alga.Predecessors::predecessors(g, 2).collect()
+  assert_eq(preds_2.length(), 2)
+  assert_true(preds_2.contains(1))
+  assert_true(preds_2.contains(0))
+}
+
+///|
+test "DenseGraph transpose regression" {
+  let g = @alga.DenseGraph::from_edges(3, [(0, 1), (1, 2)])
+  let t = g.transpose()
+  assert_eq(@alga.DirectedGraph::successors(t, 2).collect(), [1])
+  assert_eq(@alga.Predecessors::predecessors(t, 0).collect(), [1])
+}
+
+///|
+test "reversed works with toposort" {
+  // 0 → 1 → 2: toposort = [0, 1, 2], reversed toposort = [2, 1, 0]
+  let g = @alga.AdjacencyMap::from_edges([(0, 1), (1, 2)])
+  let rev_topo = @alga.toposort(@alga.reversed(g))
+  match rev_topo {
+    Some(order) => assert_eq(order, [2, 1, 0])
+    None => assert_true(false)
+  }
+}
+```
+
+- [ ] **Step 4: Run tests**
 
 Run: `moon test`
 Expected: All tests pass (old + new).
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 5: Commit**
 
 ```bash
 git add src/adjacency_map_test.mbt src/dfs_test.mbt
 git commit -m "test: unit tests for Predecessors and Reversed[G]
 
-Tests cover: predecessors on AdjacencyMap (empty, single, chain, diamond,
-self-loop), Reversed successors/predecessors swap, involution, composition
-with dfs_events/reachable, DenseGraph genericity, edge cases."
+Tests cover: predecessors on AdjacencyMap and DenseGraph (empty, single,
+chain, diamond, self-loop, overlay, connect), transpose regression,
+Reversed successors/predecessors swap, involution, composition with
+dfs_events/reachable/toposort, DenseGraph genericity, edge cases."
 ```
 
 ---
 
-### Task 7: Add property tests
+### Task 6: Add property tests
 
 **Files:**
 - Modify: `src/graph_expr_qc.mbt` (append)
@@ -945,22 +1022,15 @@ test "prop: reversed preserves edge count" {
 }
 ```
 
-- [ ] **Step 2: Check DfsEvent has Eq**
-
-The involution test compares `DfsEvent` values with `!=`. Verify `DfsEvent` derives `Eq` or has an `Eq` impl. If not, add `derive(Eq)` to the enum in `src/dfs.mbt`.
-
-Run: `moon check`
-If it fails with a missing `Eq` for `DfsEvent`, add `derive(Eq)` to the enum definition.
-
-- [ ] **Step 3: Run tests**
+- [ ] **Step 2: Run tests**
 
 Run: `moon test`
 Expected: All tests pass including 3 new property tests (300 random graphs).
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 3: Commit**
 
 ```bash
-git add src/graph_expr_qc.mbt src/dfs.mbt
+git add src/graph_expr_qc.mbt
 git commit -m "test: property tests for Reversed[G]
 
 Three properties verified over 100 random graphs each:
@@ -971,7 +1041,7 @@ Three properties verified over 100 random graphs each:
 
 ---
 
-### Task 8: Update interfaces, format, docs, finalize
+### Task 7: Update interfaces, format, docs, finalize
 
 **Files:**
 - Regenerate: `src/pkg.generated.mbti`
