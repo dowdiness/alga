@@ -1,178 +1,179 @@
 # alga
 
-Algebraic graphs for MoonBit — a directed graph trait and algorithm library inspired by Haskell's [algebraic-graphs (alga)](https://hackage.haskell.org/package/algebraic-graphs).
+A directed graph library for [MoonBit](https://www.moonbitlang.com/) with trait-generic algorithms and algebraic construction. Inspired by Haskell's [algebraic-graphs](https://hackage.haskell.org/package/algebraic-graphs).
 
-## Architecture
+Implement two methods (`iter`, `successors`) on your data structure and get DFS, BFS, topological sort, cycle detection, strongly connected components, edge classification, and reverse traversal — all with O(V+E) complexity.
 
-The library has two independent layers connected by a bridge:
+## Quick start
+
+```bash
+moon add dowdiness/alga
+```
+
+```moonbit
+// Build a graph: 1 → 2 → 3 → 4
+let g = @alga.AdjacencyMap::from_edges([(1, 2), (2, 3), (3, 4)])
+
+// Traverse
+let r = @alga.reachable(g, 1)         // [1, 2, 3, 4]
+let order = @alga.toposort(g)         // Some([1, 2, 3, 4])
+let cyclic = @alga.has_cycle(g)       // false
+
+// Strongly connected components
+let sccs = @alga.tarjan_scc(g)        // [[4], [3], [2], [1]]
+
+// DFS with edge classification
+for event in @alga.dfs_events(g) {
+  match event {
+    @alga.BackEdge(u, v) => println("cycle: \{u} → \{v}")
+    _ => ()
+  }
+}
+
+// Reverse traversal: "what can reach vertex 4?"
+let ancestors = @alga.reachable(@alga.reversed(g), 4)  // [4, 3, 2, 1]
+
+// Algebraic construction
+let expr = @alga.Graph::path([1, 2, 3])
+let am = expr.to_adjacency_map()
+```
+
+## Why algebraic graphs?
+
+Most graph libraries make you manage mutable adjacency lists by hand. Alga takes a different approach based on [Mokhov (2017)](https://dl.acm.org/doi/10.1145/3122955.3122956): four operations — `empty`, `vertex`, `overlay`, `connect` — form an algebra with eight axioms that guarantee well-formed graphs by construction. You can't create a dangling edge or an inconsistent state.
+
+The library separates *observing* a graph (the `DirectedGraph` trait) from *building* one (the `GraphSym` trait and `Graph` enum). Algorithms are written against the observation trait, so they work on any data structure that implements it — including your own.
+
+## How it works
 
 ```
-Layer A: Observation                    Layer B: Construction
-(DirectedGraph + Predecessors traits)  (GraphSym trait + Graph enum)
+Observation layer                      Construction layer
+(DirectedGraph + Predecessors)         (GraphSym + Graph enum)
 
   ┌─────────────────┐                    ┌──────────────────┐
   │ DirectedGraph    │                    │ GraphSym         │
   │  iter            │                    │  empty, vertex   │
   │  successors      │                    │  overlay, connect│
-  │  each_vertex*    │                    └──────┬───────────┘
-  │  each_successor* │
-  │  vertex_count*   │                           │ implements
-  │  has_vertex*     │                           │
-  ├─────────────────┤                      ┌────┴────┐
-  │ Predecessors     │    bridge:          │  Graph   │
-  │  predecessors    │   foldg             │  (enum)  │
-  └──────┬──────────┘                      └──────────┘
-         │ implements
-         │
+  │  (+ 4 defaults)  │                    └──────┬───────────┘
+  ├─────────────────┤                           │
+  │ Predecessors     │                     ┌────┴────┐
+  │  predecessors    │    bridge:          │  Graph   │
+  └──────┬──────────┘   foldg             │  (enum)  │
+         │                                 └──────────┘
    ┌─────┴─────┐   ┌────────────┐
-   │AdjacencyMap│   │ DenseGraph │  ◄── bidirectional storage
-   └─────┬─────┘   └─────┬──────┘
-         │               │
-         │  ┌─────────────┘
-         │  │  algorithms
-         ▼  ▼
-   dfs_events, dfs_fold, bfs_fold
-   reachable, toposort, has_cycle
-   tarjan_scc, scc, reversed(g)
+   │AdjacencyMap│   │ DenseGraph │
+   └────────────┘   └────────────┘
 ```
 
-**Layer A (Observation)** answers "what does this graph look like?" Any data structure implementing `DirectedGraph` gets all algorithms for free.
+**Observation layer.** The `DirectedGraph` trait requires two methods: `iter()` returns all vertices, `successors(v)` returns outgoing neighbors. Four more methods (`each_vertex`, `each_successor`, `vertex_count`, `has_vertex`) are defaulted. Every generic algorithm in the library is bounded by this trait.
 
-**Layer B (Construction)** answers "how do I build a graph?" Using four algebraic operations (empty, vertex, overlay, connect) you can describe any directed graph, then interpret it into any representation.
+The `Predecessors` trait adds one method — `predecessors(v)` — for types that store reverse adjacency. Both built-in representations implement it, enabling the zero-cost `Reversed[G]` adaptor for reverse-direction traversal.
 
-**The bridge:** `Graph::to_adjacency_map()` converts algebraic expressions into the efficient `AdjacencyMap` representation, connecting construction to observation.
+**Construction layer.** The `Graph` enum represents graph expressions as a syntax tree (`Empty | Vertex | Overlay | Connect`). You can transform the tree (`gmap`, `bind`, `induce`) before evaluating it into an `AdjacencyMap` via `foldg`.
 
-## Quick start
+**Two representations:**
 
-```moonbit
-// Build a graph from edges
-let g = AdjacencyMap::from_edges([(1, 2), (2, 3), (3, 4)])
+- **`AdjacencyMap`** — `Map[Int, Array[Int]]` with bidirectional storage. Handles sparse, non-contiguous vertex IDs. Supports algebraic operations. O(log V) successor lookup.
+- **`DenseGraph`** — `Array[Array[Int]]` with bidirectional storage. Requires vertex IDs in 0..n-1. O(1) successor lookup. 8–23x faster than `AdjacencyMap` for traversals.
 
-// Run algorithms
-let r = reachable(g, 1)       // [1, 2, 3, 4]
-let order = toposort(g)       // Some([1, 2, 3, 4])
-let sub = toposort_subset(g, [2, 3]) // Some([2, 3])
-let lvls = topo_levels(g)    // Some({1:0, 2:1, 3:2, 4:3})
-let cyclic = has_cycle(g)     // false
-let components = tarjan_scc(g) // [[4], [3], [2], [1]] (generic, any DirectedGraph)
-let components2 = g.scc()     // [[1], [2], [3], [4]] (Kosaraju, AdjacencyMap only)
-let (dag, _) = g.condensation() // DAG of SCCs
-
-// Build with algebraic expressions
-let expr = Graph::path([1, 2, 3])
-let am = expr.to_adjacency_map()
-assert_true(am.has_edge(1, 2))
-```
+Both store forward and reverse adjacency lists, making `transpose()` an O(1) field swap.
 
 ## Algorithms
 
-| Algorithm | Function | Time | Description |
-|-----------|----------|------|-------------|
-| DFS | `dfs_fold(g, start, init, f)` | O(V+E) | Depth-first fold with early termination |
-| BFS | `bfs_fold(g, start, init, f)` | O(V+E) | Breadth-first fold with early termination |
-| Multi-source DFS | `dfs_fold_multi(g, starts, init, f)` | O(V+E) | DFS fold from multiple start vertices |
-| Multi-source BFS | `bfs_fold_multi(g, starts, init, f)` | O(V+E) | BFS fold from multiple start vertices |
-| Reachability | `reachable(g, start)` | O(V+E) | All vertices reachable from start |
-| Multi-source reachability | `reachable_multi(g, starts)` | O(V+E) | All vertices reachable from any start |
-| Toposort | `toposort(g)` | O(V+E) | Topological ordering (Kahn's algorithm) |
-| Toposort (subset) | `toposort_subset(g, vertices)` | O(V_sub+E_sub) | Topological ordering of induced subgraph |
-| Topo levels | `topo_levels(g)` | O(V+E) | Longest-path distance from source(s) for each vertex |
-| Cycle detection | `has_cycle(g)` | O(V+E) | True if graph contains a directed cycle |
-| Outdegree | `outdegree(g, v)` | O(degree) | Number of outgoing edges from v |
-| Indegree | `indegree(g, v)` | O(V+E) | Number of incoming edges to v |
-| Vertex membership | `has_vertex(g, v)` | O(1)* | True if v is a vertex in the graph |
-| DFS events | `dfs_events(g)` | O(V+E) | Pull-based DFS with edge classification (tree/back/cross-forward) |
-| Reversed view | `reversed(g)` | O(1) | Zero-cost reverse-direction view (requires `Predecessors`) |
-| SCC (generic) | `tarjan_scc(g)` | O(V+E) | Strongly connected components (Tarjan, any DirectedGraph) |
-| SCC (Kosaraju) | `g.scc()` | O(V+E) | Strongly connected components (AdjacencyMap, reverse topo order) |
-| Condensation | `g.condensation()` | O(V+E) | DAG of SCCs — collapse each SCC to a single vertex |
+Every algorithm below is generic over `DirectedGraph` unless noted otherwise.
 
-All algorithms are generic over `DirectedGraph` except Kosaraju SCC and condensation (AdjacencyMap-specific). Types implementing both `DirectedGraph` and `Predecessors` (AdjacencyMap, DenseGraph) support `reversed(g)` for zero-cost reverse traversal. `transpose()` is O(1) on both types.
+| Algorithm | Function | Time |
+|-----------|----------|------|
+| DFS fold | `dfs_fold(g, start, init, f)` | O(V+E) |
+| BFS fold | `bfs_fold(g, start, init, f)` | O(V+E) |
+| Multi-source DFS/BFS | `dfs_fold_multi`, `bfs_fold_multi` | O(V+E) |
+| Reachability | `reachable(g, v)` | O(V+E) |
+| DFS edge classification | `dfs_events(g)` | O(V+E) |
+| Topological sort | `toposort(g)` | O(V+E) |
+| Topological levels | `topo_levels(g)` | O(V+E) |
+| Cycle detection | `has_cycle(g)` | O(V+E) |
+| SCC (Tarjan) | `tarjan_scc(g)` | O(V+E) |
+| SCC (Kosaraju) | `g.scc()` | O(V+E) |
+| Condensation | `g.condensation()` | O(V+E) |
+| Reversed view | `reversed(g)` | O(1) |
+| Degree queries | `outdegree(g, v)`, `indegree(g, v)` | O(deg) / O(V+E) |
 
-## Graph construction combinators
+Kosaraju SCC and condensation are `AdjacencyMap`-specific. `reversed(g)` requires the `Predecessors` trait. `dfs_events` returns a lazy `Iter[DfsEvent]` that classifies each edge as tree, back, or cross/forward — useful for cycle detection, post-order traversal, and scope analysis.
 
-| Combinator | Example | Result |
-|------------|---------|--------|
-| `vertices([1, 2, 3])` | Three isolated vertices | No edges |
-| `edges([(1,2), (3,4)])` | Explicit edge list | Edges 1→2, 3→4 |
-| `path([1, 2, 3])` | Linear chain | 1→2→3 |
-| `circuit([1, 2, 3])` | Closed loop | 1→2→3→1 |
-| `clique([1, 2, 3])` | Complete graph | 1→2, 1→3, 2→3 |
-| `star(1, [2, 3, 4])` | Hub and spokes | 1→2, 1→3, 1→4 |
+## Using your own graph type
 
-## Implementing DirectedGraph for your types
-
-The trait requires only two methods — `iter` (all vertices) and `successors` (outgoing neighbors). Implement them and all algorithms just work:
+Implement two methods and every algorithm works:
 
 ```moonbit
 struct MyGraph { edges : Array[Array[Int]] }
 
-impl DirectedGraph for MyGraph with iter(self) {
+impl @alga.DirectedGraph for MyGraph with iter(self) {
   (0).until(self.edges.length())
 }
 
-impl DirectedGraph for MyGraph with successors(self, v) {
+impl @alga.DirectedGraph for MyGraph with successors(self, v) {
   self.edges[v].iter()
 }
 
-// each_vertex, each_successor, vertex_count, has_vertex all work via defaults.
-// has_vertex short-circuits via Iter::contains — O(1) best case.
-// Override for O(1) if your type supports it:
-// impl DirectedGraph for MyGraph with vertex_count(self) { self.edges.length() }
-// impl DirectedGraph for MyGraph with has_vertex(self, v) { v >= 0 && v < self.edges.length() }
-
-// Now you can use:
-// toposort(my_graph), tarjan_scc(my_graph),
-// reachable(my_graph, 0), has_cycle(my_graph), etc.
+// Now available: toposort(g), tarjan_scc(g), reachable(g, 0),
+// has_cycle(g), dfs_events(g), dfs_fold(g, ...), bfs_fold(g, ...), etc.
 ```
 
-## Design decisions
+Override `vertex_count` and `has_vertex` for O(1) if your type supports it. Implement `Predecessors` to enable `reversed(g)`.
 
-**Fixed vertex type (Int):** MoonBit traits don't support type parameters or associated types. We fix vertices to `Int` and let users maintain their own `Id → Int` mapping. This is the same approach used by algebraic graph libraries in languages without type families.
+## Graph construction
 
-**Iter-based iteration:** `iter` and `successors` return `Iter[Int]` — MoonBit's pull-based external iterator. This enables pause/resume (Tarjan SCC uses `Iter.next()` to suspend successor iteration mid-traversal), early termination (`has_vertex` short-circuits via `Iter::contains`), and lazy composition. Push-style callbacks (`each_vertex`, `each_successor`) are defaulted from the iterators for algorithms that prefer them.
+Build graphs algebraically using the `Graph` enum:
 
-**Iterative algorithms:** DFS and SCC use explicit stacks instead of recursion, preventing stack overflow on deep graphs (tested up to 10K+ vertices).
+| Combinator | Result |
+|------------|--------|
+| `Graph::vertices([1, 2, 3])` | Three isolated vertices |
+| `Graph::edges([(1,2), (3,4)])` | Edges 1→2, 3→4 |
+| `Graph::path([1, 2, 3])` | Chain 1→2→3 |
+| `Graph::circuit([1, 2, 3])` | Loop 1→2→3→1 |
+| `Graph::clique([1, 2, 3])` | Complete: 1→2, 1→3, 2→3 |
+| `Graph::star(1, [2, 3, 4])` | Hub: 1→2, 1→3, 1→4 |
 
-**Property-tested algebraic laws:** All 8 axioms from Mokhov (2017) are verified with property-based testing using [`moonbitlang/quickcheck`](https://github.com/moonbitlang/quickcheck) — overlay commutativity/associativity/identity, connect associativity/identity, left and right distributivity, and decomposition. Each law is tested against 100 random graph expressions with automatic shrinking of counterexamples.
+Evaluate with `expr.to_adjacency_map()` when ready to run algorithms.
 
-## Performance
+## Design notes
 
-Benchmarks on a 1,000-vertex chain graph (WASM-GC, release mode):
+**Fixed vertex type.** Vertices are `Int`. MoonBit traits don't support type parameters or associated types, so the vertex type is fixed. Map your domain IDs to `Int` at the boundary.
 
-| Operation | Time |
-|-----------|------|
-| from_edges | 62 µs |
-| toposort | 139 µs |
-| toposort_subset (half) | 37 µs |
-| topo_levels | 235 µs |
-| reachable (DFS) | 97 µs |
-| reachable_multi (3 starts) | 70 µs |
-| BFS | 68 µs |
-| BFS multi (3 starts) | 75 µs |
-| has_cycle | 122 µs |
-| SCC | 296 µs |
-| condensation | 594 µs |
-| outdegree | 0.02 µs |
-| indegree | 20 µs |
-| transpose | 80 µs |
+**Pull-based iteration.** `iter` and `successors` return `Iter[Int]` — MoonBit's external iterator. This enables pause/resume (Tarjan SCC suspends successor iteration mid-traversal), early termination (`has_vertex` short-circuits), and lazy composition.
 
-Run benchmarks: `moon bench --release`
+**Iterative algorithms.** DFS and SCC use explicit stacks, not recursion. Tested up to 10,000+ vertices without stack overflow.
 
-## Documentation
+**Property-tested laws.** All 8 algebraic graph axioms from Mokhov (2017) are verified with [`moonbitlang/quickcheck`](https://github.com/moonbitlang/quickcheck) — 100 random graph expressions per law with automatic shrinking. 237 tests total.
 
-- [Philosophy](docs/philosophy.md) — why algebraic graphs, the Mokhov axiom system, design principles
-- [Architecture](docs/architecture.md) — two-layer design, trait system, file map
-- [Performance (2026-03-31)](docs/performance-2026-03-31.md) — benchmark data, optimization history, representation choice guide
-- [TODO](docs/TODO.md) — active backlog
+## Repository layout
 
-## References
+```
+src/
+  traits.mbt          DirectedGraph, Predecessors traits
+  adjacency_map.mbt   AdjacencyMap — sparse representation
+  dense_graph.mbt     DenseGraph — dense, high-performance representation
+  reversed.mbt        Reversed[G] — zero-cost reverse-direction adaptor
+  graph_expr.mbt      Graph enum — algebraic expression tree + foldg
+  graph_sym.mbt       GraphSym trait — algebraic construction interface
+  dfs.mbt             DFS fold, DFS events (edge classification)
+  bfs.mbt             BFS fold
+  toposort.mbt        Topological sort, topo levels, cycle detection
+  scc.mbt             Kosaraju SCC, Tarjan SCC, condensation
+  degree.mbt          Indegree, outdegree
+  experiment/         Performance experiments (DenseGraph, visited sets)
+docs/
+  philosophy.md       Why algebraic graphs, the axiom system, design principles
+  architecture.md     Two-layer design, trait system, algorithm details
+  TODO.md             Active backlog
+```
 
-- Andrey Mokhov, [Algebraic Graphs with Class](https://dl.acm.org/doi/10.1145/3122955.3122956) (Haskell Symposium, 2017) — the foundational paper
-- Haskell [algebraic-graphs](https://hackage.haskell.org/package/algebraic-graphs) package — the original implementation
-- Kahn (1962), Topological sorting of large networks
-- Kosaraju-Sharir (1978), Strongly connected components
-- Tarjan (1972), Depth-first search and linear graph algorithms
+## Further reading
+
+- [Philosophy](docs/philosophy.md) — the algebraic graph model and why it matters
+- [Architecture](docs/architecture.md) — trait design, representations, algorithm details
+- Andrey Mokhov, [Algebraic Graphs with Class](https://dl.acm.org/doi/10.1145/3122955.3122956) (Haskell Symposium, 2017)
+- Haskell [algebraic-graphs](https://hackage.haskell.org/package/algebraic-graphs) package
 
 ## License
 
