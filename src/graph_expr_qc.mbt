@@ -142,3 +142,77 @@ test "prop: dfs_events classifies all edges" {
     max_success=100,
   )
 }
+
+///|
+/// Property: reversed(g).successors(v) == g.predecessors(v) for all vertices.
+test "prop: reversed successors match predecessors" {
+  @qc.quick_check_fn(
+    fn(g : Graph) -> Bool {
+      let am = g.to_adjacency_map()
+      let rev = reversed(am)
+      for v in DirectedGraph::iter(am) {
+        let preds = Predecessors::predecessors(am, v).collect()
+        let rev_succs = DirectedGraph::successors(rev, v).collect()
+        preds.sort()
+        rev_succs.sort()
+        if preds != rev_succs {
+          return false
+        }
+      }
+      true
+    },
+    max_success=100,
+  )
+}
+
+///|
+/// Property: reversed(reversed(g)) produces same dfs_events as g.
+test "prop: reversed involution preserves dfs_events" {
+  @qc.quick_check_fn(
+    fn(g : Graph) -> Bool {
+      let am = g.to_adjacency_map()
+      let rr = reversed(reversed(am))
+      let events_orig = dfs_events(am).collect()
+      let events_rr = dfs_events(rr).collect()
+      if events_orig.length() != events_rr.length() {
+        return false
+      }
+      for i = 0; i < events_orig.length(); i = i + 1 {
+        if events_orig[i] != events_rr[i] {
+          return false
+        }
+      }
+      true
+    },
+    max_success=100,
+  )
+}
+
+///|
+/// Property: edge count is preserved under reversal.
+test "prop: reversed preserves edge count" {
+  @qc.quick_check_fn(
+    fn(g : Graph) -> Bool {
+      let am = g.to_adjacency_map()
+      let rev = reversed(am)
+      let mut orig_edges = 0
+      let mut rev_edges = 0
+      for e in dfs_events(am) {
+        match e {
+          TreeEdge(_, _) | BackEdge(_, _) | CrossForwardEdge(_, _) =>
+            orig_edges = orig_edges + 1
+          _ => ()
+        }
+      }
+      for e in dfs_events(rev) {
+        match e {
+          TreeEdge(_, _) | BackEdge(_, _) | CrossForwardEdge(_, _) =>
+            rev_edges = rev_edges + 1
+          _ => ()
+        }
+      }
+      orig_edges == rev_edges
+    },
+    max_success=100,
+  )
+}
