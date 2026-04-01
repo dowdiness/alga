@@ -39,14 +39,14 @@
 /// | edge_count     | O(V)            |
 pub struct AdjacencyMap {
   adjacency : Map[Int, Array[Int]]
-  reverse : Map[Int, Array[Int]]
+  predecessors : Map[Int, Array[Int]]
 }
 
 ///|
 /// The empty graph: no vertices, no edges.
 /// Identity element for both overlay and connect.
 pub fn AdjacencyMap::empty() -> AdjacencyMap {
-  { adjacency: Map::new(), reverse: Map::new() }
+  { adjacency: Map::new(), predecessors: Map::new() }
 }
 
 ///|
@@ -56,7 +56,7 @@ pub fn AdjacencyMap::vertex(v : Int) -> AdjacencyMap {
   m[v] = []
   let r : Map[Int, Array[Int]] = Map::new()
   r[v] = []
-  { adjacency: m, reverse: r }
+  { adjacency: m, predecessors: r }
 }
 
 ///|
@@ -71,7 +71,7 @@ pub fn AdjacencyMap::edge(u : Int, v : Int) -> AdjacencyMap {
     m[v] = []
     r[u] = []
   }
-  { adjacency: m, reverse: r }
+  { adjacency: m, predecessors: r }
 }
 
 ///|
@@ -87,28 +87,30 @@ pub fn AdjacencyMap::from_edges(edges : Array[(Int, Int)]) -> AdjacencyMap {
   for edge in edges {
     let u = edge.0
     let v = edge.1
-    match seen.get(u) {
+    let is_new = match seen.get(u) {
       Some(set) =>
-        if !set.contains(v) {
+        if set.contains(v) {
+          false
+        } else {
           set.add(v)
           match m.get(u) {
             Some(arr) => arr.push(v)
             None => m[u] = [v]
           }
-          match r.get(v) {
-            Some(arr) => arr.push(u)
-            None => r[v] = [u]
-          }
+          true
         }
       None => {
         let set : @hashset.HashSet[Int] = @hashset.new()
         set.add(v)
         seen[u] = set
         m[u] = [v]
-        match r.get(v) {
-          Some(arr) => arr.push(u)
-          None => r[v] = [u]
-        }
+        true
+      }
+    }
+    if is_new {
+      match r.get(v) {
+        Some(arr) => arr.push(u)
+        None => r[v] = [u]
       }
     }
     if !m.contains(v) {
@@ -118,7 +120,7 @@ pub fn AdjacencyMap::from_edges(edges : Array[(Int, Int)]) -> AdjacencyMap {
       r[u] = []
     }
   }
-  { adjacency: m, reverse: r }
+  { adjacency: m, predecessors: r }
 }
 
 ///|
@@ -181,7 +183,7 @@ pub fn AdjacencyMap::overlay(
 
   {
     adjacency: merge_maps(self.adjacency, other.adjacency),
-    reverse: merge_maps(self.reverse, other.reverse),
+    predecessors: merge_maps(self.predecessors, other.predecessors),
   }
 }
 
@@ -202,7 +204,7 @@ pub fn AdjacencyMap::connect(
 ) -> AdjacencyMap {
   let base = self.overlay(other)
   let m = base.adjacency
-  let r = base.reverse
+  let r = base.predecessors
   let other_vertices : Array[Int] = []
   for k, _ in other.adjacency {
     other_vertices.push(k)
@@ -211,43 +213,33 @@ pub fn AdjacencyMap::connect(
   for k, _ in self.adjacency {
     self_vertices.push(k)
   }
-  // Forward cross-edges: every self vertex -> every other vertex
-  for u in self_vertices {
-    let current = match m.get(u) {
-      Some(s) => s
-      None => []
-    }
-    let set : @hashset.HashSet[Int] = @hashset.new()
-    for elem in current {
-      set.add(elem)
-    }
-    for ov in other_vertices {
-      if !set.contains(ov) {
-        set.add(ov)
-        current.push(ov)
+  fn add_cross_edges(
+    map : Map[Int, Array[Int]],
+    sources : Array[Int],
+    targets : Array[Int],
+  ) -> Unit {
+    for u in sources {
+      let current = match map.get(u) {
+        Some(s) => s
+        None => []
       }
-    }
-    m[u] = current
-  }
-  // Reverse cross-edges: every other vertex <- every self vertex
-  for v in other_vertices {
-    let current = match r.get(v) {
-      Some(s) => s
-      None => []
-    }
-    let set : @hashset.HashSet[Int] = @hashset.new()
-    for elem in current {
-      set.add(elem)
-    }
-    for sv in self_vertices {
-      if !set.contains(sv) {
-        set.add(sv)
-        current.push(sv)
+      let set : @hashset.HashSet[Int] = @hashset.new()
+      for elem in current {
+        set.add(elem)
       }
+      for v in targets {
+        if !set.contains(v) {
+          set.add(v)
+          current.push(v)
+        }
+      }
+      map[u] = current
     }
-    r[v] = current
   }
-  { adjacency: m, reverse: r }
+
+  add_cross_edges(m, self_vertices, other_vertices)
+  add_cross_edges(r, other_vertices, self_vertices)
+  { adjacency: m, predecessors: r }
 }
 
 ///|
@@ -315,7 +307,7 @@ pub fn AdjacencyMap::edge_count(self : AdjacencyMap) -> Int {
 /// The original and transposed graph share underlying map data (shallow copy).
 /// This is safe because AdjacencyMap is treated as immutable after construction.
 pub fn AdjacencyMap::transpose(self : AdjacencyMap) -> AdjacencyMap {
-  { adjacency: self.reverse, reverse: self.adjacency }
+  { adjacency: self.predecessors, predecessors: self.adjacency }
 }
 
 ///|
@@ -333,7 +325,7 @@ pub fn AdjacencyMap::remove_self_loops(self : AdjacencyMap) -> AdjacencyMap {
     }
     m[k] = filtered
   }
-  for k, preds in self.reverse {
+  for k, preds in self.predecessors {
     let filtered : Array[Int] = []
     for v in preds {
       if v != k {
@@ -342,7 +334,7 @@ pub fn AdjacencyMap::remove_self_loops(self : AdjacencyMap) -> AdjacencyMap {
     }
     r[k] = filtered
   }
-  { adjacency: m, reverse: r }
+  { adjacency: m, predecessors: r }
 }
 
 ///|
@@ -466,7 +458,7 @@ pub impl DirectedGraph for AdjacencyMap with has_vertex(self, v) {
 
 ///|
 pub impl Predecessors for AdjacencyMap with predecessors(self, v) {
-  match self.reverse.get(v) {
+  match self.predecessors.get(v) {
     Some(s) => s.iter()
     None => Iter::empty()
   }

@@ -147,7 +147,7 @@ pub fn Graph::to_adjacency_map(self : Graph) -> AdjacencyMap {
   for v in all_vertices {
     if !g.adjacency.contains(v) {
       g.adjacency[v] = []
-      g.reverse[v] = []
+      g.predecessors[v] = []
     }
   }
   g

@@ -181,7 +181,7 @@ pub fn AdjacencyMap::condensation(
   for i = 0; i < num_components; i = i + 1 {
     if !dag.adjacency.contains(i) {
       dag.adjacency[i] = []
-      dag.reverse[i] = []
+      dag.predecessors[i] = []
     }
   }
   (dag, vertex_to_component)

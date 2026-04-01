@@ -46,7 +46,7 @@ pub fn[G : DirectedGraph] toposort_subset(G, Array[Int]) -> Array[Int]?
 // Types and methods
 pub struct AdjacencyMap {
   adjacency : Map[Int, Array[Int]]
-  reverse : Map[Int, Array[Int]]
+  predecessors : Map[Int, Array[Int]]
 }
 pub fn AdjacencyMap::condensation(Self) -> (Self, Map[Int, Int])
 pub fn AdjacencyMap::connect(Self, Self) -> Self
