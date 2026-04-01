@@ -34,18 +34,19 @@
 /// | has_edge       | O(degree)       |
 /// | overlay        | O(V + E)        |
 /// | connect        | O(V1 * V2 + E)  |
-/// | transpose      | O(V + E)        |
+/// | transpose      | O(1)            |
 /// | vertex_count   | O(1)            |
 /// | edge_count     | O(V)            |
 pub struct AdjacencyMap {
   adjacency : Map[Int, Array[Int]]
+  reverse : Map[Int, Array[Int]]
 }
 
 ///|
 /// The empty graph: no vertices, no edges.
 /// Identity element for both overlay and connect.
 pub fn AdjacencyMap::empty() -> AdjacencyMap {
-  { adjacency: Map::new() }
+  { adjacency: Map::new(), reverse: Map::new() }
 }
 
 ///|
@@ -53,7 +54,9 @@ pub fn AdjacencyMap::empty() -> AdjacencyMap {
 pub fn AdjacencyMap::vertex(v : Int) -> AdjacencyMap {
   let m : Map[Int, Array[Int]] = Map::new()
   m[v] = []
-  { adjacency: m }
+  let r : Map[Int, Array[Int]] = Map::new()
+  r[v] = []
+  { adjacency: m, reverse: r }
 }
 
 ///|
@@ -61,11 +64,14 @@ pub fn AdjacencyMap::vertex(v : Int) -> AdjacencyMap {
 /// Both u and v are added as vertices (maintaining the key invariant).
 pub fn AdjacencyMap::edge(u : Int, v : Int) -> AdjacencyMap {
   let m : Map[Int, Array[Int]] = Map::new()
+  let r : Map[Int, Array[Int]] = Map::new()
   m[u] = [v]
+  r[v] = [u]
   if u != v {
     m[v] = []
+    r[u] = []
   }
-  { adjacency: m }
+  { adjacency: m, reverse: r }
 }
 
 ///|
@@ -76,6 +82,7 @@ pub fn AdjacencyMap::edge(u : Int, v : Int) -> AdjacencyMap {
 /// Uses `HashSet` internally for O(1) duplicate edge detection.
 pub fn AdjacencyMap::from_edges(edges : Array[(Int, Int)]) -> AdjacencyMap {
   let m : Map[Int, Array[Int]] = Map::new()
+  let r : Map[Int, Array[Int]] = Map::new()
   let seen : Map[Int, @hashset.HashSet[Int]] = Map::new()
   for edge in edges {
     let u = edge.0
@@ -88,19 +95,30 @@ pub fn AdjacencyMap::from_edges(edges : Array[(Int, Int)]) -> AdjacencyMap {
             Some(arr) => arr.push(v)
             None => m[u] = [v]
           }
+          match r.get(v) {
+            Some(arr) => arr.push(u)
+            None => r[v] = [u]
+          }
         }
       None => {
         let set : @hashset.HashSet[Int] = @hashset.new()
         set.add(v)
         seen[u] = set
         m[u] = [v]
+        match r.get(v) {
+          Some(arr) => arr.push(u)
+          None => r[v] = [u]
+        }
       }
     }
     if !m.contains(v) {
       m[v] = []
     }
+    if !r.contains(u) {
+      r[u] = []
+    }
   }
-  { adjacency: m }
+  { adjacency: m, reverse: r }
 }
 
 ///|
@@ -115,46 +133,56 @@ pub fn AdjacencyMap::overlay(
   self : AdjacencyMap,
   other : AdjacencyMap,
 ) -> AdjacencyMap {
-  let m : Map[Int, Array[Int]] = Map::new()
-  let seen : Map[Int, @hashset.HashSet[Int]] = Map::new()
-  for k, v in self.adjacency {
-    let arr = v.copy()
-    m[k] = arr
-    let set : @hashset.HashSet[Int] = @hashset.new()
-    for elem in arr {
-      set.add(elem)
+  fn merge_maps(
+    a : Map[Int, Array[Int]],
+    b : Map[Int, Array[Int]]
+  ) -> Map[Int, Array[Int]] {
+    let m : Map[Int, Array[Int]] = Map::new()
+    let seen : Map[Int, @hashset.HashSet[Int]] = Map::new()
+    for k, v in a {
+      let arr = v.copy()
+      m[k] = arr
+      let set : @hashset.HashSet[Int] = @hashset.new()
+      for elem in arr {
+        set.add(elem)
+      }
+      seen[k] = set
     }
-    seen[k] = set
-  }
-  for k, v in other.adjacency {
-    match m.get(k) {
-      Some(existing) => {
-        let set = match seen.get(k) {
-          Some(s) => s
-          None => {
-            let s : @hashset.HashSet[Int] = @hashset.new()
-            seen[k] = s
-            s
+    for k, v in b {
+      match m.get(k) {
+        Some(existing) => {
+          let set = match seen.get(k) {
+            Some(s) => s
+            None => {
+              let s : @hashset.HashSet[Int] = @hashset.new()
+              seen[k] = s
+              s
+            }
+          }
+          for elem in v {
+            if !set.contains(elem) {
+              set.add(elem)
+              existing.push(elem)
+            }
           }
         }
-        for elem in v {
-          if !set.contains(elem) {
+        None => {
+          m[k] = v.copy()
+          let set : @hashset.HashSet[Int] = @hashset.new()
+          for elem in v {
             set.add(elem)
-            existing.push(elem)
           }
+          seen[k] = set
         }
-      }
-      None => {
-        m[k] = v.copy()
-        let set : @hashset.HashSet[Int] = @hashset.new()
-        for elem in v {
-          set.add(elem)
-        }
-        seen[k] = set
       }
     }
+    m
   }
-  { adjacency: m }
+
+  {
+    adjacency: merge_maps(self.adjacency, other.adjacency),
+    reverse: merge_maps(self.reverse, other.reverse),
+  }
 }
 
 ///|
@@ -174,11 +202,17 @@ pub fn AdjacencyMap::connect(
 ) -> AdjacencyMap {
   let base = self.overlay(other)
   let m = base.adjacency
+  let r = base.reverse
   let other_vertices : Array[Int] = []
   for k, _ in other.adjacency {
     other_vertices.push(k)
   }
-  for u, _ in self.adjacency {
+  let self_vertices : Array[Int] = []
+  for k, _ in self.adjacency {
+    self_vertices.push(k)
+  }
+  // Forward cross-edges: every self vertex -> every other vertex
+  for u in self_vertices {
     let current = match m.get(u) {
       Some(s) => s
       None => []
@@ -195,7 +229,25 @@ pub fn AdjacencyMap::connect(
     }
     m[u] = current
   }
-  { adjacency: m }
+  // Reverse cross-edges: every other vertex <- every self vertex
+  for v in other_vertices {
+    let current = match r.get(v) {
+      Some(s) => s
+      None => []
+    }
+    let set : @hashset.HashSet[Int] = @hashset.new()
+    for elem in current {
+      set.add(elem)
+    }
+    for sv in self_vertices {
+      if !set.contains(sv) {
+        set.add(sv)
+        current.push(sv)
+      }
+    }
+    r[v] = current
+  }
+  { adjacency: m, reverse: r }
 }
 
 ///|
@@ -258,41 +310,12 @@ pub fn AdjacencyMap::edge_count(self : AdjacencyMap) -> Int {
 }
 
 ///|
-/// Reverse all edge directions. Vertex set is unchanged.
+/// Reverse all edge directions. O(1) — swaps forward and reverse maps.
 ///
-/// Transpose is essential for Kosaraju's SCC algorithm (Phase 2 runs
-/// DFS on the transposed graph) and for computing predecessor queries.
-///
-/// Uses `HashSet` internally for O(1) duplicate edge detection.
+/// The original and transposed graph share underlying map data (shallow copy).
+/// This is safe because AdjacencyMap is treated as immutable after construction.
 pub fn AdjacencyMap::transpose(self : AdjacencyMap) -> AdjacencyMap {
-  let m : Map[Int, Array[Int]] = Map::new()
-  let seen : Map[Int, @hashset.HashSet[Int]] = Map::new()
-  for k, _ in self.adjacency {
-    if !m.contains(k) {
-      m[k] = []
-      seen[k] = @hashset.new()
-    }
-  }
-  for u, succs in self.adjacency {
-    for v in succs {
-      let set = match seen.get(v) {
-        Some(s) => s
-        None => {
-          let s : @hashset.HashSet[Int] = @hashset.new()
-          seen[v] = s
-          s
-        }
-      }
-      if !set.contains(u) {
-        set.add(u)
-        match m.get(v) {
-          Some(arr) => arr.push(u)
-          None => m[v] = [u]
-        }
-      }
-    }
-  }
-  { adjacency: m }
+  { adjacency: self.reverse, reverse: self.adjacency }
 }
 
 ///|
@@ -300,6 +323,7 @@ pub fn AdjacencyMap::transpose(self : AdjacencyMap) -> AdjacencyMap {
 /// Returns a new graph with the same vertex set but no self-loops.
 pub fn AdjacencyMap::remove_self_loops(self : AdjacencyMap) -> AdjacencyMap {
   let m : Map[Int, Array[Int]] = Map::new()
+  let r : Map[Int, Array[Int]] = Map::new()
   for k, succs in self.adjacency {
     let filtered : Array[Int] = []
     for v in succs {
@@ -309,7 +333,16 @@ pub fn AdjacencyMap::remove_self_loops(self : AdjacencyMap) -> AdjacencyMap {
     }
     m[k] = filtered
   }
-  { adjacency: m }
+  for k, preds in self.reverse {
+    let filtered : Array[Int] = []
+    for v in preds {
+      if v != k {
+        filtered.push(v)
+      }
+    }
+    r[k] = filtered
+  }
+  { adjacency: m, reverse: r }
 }
 
 ///|
@@ -377,29 +410,36 @@ pub impl Debug for AdjacencyMap with to_repr(self) {
 /// Two graphs are equal if they have the same vertices and edges.
 /// Successor arrays are sorted before comparison since order may differ.
 pub impl Eq for AdjacencyMap with equal(self, other) -> Bool {
-  if self.adjacency.length() != other.adjacency.length() {
-    return false
-  }
-  for k, v in self.adjacency {
-    match other.adjacency.get(k) {
-      None => return false
-      Some(other_v) => {
-        if v.length() != other_v.length() {
-          return false
-        }
-        let sorted_self = v.copy()
-        sorted_self.sort()
-        let sorted_other = other_v.copy()
-        sorted_other.sort()
-        for i = 0; i < sorted_self.length(); i = i + 1 {
-          if sorted_self[i] != sorted_other[i] {
+  fn maps_equal(
+    a : Map[Int, Array[Int]],
+    b : Map[Int, Array[Int]]
+  ) -> Bool {
+    if a.length() != b.length() {
+      return false
+    }
+    for k, v in a {
+      match b.get(k) {
+        None => return false
+        Some(other_v) => {
+          if v.length() != other_v.length() {
             return false
+          }
+          let sorted_self = v.copy()
+          sorted_self.sort()
+          let sorted_other = other_v.copy()
+          sorted_other.sort()
+          for i = 0; i < sorted_self.length(); i = i + 1 {
+            if sorted_self[i] != sorted_other[i] {
+              return false
+            }
           }
         }
       }
     }
+    true
   }
-  true
+
+  maps_equal(self.adjacency, other.adjacency)
 }
 
 ///|
@@ -425,4 +465,12 @@ pub impl DirectedGraph for AdjacencyMap with successors(self, v) {
 /// O(1) override — Map key lookup, bypasses the O(V) default scan.
 pub impl DirectedGraph for AdjacencyMap with has_vertex(self, v) {
   self.adjacency.contains(v)
+}
+
+///|
+pub impl Predecessors for AdjacencyMap with predecessors(self, v) {
+  match self.reverse.get(v) {
+    Some(s) => s.iter()
+    None => Iter::empty()
+  }
 }

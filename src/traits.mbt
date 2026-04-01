@@ -76,3 +76,16 @@ impl DirectedGraph with vertex_count(self) {
 impl DirectedGraph with has_vertex(self, v) {
   DirectedGraph::iter(self).contains(v)
 }
+
+///|
+/// # Predecessors — reverse-direction observation capability
+///
+/// Types that can efficiently answer "which vertices point to v?"
+/// implement this trait alongside `DirectedGraph`. No default
+/// implementation is provided — an O(V+E) scan default would be
+/// a performance trap.
+///
+/// Used by `Reversed[G]` to swap `successors` and `predecessors`.
+pub(open) trait Predecessors {
+  predecessors(Self, Int) -> Iter[Int]
+}
