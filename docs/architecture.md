@@ -8,9 +8,11 @@ Layer A: Observation                    Layer B: Construction
 
   ┌─────────────────┐                    ┌──────────────────┐
   │ DirectedGraph    │                    │ GraphSym         │
-  │  for_each_vertex │                    │  empty, vertex   │
-  │  for_each_succ.  │                    │  overlay, connect│
-  │  vertex_count*   │                    └──────┬───────────┘
+  │  iter            │                    │  empty, vertex   │
+  │  successors      │                    │  overlay, connect│
+  │  each_vertex*    │                    └──────┬───────────┘
+  │  each_successor* │
+  │  vertex_count*   │
   │  has_vertex*     │
   └──────┬──────────┘                           │
          │                                       │ implements
@@ -27,29 +29,34 @@ Layer A: Observation                    Layer B: Construction
    dfs_fold, bfs_fold, reachable
    toposort, toposort_subset
    has_cycle, outdegree, indegree
-   scc (AdjacencyMap-specific)
+   tarjan_scc (generic)
+   scc, condensation (AdjacencyMap)
 ```
 
 ## Layer A: Observation
 
-The `DirectedGraph` trait is the foundation. It has two required methods and two defaulted methods:
+The `DirectedGraph` trait is the foundation. It has two required methods and four defaulted methods:
 
 ```moonbit
 pub(open) trait DirectedGraph {
-  for_each_vertex(Self, (Int) -> Unit) -> Unit
-  for_each_successor(Self, Int, (Int) -> Unit) -> Unit
-  vertex_count(Self) -> Int = _
-  has_vertex(Self, Int) -> Bool = _
+  iter(Self) -> Iter[Int]                              // required: all vertices
+  successors(Self, Int) -> Iter[Int]                   // required: outgoing neighbors
+  each_vertex(Self, (Int) -> Unit) -> Unit = _         // defaulted: push-style vertex iteration
+  each_successor(Self, Int, (Int) -> Unit) -> Unit = _ // defaulted: push-style successor iteration
+  vertex_count(Self) -> Int = _                        // defaulted: O(V) via Iter::count
+  has_vertex(Self, Int) -> Bool = _                    // defaulted: short-circuits via Iter::contains
 }
 ```
 
-Any type that implements the two required methods gets every generic algorithm for free — `vertex_count` and `has_vertex` have O(V) defaults derived from `for_each_vertex`. Override them for O(1) when your data structure supports constant-time queries. The trait is deliberately minimal — adding required methods increases the implementation burden for new types.
+Any type that implements `iter` and `successors` gets every generic algorithm for free. The four defaulted methods are derived from the iterators: `each_vertex`/`each_successor` delegate to `Iter::each` for push-style algorithms (DFS, BFS, toposort), `vertex_count` uses `Iter::count`, and `has_vertex` uses `Iter::contains` which short-circuits on match. Override any default for O(1) when your data structure supports it.
 
-### Callback-style iteration
+### Iter-based iteration
 
-`for_each_vertex` and `for_each_successor` use callbacks instead of returning iterators. This is a deliberate design choice forced by MoonBit's trait system (no associated types to express `Iter[Vertex]`), but it also avoids intermediate allocations. Algorithms that consume successors (DFS, BFS, toposort) can process them inline without collecting into temporary arrays.
+`iter` and `successors` return `Iter[Int]` — MoonBit's pull-based external iterator (`struct Iter[X](fn() -> X?)`). Call `.next()` for one vertex at a time, enabling:
 
-The tradeoff: the 1.8x closure dispatch overhead measured in benchmarks is inherent to this design. A trait-based `GraphFolder` could eliminate it, but the wins from other optimizations (flat adjacency, mark-and-reverse DFS) have been larger.
+- **Pause/resume:** Tarjan SCC stores `Iter[Int]` in stack frames, calling `.next()` to advance successor iteration one step at a time across "recursive" calls.
+- **Early termination:** `has_vertex` short-circuits via `Iter::contains` — O(1) best case instead of O(V).
+- **Lazy composition:** `Iter::map`, `Iter::filter` compose without intermediate allocations.
 
 ### Two implementations
 
@@ -128,7 +135,7 @@ Higher-level constructors built from the four primitives:
 
 ## Algorithms
 
-All generic algorithms follow the same pattern: take `G : DirectedGraph`, use `for_each_vertex` and `for_each_successor` for traversal, use `vertex_count` for pre-allocation.
+All generic algorithms take `G : DirectedGraph`. Most use the defaulted `each_vertex`/`each_successor` for push-style traversal. Tarjan SCC uses the pull-based `iter`/`successors` directly for pause/resume.
 
 | Algorithm | File | Complexity | Notes |
 |---|---|---|---|
@@ -139,9 +146,10 @@ All generic algorithms follow the same pattern: take `G : DirectedGraph`, use `f
 | Toposort subset | `toposort.mbt` | O(V_sub+E_sub) | Induced subgraph ordering |
 | Topo levels | `toposort.mbt` | O(V+E) | Longest-path distance from sources |
 | Cycle detection | `toposort.mbt` | O(V+E) | Derived from toposort (None = cycle) |
-| Outdegree | `degree.mbt` | O(degree) | Counts via for_each_successor |
+| Outdegree | `degree.mbt` | O(degree) | Counts via `Iter::count` on successors |
 | Indegree | `degree.mbt` | O(V+E) | Full scan — no reverse index |
-| SCC | `scc.mbt` | O(V+E) | Kosaraju, requires transpose (AdjacencyMap-specific) |
+| Tarjan SCC | `scc.mbt` | O(V+E) | Generic over `DirectedGraph`, no transpose, uses `Iter.next()` |
+| Kosaraju SCC | `scc.mbt` | O(V+E) | AdjacencyMap-specific, requires transpose, reverse topo order |
 | Condensation | `scc.mbt` | O(V+E) | Collapse SCCs into DAG (AdjacencyMap-specific) |
 
 DenseGraph provides optimized versions of DFS, toposort, SCC, and reachable that bypass trait dispatch for 8-23x speedup.
@@ -165,7 +173,7 @@ src/
 ├── dfs.mbt              # DFS fold, reachable
 ├── bfs.mbt              # BFS fold
 ├── toposort.mbt         # Toposort, toposort_subset, has_cycle
-├── scc.mbt              # Strongly connected components (Kosaraju)
+├── scc.mbt              # SCC: Kosaraju (AdjacencyMap), Tarjan (generic), condensation
 ├── degree.mbt           # Outdegree, indegree
 ├── benchmark.mbt        # Performance benchmarks
 └── experiment/           # Performance experiments and variants
