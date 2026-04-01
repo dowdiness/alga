@@ -93,12 +93,10 @@ Finish(0)
 
 ### Vertex state encoding
 
-Single `Map[Int, Int]` using sentinel values:
+Single `Map[Int, Bool]`:
 - Key absent → white (undiscovered)
-- Value >= 0 → gray (discovery index, on stack)
-- Value == -1 → black (finished)
-
-This avoids a separate `Map[Int, Bool]` for the gray/black distinction. Discovery index is stored in the gray state for potential future use (e.g., distinguishing forward from cross edges).
+- `true` → gray (on stack, in progress)
+- `false` → black (finished)
 
 ### Implementation: Iter closure
 
@@ -107,9 +105,8 @@ pub fn[G : DirectedGraph] dfs_events(graph : G) -> Iter[DfsEvent] {
   // state captured by closure:
   // - frames: Array[(Int, Iter[Int])]  (vertex + successor iterator)
   // - enter_pending: Int?              (vertex needing Discover event)
-  // - state: Map[Int, Int]             (absent=white, >=0=gray, -1=black)
+  // - state: Map[Int, Bool]            (absent=white, true=gray, false=black)
   // - roots: Iter[Int]                 (graph.iter() for disconnected components)
-  // - counter: Int                     (discovery timestamp)
   Iter::new(fn() { ... })
 }
 ```
@@ -152,6 +149,16 @@ for event in dfs_events(g) {
   }
 }
 ```
+
+## Performance
+
+Benchmarked on 1000-vertex `AdjacencyMap` graphs (`moon bench --release`, 2026-04-01):
+
+| Graph shape | Time |
+|---|---|
+| chain (999 edges) | ~155 µs |
+| cyclic (1500 edges) | ~179 µs |
+| diamond (~3300 edges) | ~257 µs |
 
 ## Testing
 

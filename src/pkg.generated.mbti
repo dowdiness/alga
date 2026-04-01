@@ -11,6 +11,8 @@ pub fn[G : DirectedGraph, Acc] bfs_fold(G, Int, Acc, (Acc, Int) -> (Acc, Bool)) 
 
 pub fn[G : DirectedGraph, Acc] bfs_fold_multi(G, Array[Int], Acc, (Acc, Int) -> (Acc, Bool)) -> Acc
 
+pub fn[G : DirectedGraph] dfs_events(G) -> Iter[DfsEvent]
+
 pub fn[G : DirectedGraph, Acc] dfs_fold(G, Int, Acc, (Acc, Int) -> (Acc, Bool)) -> Acc
 
 pub fn[G : DirectedGraph, Acc] dfs_fold_multi(G, Array[Int], Acc, (Acc, Int) -> (Acc, Bool)) -> Acc
@@ -84,6 +86,14 @@ pub fn DenseGraph::vertex_count(Self) -> Int
 pub impl DirectedGraph for DenseGraph
 pub impl Show for DenseGraph
 pub impl @debug.Debug for DenseGraph
+
+pub(all) enum DfsEvent {
+  Discover(Int)
+  Finish(Int)
+  TreeEdge(Int, Int)
+  BackEdge(Int, Int)
+  CrossForwardEdge(Int, Int)
+}
 
 pub(all) enum Graph {
   Empty
