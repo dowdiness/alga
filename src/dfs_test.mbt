@@ -212,3 +212,159 @@ test "reachable_multi overlapping" {
   // No duplicates
   assert_eq(r.length(), 4)
 }
+
+// --- dfs_events ---
+
+///|
+test "dfs_events empty graph" {
+  let g = @alga.AdjacencyMap::empty()
+  let events = @alga.dfs_events(g).collect()
+  assert_eq(events.length(), 0)
+}
+
+///|
+test "dfs_events single vertex" {
+  let g = @alga.AdjacencyMap::vertex(1)
+  let events = @alga.dfs_events(g).collect()
+  assert_eq(events.length(), 2)
+  assert_true(events[0] is @alga.Discover(1))
+  assert_true(events[1] is @alga.Finish(1))
+}
+
+///|
+test "dfs_events chain" {
+  // 1 → 2 → 3
+  let g = @alga.AdjacencyMap::from_edges([(1, 2), (2, 3)])
+  let events = @alga.dfs_events(g).collect()
+  // Expected: Discover(1), TreeEdge(1,2), Discover(2), TreeEdge(2,3),
+  //           Discover(3), Finish(3), Finish(2), Finish(1)
+  assert_eq(events.length(), 8)
+  // Count event types
+  let mut discovers = 0
+  let mut finishes = 0
+  let mut tree_edges = 0
+  for e in events.iter() {
+    match e {
+      @alga.Discover(_) => discovers = discovers + 1
+      @alga.Finish(_) => finishes = finishes + 1
+      @alga.TreeEdge(_, _) => tree_edges = tree_edges + 1
+      _ => ()
+    }
+  }
+  assert_eq(discovers, 3)
+  assert_eq(finishes, 3)
+  assert_eq(tree_edges, 2)
+}
+
+///|
+test "dfs_events back edge (cycle)" {
+  // 1 → 2 → 3 → 1
+  let g = @alga.AdjacencyMap::from_edges([(1, 2), (2, 3), (3, 1)])
+  let events = @alga.dfs_events(g).collect()
+  // Should contain exactly one BackEdge(3, 1)
+  let back_edges : Array[(Int, Int)] = []
+  for e in events.iter() {
+    match e {
+      @alga.BackEdge(u, v) => back_edges.push((u, v))
+      _ => ()
+    }
+  }
+  assert_eq(back_edges.length(), 1)
+  assert_eq(back_edges[0], (3, 1))
+}
+
+///|
+test "dfs_events cross/forward edge" {
+  // 0 → 1 → 2, 0 → 2
+  // Edge 0→2 is a cross/forward edge (2 is black when 0 examines it)
+  let g = @alga.AdjacencyMap::from_edges([(0, 1), (1, 2), (0, 2)])
+  let events = @alga.dfs_events(g).collect()
+  let cf_edges : Array[(Int, Int)] = []
+  for e in events.iter() {
+    match e {
+      @alga.CrossForwardEdge(u, v) => cf_edges.push((u, v))
+      _ => ()
+    }
+  }
+  assert_eq(cf_edges.length(), 1)
+  assert_eq(cf_edges[0], (0, 2))
+}
+
+///|
+test "dfs_events self loop" {
+  let g = @alga.AdjacencyMap::from_edges([(1, 1)])
+  let events = @alga.dfs_events(g).collect()
+  // Self-loop: 1 is gray when edge 1→1 is examined → BackEdge
+  let back_edges : Array[(Int, Int)] = []
+  for e in events.iter() {
+    match e {
+      @alga.BackEdge(u, v) => back_edges.push((u, v))
+      _ => ()
+    }
+  }
+  assert_eq(back_edges.length(), 1)
+  assert_eq(back_edges[0], (1, 1))
+}
+
+///|
+test "dfs_events disconnected components" {
+  // Two disconnected edges: 1→2, 3→4
+  let g = @alga.AdjacencyMap::from_edges([(1, 2), (3, 4)])
+  let events = @alga.dfs_events(g).collect()
+  let mut discovers = 0
+  let mut finishes = 0
+  for e in events.iter() {
+    match e {
+      @alga.Discover(_) => discovers = discovers + 1
+      @alga.Finish(_) => finishes = finishes + 1
+      _ => ()
+    }
+  }
+  // All 4 vertices discovered and finished
+  assert_eq(discovers, 4)
+  assert_eq(finishes, 4)
+}
+
+///|
+test "dfs_events works on DenseGraph" {
+  // 0→1→2→0 (cycle)
+  let g = @alga.DenseGraph::from_edges(3, [(0, 1), (1, 2), (2, 0)])
+  let events = @alga.dfs_events(g).collect()
+  let mut back_count = 0
+  for e in events.iter() {
+    if e is @alga.BackEdge(_, _) {
+      back_count = back_count + 1
+    }
+  }
+  assert_eq(back_count, 1)
+}
+
+///|
+test "dfs_events early termination via break" {
+  // Large chain, but we break after first BackEdge
+  let g = @alga.AdjacencyMap::from_edges([(1, 2), (2, 3), (3, 1), (3, 4), (4, 5)])
+  let mut found_cycle = false
+  for event in @alga.dfs_events(g) {
+    if event is @alga.BackEdge(_, _) {
+      found_cycle = true
+      break
+    }
+  }
+  assert_true(found_cycle)
+}
+
+///|
+test "dfs_events total edge count" {
+  // Diamond: 1→2, 1→3, 2→4, 3→4 (4 edges)
+  let g = @alga.AdjacencyMap::from_edges([(1, 2), (1, 3), (2, 4), (3, 4)])
+  let events = @alga.dfs_events(g).collect()
+  let mut edge_count = 0
+  for e in events.iter() {
+    match e {
+      @alga.TreeEdge(_, _) | @alga.BackEdge(_, _) | @alga.CrossForwardEdge(_, _) =>
+        edge_count = edge_count + 1
+      _ => ()
+    }
+  }
+  assert_eq(edge_count, 4)
+}
