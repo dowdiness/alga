@@ -183,8 +183,18 @@ pub impl DirectedGraph for DenseGraph with iter(self) {
 }
 
 ///|
+/// O(1) override — array length, bypasses the O(V) default iteration.
+pub impl DirectedGraph for DenseGraph with vertex_count(self) {
+  self.successors.length()
+}
+
+///|
 pub impl DirectedGraph for DenseGraph with successors(self, v) {
-  self.successors[v].iter()
+  if v >= 0 && v < self.successors.length() {
+    self.successors[v].iter()
+  } else {
+    Iter::empty()
+  }
 }
 
 ///|

@@ -25,9 +25,9 @@ moon info && moon fmt          # before committing
 
 - **Architecture:** Two-layer design — Layer A (observation via `DirectedGraph` trait) + Layer B (construction via `GraphSym` trait + `Graph` enum), connected by `foldg` bridge
 - **Fixed vertex type:** Vertices are `Int` (MoonBit traits lack type parameters/associated types)
-- **Callback-style iteration:** `for_each_vertex`/`for_each_successor` push into `(Int) -> Unit` callbacks (CPS), no intermediate allocations
+- **Iter-based trait:** `DirectedGraph` requires `iter() -> Iter[Int]` and `successors(v) -> Iter[Int]` (pull-based). Callback methods `each_vertex`/`each_successor` are defaulted. `has_vertex` short-circuits via `Iter::contains`.
 - **Iterative algorithms:** DFS and SCC use explicit stacks, not recursion (tested up to 10K+ vertices)
-- **SCC algorithm:** Kosaraju (requires `transpose`, specific to `AdjacencyMap`)
+- **SCC algorithms:** Kosaraju (`AdjacencyMap::scc`, requires `transpose`) and Tarjan (`tarjan_scc`, generic over `DirectedGraph`, no transpose)
 - **All other algorithms** are generic over `DirectedGraph`
 - **Property tests:** All 8 algebraic graph laws (Mokhov 2017) verified with `moonbitlang/quickcheck`
 - **External dep:** `moonbitlang/quickcheck` (aliased `@qc`) for property-based testing with shrinking

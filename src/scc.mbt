@@ -216,24 +216,23 @@ pub fn AdjacencyMap::condensation(
 ///
 /// Time: O(V + E). Space: O(V) — no transpose allocation.
 pub fn[G : DirectedGraph] tarjan_scc(graph : G) -> Array[Array[Int]] {
-  let index_map : Map[Int, Int] = Map::new()
-  let lowlink_map : Map[Int, Int] = Map::new()
-  let on_stack : Map[Int, Bool] = Map::new()
+  // Per-vertex state: (discovery_index, lowlink, on_scc_stack).
+  // Merged into one map to avoid 3 separate hash lookups per edge.
+  let state : Map[Int, (Int, Int, Bool)] = Map::new()
   let scc_stack : Array[Int] = []
   let result : Array[Array[Int]] = []
   let mut counter = 0
-  // Stack frames: (vertex, successor_iterator)
-  // lowlink/index stored in maps — need updates after "recursive" returns.
+  // Stack frames: (vertex, successor_iterator).
+  // Iter[Int] is a closure wrapper — calling .next() advances the closure's
+  // internal position. Since the iterator is stored (not recreated), returning
+  // to this frame after a "recursive" call resumes where we left off.
   let frames : Array[(Int, Iter[Int])] = []
   for root in G::iter(graph) {
-    if index_map.contains(root) {
+    if state.contains(root) {
       continue
     }
-    // Initialize root
-    index_map[root] = counter
-    lowlink_map[root] = counter
+    state[root] = (counter, counter, true)
     counter = counter + 1
-    on_stack[root] = true
     scc_stack.push(root)
     frames.push((root, G::successors(graph, root)))
     while frames.length() > 0 {
@@ -242,61 +241,50 @@ pub fn[G : DirectedGraph] tarjan_scc(graph : G) -> Array[Array[Int]] {
       let iter = frames[top_idx].1
       match iter.next() {
         Some(w) =>
-          if !index_map.contains(w) {
-            // Tree edge: "recurse" into w
-            index_map[w] = counter
-            lowlink_map[w] = counter
+          if !state.contains(w) {
+            // Tree edge: push new frame to "recurse" into w
+            state[w] = (counter, counter, true)
             counter = counter + 1
-            on_stack[w] = true
             scc_stack.push(w)
             frames.push((w, G::successors(graph, w)))
-          } else if on_stack.get(w) == Some(true) {
-            // Back edge: update lowlink
-            let v_low = match lowlink_map.get(v) {
-              Some(l) => l
-              None => 0
-            }
-            let w_idx = match index_map.get(w) {
-              Some(i) => i
-              None => 0
-            }
-            if w_idx < v_low {
-              lowlink_map[v] = w_idx
+          } else {
+            // Back/cross edge: update v's lowlink to w's *index* (not lowlink).
+            // Using index is correct — w's lowlink may not be finalized yet
+            // (w is still on the stack being processed above us).
+            let (w_idx, _, w_on_stack) = state[w]
+            if w_on_stack {
+              let (v_idx, v_low, _) = state[v]
+              if w_idx < v_low {
+                state[v] = (v_idx, w_idx, true)
+              }
             }
           }
         None => {
-          // All successors processed — check if v is SCC root
-          let v_low = match lowlink_map.get(v) {
-            Some(l) => l
-            None => 0
-          }
-          let v_idx = match index_map.get(v) {
-            Some(i) => i
-            None => 0
-          }
+          // All successors processed — check if v is an SCC root
+          let (v_idx, v_low, _) = state[v]
           if v_low == v_idx {
-            // v is root of an SCC — pop scc_stack until v
+            // v is root of an SCC — pop scc_stack until v (inclusive)
             let component : Array[Int] = []
             while true {
               let w = scc_stack.unsafe_pop()
-              on_stack[w] = false
+              let (w_idx, w_low, _) = state[w]
+              state[w] = (w_idx, w_low, false)
               component.push(w)
               if w == v {
                 break
               }
             }
+            // SCCs are emitted when their root is finalized (all successors done).
+            // Leaf SCCs finish first → forward topological order (opposite of Kosaraju).
             result.push(component)
           }
           // Pop this frame and propagate lowlink to parent
           let _ = frames.unsafe_pop()
           if frames.length() > 0 {
             let parent_v = frames[frames.length() - 1].0
-            let parent_low = match lowlink_map.get(parent_v) {
-              Some(l) => l
-              None => 0
-            }
-            if v_low < parent_low {
-              lowlink_map[parent_v] = v_low
+            let (p_idx, p_low, _) = state[parent_v]
+            if v_low < p_low {
+              state[parent_v] = (p_idx, v_low, true)
             }
           }
         }
