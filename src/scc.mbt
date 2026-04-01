@@ -185,3 +185,123 @@ pub fn AdjacencyMap::condensation(
   }
   (dag, vertex_to_component)
 }
+
+///|
+/// # Strongly Connected Components (Tarjan's Algorithm)
+///
+/// Generic over `DirectedGraph` — works on any graph type without requiring
+/// `transpose`. Single DFS pass using lowlink values.
+///
+/// ## Algorithm: Tarjan (1972)
+///
+/// Performs one DFS, maintaining for each vertex:
+/// - `index`: discovery time (monotonically increasing)
+/// - `lowlink`: smallest index reachable from the subtree rooted at this vertex
+///
+/// When all successors of vertex v are processed, if `lowlink[v] == index[v]`,
+/// then v is the root of an SCC — pop the SCC stack until v to extract it.
+///
+/// ## Implementation: fully iterative
+///
+/// Uses `Iter[Int].next()` for pause/resume of successor iteration. Each stack
+/// frame stores `(vertex, Iter[Int])` — the iterator carries its position via
+/// closure state. This avoids recursion (safe for 10K+ vertices in WASM) and
+/// avoids collecting successors into temp arrays.
+///
+/// ## Output ordering
+///
+/// Produces SCCs in **forward topological order**: if component A has an edge
+/// to component B, B appears before A in the result. This is the opposite of
+/// Kosaraju's `scc()` which produces reverse topological order.
+///
+/// Time: O(V + E). Space: O(V) — no transpose allocation.
+pub fn[G : DirectedGraph] tarjan_scc(graph : G) -> Array[Array[Int]] {
+  let index_map : Map[Int, Int] = Map::new()
+  let lowlink_map : Map[Int, Int] = Map::new()
+  let on_stack : Map[Int, Bool] = Map::new()
+  let scc_stack : Array[Int] = []
+  let result : Array[Array[Int]] = []
+  let mut counter = 0
+  // Stack frames: (vertex, successor_iterator)
+  // lowlink/index stored in maps — need updates after "recursive" returns.
+  let frames : Array[(Int, Iter[Int])] = []
+  for root in G::iter(graph) {
+    if index_map.contains(root) {
+      continue
+    }
+    // Initialize root
+    index_map[root] = counter
+    lowlink_map[root] = counter
+    counter = counter + 1
+    on_stack[root] = true
+    scc_stack.push(root)
+    frames.push((root, G::successors(graph, root)))
+    while frames.length() > 0 {
+      let top_idx = frames.length() - 1
+      let v = frames[top_idx].0
+      let iter = frames[top_idx].1
+      match iter.next() {
+        Some(w) =>
+          if !index_map.contains(w) {
+            // Tree edge: "recurse" into w
+            index_map[w] = counter
+            lowlink_map[w] = counter
+            counter = counter + 1
+            on_stack[w] = true
+            scc_stack.push(w)
+            frames.push((w, G::successors(graph, w)))
+          } else if on_stack.get(w) == Some(true) {
+            // Back edge: update lowlink
+            let v_low = match lowlink_map.get(v) {
+              Some(l) => l
+              None => 0
+            }
+            let w_idx = match index_map.get(w) {
+              Some(i) => i
+              None => 0
+            }
+            if w_idx < v_low {
+              lowlink_map[v] = w_idx
+            }
+          }
+        None => {
+          // All successors processed — check if v is SCC root
+          let v_low = match lowlink_map.get(v) {
+            Some(l) => l
+            None => 0
+          }
+          let v_idx = match index_map.get(v) {
+            Some(i) => i
+            None => 0
+          }
+          if v_low == v_idx {
+            // v is root of an SCC — pop scc_stack until v
+            let component : Array[Int] = []
+            while true {
+              let w = scc_stack.unsafe_pop()
+              on_stack[w] = false
+              component.push(w)
+              if w == v {
+                break
+              }
+            }
+            result.push(component)
+          }
+          // Pop this frame and propagate lowlink to parent
+          let _ = frames.unsafe_pop()
+          if frames.length() > 0 {
+            let parent_v = frames[frames.length() - 1].0
+            let parent_low = match lowlink_map.get(parent_v) {
+              Some(l) => l
+              None => 0
+            }
+            if v_low < parent_low {
+              lowlink_map[parent_v] = v_low
+            }
+          }
+        }
+      }
+    }
+  }
+  result
+}
