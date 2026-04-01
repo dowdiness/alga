@@ -506,3 +506,37 @@ test "reversed works with toposort" {
     None => assert_true(false)
   }
 }
+
+///|
+test "reversed works with tarjan_scc" {
+  // 0→1→2→0 (cycle), 3→4: reversed has same SCCs
+  let g = @alga.AdjacencyMap::from_edges([(0, 1), (1, 2), (2, 0), (3, 4)])
+  let orig_sccs = @alga.tarjan_scc(g)
+  let rev_sccs = @alga.tarjan_scc(@alga.reversed(g))
+  // Same number of SCCs
+  assert_eq(orig_sccs.length(), rev_sccs.length())
+  // The cyclic SCC {0,1,2} should appear in both (order may differ)
+  fn find_scc_containing(sccs : Array[Array[Int]], v : Int) -> Array[Int] {
+    for scc in sccs {
+      if scc.contains(v) {
+        return scc
+      }
+    }
+    []
+  }
+
+  let orig_cycle = find_scc_containing(orig_sccs, 0)
+  let rev_cycle = find_scc_containing(rev_sccs, 0)
+  orig_cycle.sort()
+  rev_cycle.sort()
+  assert_eq(orig_cycle, rev_cycle)
+}
+
+///|
+test "reversed preserves has_cycle" {
+  // Cycles are invariant under reversal
+  let cyclic = @alga.AdjacencyMap::from_edges([(0, 1), (1, 0)])
+  assert_true(@alga.has_cycle(@alga.reversed(cyclic)))
+  let acyclic = @alga.AdjacencyMap::from_edges([(0, 1), (1, 2)])
+  assert_true(!@alga.has_cycle(@alga.reversed(acyclic)))
+}

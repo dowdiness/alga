@@ -27,7 +27,7 @@
 /// | Operation        | AdjacencyMap    | DenseGraph      |
 /// |------------------|-----------------|-----------------|
 /// | successor lookup | O(log V) (Map)  | O(1) (Array)    |
-/// | transpose        | O(V + E)        | O(V + E)        |
+/// | transpose        | O(1)            | O(1)            |
 /// | DFS reachable    | ~94 µs (1000V)  | ~7 µs (1000V)   |
 /// | SCC              | ~460 µs (1000V) | ~50 µs (1000V)  |
 pub(all) struct DenseGraph {

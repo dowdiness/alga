@@ -401,6 +401,8 @@ pub impl Debug for AdjacencyMap with to_repr(self) {
 /// Eq implementation for AdjacencyMap.
 /// Two graphs are equal if they have the same vertices and edges.
 /// Successor arrays are sorted before comparison since order may differ.
+// Only compares adjacency (forward edges). The predecessors map is derived —
+// if forward edges are equal, predecessors must be too (given correct construction).
 pub impl Eq for AdjacencyMap with equal(self, other) -> Bool {
   fn maps_equal(a : Map[Int, Array[Int]], b : Map[Int, Array[Int]]) -> Bool {
     if a.length() != b.length() {

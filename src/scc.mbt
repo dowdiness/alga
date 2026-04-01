@@ -28,10 +28,11 @@
 ///
 /// ## Why AdjacencyMap, not DirectedGraph?
 ///
-/// SCC requires `transpose()`, which inverts all edges. Not every data
-/// structure can efficiently compute its transpose — it's not part of
-/// the `DirectedGraph` observation trait. Since `AdjacencyMap` stores
-/// the full adjacency structure, it can compute transpose in O(V + E).
+/// Kosaraju SCC requires `transpose()`. With bidirectional adjacency
+/// storage, transpose is O(1) (field swap). This method stays on
+/// `AdjacencyMap` for API stability, but a generic Kosaraju over
+/// `DirectedGraph + Predecessors` is now feasible via `Reversed[G]`.
+/// See also `tarjan_scc` which is already generic (no transpose needed).
 ///
 /// ## Implementation: fully iterative
 ///
