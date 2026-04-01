@@ -248,7 +248,11 @@ test "tarjan_scc single cycle" {
 ///|
 test "tarjan_scc two components connected" {
   let g = @alga.AdjacencyMap::from_edges([
-    (1, 2), (2, 1), (2, 3), (3, 4), (4, 3),
+    (1, 2),
+    (2, 1),
+    (2, 3),
+    (3, 4),
+    (4, 3),
   ])
   let components = @alga.tarjan_scc(g)
   assert_eq(components.length(), 2)
@@ -310,8 +314,12 @@ test "tarjan_scc works on DenseGraph" {
   let mut cycle_comp : Array[Int] = []
   let mut singleton_comp : Array[Int] = []
   for c in components {
-    if c.length() == 3 { cycle_comp = c }
-    if c.length() == 1 { singleton_comp = c }
+    if c.length() == 3 {
+      cycle_comp = c
+    }
+    if c.length() == 1 {
+      singleton_comp = c
+    }
   }
   assert_true(cycle_comp.contains(0))
   assert_true(cycle_comp.contains(1))
