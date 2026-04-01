@@ -222,7 +222,7 @@ pub fn AdjacencyMap::edge_list(self : AdjacencyMap) -> Array[(Int, Int)] {
 
 ///|
 /// Successor vertices of v (vertices reachable by one edge from v).
-pub fn AdjacencyMap::successors(self : AdjacencyMap, v : Int) -> Array[Int] {
+pub fn AdjacencyMap::successor_list(self : AdjacencyMap, v : Int) -> Array[Int] {
   match self.adjacency.get(v) {
     Some(s) => s.copy()
     None => []
@@ -409,20 +409,15 @@ pub impl DirectedGraph for AdjacencyMap with vertex_count(self) {
 }
 
 ///|
-pub impl DirectedGraph for AdjacencyMap with for_each_vertex(self, f) {
-  for k, _ in self.adjacency {
-    f(k)
-  }
+pub impl DirectedGraph for AdjacencyMap with iter(self) {
+  self.adjacency.iter().map(fn(pair) { pair.0 })
 }
 
 ///|
-pub impl DirectedGraph for AdjacencyMap with for_each_successor(self, v, f) {
+pub impl DirectedGraph for AdjacencyMap with successors(self, v) {
   match self.adjacency.get(v) {
-    Some(s) =>
-      for x in s {
-        f(x)
-      }
-    None => ()
+    Some(s) => s.iter()
+    None => Iter::empty()
   }
 }
 

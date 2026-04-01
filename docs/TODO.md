@@ -10,12 +10,12 @@ Active backlog for alga. Each item links to its source; non-trivial items should
 
 - **Zero-copy graph adaptors** — `Reversed[G]`, `NodeFiltered[G]` implementing `DirectedGraph` without allocation. Enables generic SCC (no transpose copy) and cheap subgraph views. Source: [petgraph analysis](specs/2026-04-01-petgraph-analysis.md#1-zero-copy-graph-adaptors)
 - **DFS edge classification** — `dfs_classify` reporting `TreeEdge`, `BackEdge`, `CrossForwardEdge`, `Finish`. Makes DFS a universal building block for cycle detection, bridges, etc. Source: [petgraph analysis](specs/2026-04-01-petgraph-analysis.md#2-dfs-edge-classification)
-- **Tarjan SCC** — Single-pass, no transpose required. Would lift the "SCC is AdjacencyMap-only" limitation. Source: [petgraph analysis](specs/2026-04-01-petgraph-analysis.md#3-tarjan-scc-single-pass-no-transpose)
-- **Traversal control flow** — Early termination for callbacks (`Bool` return or `ControlFlow` enum). Fixes O(V) `has_vertex` scan. Source: [petgraph analysis](specs/2026-04-01-petgraph-analysis.md#4-traversal-control-flow)
+- **Traversal control flow** — Early termination for push-style callbacks beyond what `Iter::contains` provides. `has_vertex` short-circuiting is now solved by the iter-based trait. Remaining: `dfs_fold`/`bfs_fold` callback could benefit from `ControlFlow` enum. Source: [petgraph analysis](specs/2026-04-01-petgraph-analysis.md#4-traversal-control-flow)
 - **GenCounter for visited sets** — Proven 2.4–5.5x faster than `Array[Bool]`, but production algorithms still use `Array[Bool]`. Tied to DenseGraph decision (requires dense vertex IDs). Source: [EXPERIMENT_REPORT.md](../src/experiment/EXPERIMENT_REPORT.md#what-remains)
 
 ## Done
 
+- **~~Iter-based DirectedGraph trait + Tarjan SCC~~** — Migrated trait from CPS callbacks (`for_each_vertex`/`for_each_successor`) to `Iter[Int]`-based (`iter`/`successors`). Added `tarjan_scc` generic over `DirectedGraph` — single-pass, no transpose. `has_vertex` now short-circuits via `Iter::contains`. Source: [spec](specs/2026-04-01-iter-based-trait-and-tarjan-design.md)
 - **~~Condensation~~** — `AdjacencyMap::condensation() -> (AdjacencyMap, Map[Int, Int])`. Collapse SCCs into a DAG. Closes [#9](https://github.com/dowdiness/alga/issues/9)
 - **~~Topological levels~~** — `topo_levels(graph) -> Map[Int, Int]?`. Longest-path distance from sources, for glitch-free reactive scheduling. Closes [#8](https://github.com/dowdiness/alga/issues/8)
 - **~~Multi-source BFS/DFS~~** — `bfs_fold_multi`, `dfs_fold_multi`, `reachable_multi`. Frontier-based traversal from multiple starts. Closes [#7](https://github.com/dowdiness/alga/issues/7)

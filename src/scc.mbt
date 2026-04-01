@@ -185,3 +185,111 @@ pub fn AdjacencyMap::condensation(
   }
   (dag, vertex_to_component)
 }
+
+///|
+/// # Strongly Connected Components (Tarjan's Algorithm)
+///
+/// Generic over `DirectedGraph` — works on any graph type without requiring
+/// `transpose`. Single DFS pass using lowlink values.
+///
+/// ## Algorithm: Tarjan (1972)
+///
+/// Performs one DFS, maintaining for each vertex:
+/// - `index`: discovery time (monotonically increasing)
+/// - `lowlink`: smallest index reachable from the subtree rooted at this vertex
+///
+/// When all successors of vertex v are processed, if `lowlink[v] == index[v]`,
+/// then v is the root of an SCC — pop the SCC stack until v to extract it.
+///
+/// ## Implementation: fully iterative
+///
+/// Uses `Iter[Int].next()` for pause/resume of successor iteration. Each stack
+/// frame stores `(vertex, Iter[Int])` — the iterator carries its position via
+/// closure state. This avoids recursion (safe for 10K+ vertices in WASM) and
+/// avoids collecting successors into temp arrays.
+///
+/// ## Output ordering
+///
+/// Produces SCCs in **forward topological order**: if component A has an edge
+/// to component B, B appears before A in the result. This is the opposite of
+/// Kosaraju's `scc()` which produces reverse topological order.
+///
+/// Time: O(V + E). Space: O(V) — no transpose allocation.
+pub fn[G : DirectedGraph] tarjan_scc(graph : G) -> Array[Array[Int]] {
+  // Per-vertex state: (discovery_index, lowlink, on_scc_stack).
+  // Merged into one map to avoid 3 separate hash lookups per edge.
+  let state : Map[Int, (Int, Int, Bool)] = Map::new()
+  let scc_stack : Array[Int] = []
+  let result : Array[Array[Int]] = []
+  let mut counter = 0
+  // Stack frames: (vertex, successor_iterator).
+  // Iter[Int] is a closure wrapper — calling .next() advances the closure's
+  // internal position. Since the iterator is stored (not recreated), returning
+  // to this frame after a "recursive" call resumes where we left off.
+  let frames : Array[(Int, Iter[Int])] = []
+  for root in G::iter(graph) {
+    if state.contains(root) {
+      continue
+    }
+    state[root] = (counter, counter, true)
+    counter = counter + 1
+    scc_stack.push(root)
+    frames.push((root, G::successors(graph, root)))
+    while frames.length() > 0 {
+      let top_idx = frames.length() - 1
+      let v = frames[top_idx].0
+      let iter = frames[top_idx].1
+      match iter.next() {
+        Some(w) =>
+          if !state.contains(w) {
+            // Tree edge: push new frame to "recurse" into w
+            state[w] = (counter, counter, true)
+            counter = counter + 1
+            scc_stack.push(w)
+            frames.push((w, G::successors(graph, w)))
+          } else {
+            // Back/cross edge: update v's lowlink to w's *index* (not lowlink).
+            // Using index is correct — w's lowlink may not be finalized yet
+            // (w is still on the stack being processed above us).
+            let (w_idx, _, w_on_stack) = state[w]
+            if w_on_stack {
+              let (v_idx, v_low, _) = state[v]
+              if w_idx < v_low {
+                state[v] = (v_idx, w_idx, true)
+              }
+            }
+          }
+        None => {
+          // All successors processed — check if v is an SCC root
+          let (v_idx, v_low, _) = state[v]
+          if v_low == v_idx {
+            // v is root of an SCC — pop scc_stack until v (inclusive)
+            let component : Array[Int] = []
+            while true {
+              let w = scc_stack.unsafe_pop()
+              let (w_idx, w_low, _) = state[w]
+              state[w] = (w_idx, w_low, false)
+              component.push(w)
+              if w == v {
+                break
+              }
+            }
+            // SCCs are emitted when their root is finalized (all successors done).
+            // Leaf SCCs finish first → forward topological order (opposite of Kosaraju).
+            result.push(component)
+          }
+          // Pop this frame and propagate lowlink to parent
+          let _ = frames.unsafe_pop()
+          if frames.length() > 0 {
+            let parent_v = frames[frames.length() - 1].0
+            let (p_idx, p_low, _) = state[parent_v]
+            if v_low < p_low {
+              state[parent_v] = (p_idx, v_low, true)
+            }
+          }
+        }
+      }
+    }
+  }
+  result
+}

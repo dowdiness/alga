@@ -12,9 +12,11 @@ Layer A: Observation                    Layer B: Construction
 
   ┌─────────────────┐                    ┌──────────────────┐
   │ DirectedGraph    │                    │ GraphSym         │
-  │  for_each_vertex │                    │  empty, vertex   │
-  │  for_each_succ.  │                    │  overlay, connect│
-  │  vertex_count*   │                    └──────┬───────────┘
+  │  iter            │                    │  empty, vertex   │
+  │  successors      │                    │  overlay, connect│
+  │  each_vertex*    │                    └──────┬───────────┘
+  │  each_successor* │
+  │  vertex_count*   │
   │  has_vertex*     │
   └──────┬──────────┘                           │
          │                                       │ implements
@@ -29,7 +31,8 @@ Layer A: Observation                    Layer B: Construction
    dfs_fold, bfs_fold
    reachable, toposort
    toposort_subset
-   has_cycle, scc
+   has_cycle, tarjan_scc
+   scc (AdjacencyMap)
 ```
 
 **Layer A (Observation)** answers "what does this graph look like?" Any data structure implementing `DirectedGraph` gets all algorithms for free.
@@ -50,7 +53,8 @@ let order = toposort(g)       // Some([1, 2, 3, 4])
 let sub = toposort_subset(g, [2, 3]) // Some([2, 3])
 let lvls = topo_levels(g)    // Some({1:0, 2:1, 3:2, 4:3})
 let cyclic = has_cycle(g)     // false
-let components = g.scc()      // [[1], [2], [3], [4]]
+let components = tarjan_scc(g) // [[4], [3], [2], [1]] (generic, any DirectedGraph)
+let components2 = g.scc()     // [[1], [2], [3], [4]] (Kosaraju, AdjacencyMap only)
 let (dag, _) = g.condensation() // DAG of SCCs
 
 // Build with algebraic expressions
@@ -76,10 +80,11 @@ assert_true(am.has_edge(1, 2))
 | Outdegree | `outdegree(g, v)` | O(degree) | Number of outgoing edges from v |
 | Indegree | `indegree(g, v)` | O(V+E) | Number of incoming edges to v |
 | Vertex membership | `has_vertex(g, v)` | O(1)* | True if v is a vertex in the graph |
-| SCC | `g.scc()` | O(V+E) | Strongly connected components (Kosaraju) |
+| SCC (generic) | `tarjan_scc(g)` | O(V+E) | Strongly connected components (Tarjan, any DirectedGraph) |
+| SCC (Kosaraju) | `g.scc()` | O(V+E) | Strongly connected components (AdjacencyMap, reverse topo order) |
 | Condensation | `g.condensation()` | O(V+E) | DAG of SCCs — collapse each SCC to a single vertex |
 
-All algorithms except SCC and condensation are generic over `DirectedGraph` — they work on any implementing type. SCC and condensation require `transpose`, which is specific to `AdjacencyMap`.
+All algorithms except Kosaraju SCC and condensation are generic over `DirectedGraph` — they work on any implementing type. Kosaraju and condensation require `transpose`, which is specific to `AdjacencyMap`. Use `tarjan_scc` for generic SCC on any graph type.
 
 ## Graph construction combinators
 
@@ -94,26 +99,27 @@ All algorithms except SCC and condensation are generic over `DirectedGraph` — 
 
 ## Implementing DirectedGraph for your types
 
-The trait requires only two methods. Implement them and all algorithms just work:
+The trait requires only two methods — `iter` (all vertices) and `successors` (outgoing neighbors). Implement them and all algorithms just work:
 
 ```moonbit
 struct MyGraph { edges : Array[Array[Int]] }
 
-impl DirectedGraph for MyGraph with for_each_vertex(self, f) {
-  for i in 0..<self.edges.length() { f(i) }
+impl DirectedGraph for MyGraph with iter(self) {
+  (0).until(self.edges.length())
 }
 
-impl DirectedGraph for MyGraph with for_each_successor(self, v, f) {
-  for w in self.edges[v] { f(w) }
+impl DirectedGraph for MyGraph with successors(self, v) {
+  self.edges[v].iter()
 }
 
-// vertex_count and has_vertex work via O(V) defaults.
+// each_vertex, each_successor, vertex_count, has_vertex all work via defaults.
+// has_vertex short-circuits via Iter::contains — O(1) best case.
 // Override for O(1) if your type supports it:
 // impl DirectedGraph for MyGraph with vertex_count(self) { self.edges.length() }
 // impl DirectedGraph for MyGraph with has_vertex(self, v) { v >= 0 && v < self.edges.length() }
 
 // Now you can use:
-// toposort(my_graph), toposort_subset(my_graph, vertices),
+// toposort(my_graph), tarjan_scc(my_graph),
 // reachable(my_graph, 0), has_cycle(my_graph), etc.
 ```
 
@@ -121,7 +127,7 @@ impl DirectedGraph for MyGraph with for_each_successor(self, v, f) {
 
 **Fixed vertex type (Int):** MoonBit traits don't support type parameters or associated types. We fix vertices to `Int` and let users maintain their own `Id → Int` mapping. This is the same approach used by algebraic graph libraries in languages without type families.
 
-**Callback-style iteration:** Without associated types we can't return `Iter[Vertex]` from trait methods. Instead we push vertices into `(Int) -> Unit` callbacks (CPS style), avoiding intermediate allocations.
+**Iter-based iteration:** `iter` and `successors` return `Iter[Int]` — MoonBit's pull-based external iterator. This enables pause/resume (Tarjan SCC uses `Iter.next()` to suspend successor iteration mid-traversal), early termination (`has_vertex` short-circuits via `Iter::contains`), and lazy composition. Push-style callbacks (`each_vertex`, `each_successor`) are defaulted from the iterators for algorithms that prefer them.
 
 **Iterative algorithms:** DFS and SCC use explicit stacks instead of recursion, preventing stack overflow on deep graphs (tested up to 10K+ vertices).
 
@@ -163,6 +169,7 @@ Run benchmarks: `moon bench --release`
 - Haskell [algebraic-graphs](https://hackage.haskell.org/package/algebraic-graphs) package — the original implementation
 - Kahn (1962), Topological sorting of large networks
 - Kosaraju-Sharir (1978), Strongly connected components
+- Tarjan (1972), Depth-first search and linear graph algorithms
 
 ## License
 

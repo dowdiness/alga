@@ -178,22 +178,22 @@ pub impl Debug for DenseGraph with to_repr(self) {
 }
 
 ///|
-/// DirectedGraph trait — enables all generic algorithms (toposort, DFS, BFS).
+pub impl DirectedGraph for DenseGraph with iter(self) {
+  (0).until(self.successors.length())
+}
+
+///|
+/// O(1) override — array length, bypasses the O(V) default iteration.
 pub impl DirectedGraph for DenseGraph with vertex_count(self) {
   self.successors.length()
 }
 
 ///|
-pub impl DirectedGraph for DenseGraph with for_each_vertex(self, f) {
-  for i = 0; i < self.successors.length(); i = i + 1 {
-    f(i)
-  }
-}
-
-///|
-pub impl DirectedGraph for DenseGraph with for_each_successor(self, v, f) {
-  for w in self.successors[v] {
-    f(w)
+pub impl DirectedGraph for DenseGraph with successors(self, v) {
+  if v >= 0 && v < self.successors.length() {
+    self.successors[v].iter()
+  } else {
+    Iter::empty()
   }
 }
 

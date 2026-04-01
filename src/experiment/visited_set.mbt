@@ -16,11 +16,7 @@
 ///|
 fn[G : @alga.DirectedGraph] max_vertex_id(graph : G) -> Int {
   let mut max_id = 0
-  @alga.DirectedGraph::for_each_vertex(graph, fn(v) {
-    if v > max_id {
-      max_id = v
-    }
-  })
+  @alga.DirectedGraph::each_vertex(graph, fn(v) { if v > max_id { max_id = v } })
   max_id
 }
 
@@ -71,7 +67,7 @@ pub fn[G : @alga.DirectedGraph, Acc] dfs_fold_hashset(
       break
     }
     let succs : Array[Int] = []
-    @alga.DirectedGraph::for_each_successor(graph, v, fn(w) {
+    @alga.DirectedGraph::each_successor(graph, v, fn(w) {
       if !visited.contains(w) {
         succs.push(w)
       }
@@ -121,7 +117,7 @@ pub fn[G : @alga.DirectedGraph, Acc] dfs_fold_array(
       break
     }
     let succs : Array[Int] = []
-    @alga.DirectedGraph::for_each_successor(graph, v, fn(w) {
+    @alga.DirectedGraph::each_successor(graph, v, fn(w) {
       if !visited[w] {
         succs.push(w)
       }
@@ -168,7 +164,7 @@ pub fn[G : @alga.DirectedGraph, Acc] bfs_fold_hashset(
     if !result.1 {
       break
     }
-    @alga.DirectedGraph::for_each_successor(graph, v, fn(w) {
+    @alga.DirectedGraph::each_successor(graph, v, fn(w) {
       if !visited.contains(w) {
         visited.add(w)
         queue.push(w)
@@ -203,7 +199,7 @@ pub fn[G : @alga.DirectedGraph, Acc] bfs_fold_array(
     if !result.1 {
       break
     }
-    @alga.DirectedGraph::for_each_successor(graph, v, fn(w) {
+    @alga.DirectedGraph::each_successor(graph, v, fn(w) {
       if !visited[w] {
         visited[w] = true
         queue.push(w)
@@ -220,9 +216,9 @@ pub fn[G : @alga.DirectedGraph, Acc] bfs_fold_array(
 ///|
 pub fn[G : @alga.DirectedGraph] toposort_hashset(graph : G) -> Array[Int]? {
   let in_degree : @hashmap.HashMap[Int, Int] = @hashmap.new()
-  @alga.DirectedGraph::for_each_vertex(graph, fn(v) { in_degree[v] = 0 })
-  @alga.DirectedGraph::for_each_vertex(graph, fn(v) {
-    @alga.DirectedGraph::for_each_successor(graph, v, fn(w) {
+  @alga.DirectedGraph::each_vertex(graph, fn(v) { in_degree[v] = 0 })
+  @alga.DirectedGraph::each_vertex(graph, fn(v) {
+    @alga.DirectedGraph::each_successor(graph, v, fn(w) {
       match in_degree.get(w) {
         Some(n) => in_degree[w] = n + 1
         None => in_degree[w] = 1
@@ -237,7 +233,7 @@ pub fn[G : @alga.DirectedGraph] toposort_hashset(graph : G) -> Array[Int]? {
     let v = queue[head]
     head = head + 1
     result.push(v)
-    @alga.DirectedGraph::for_each_successor(graph, v, fn(w) {
+    @alga.DirectedGraph::each_successor(graph, v, fn(w) {
       match in_degree.get(w) {
         Some(n) => {
           in_degree[w] = n - 1
@@ -266,9 +262,9 @@ pub fn[G : @alga.DirectedGraph] toposort_array(graph : G) -> Array[Int]? {
   let max_id = max_vertex_id(graph)
   // -1 sentinel = "not a vertex"
   let in_degree = Array::make(max_id + 1, -1)
-  @alga.DirectedGraph::for_each_vertex(graph, fn(v) { in_degree[v] = 0 })
-  @alga.DirectedGraph::for_each_vertex(graph, fn(v) {
-    @alga.DirectedGraph::for_each_successor(graph, v, fn(w) {
+  @alga.DirectedGraph::each_vertex(graph, fn(v) { in_degree[v] = 0 })
+  @alga.DirectedGraph::each_vertex(graph, fn(v) {
+    @alga.DirectedGraph::each_successor(graph, v, fn(w) {
       in_degree[w] = in_degree[w] + 1
     })
   })
@@ -284,7 +280,7 @@ pub fn[G : @alga.DirectedGraph] toposort_array(graph : G) -> Array[Int]? {
     let v = queue[head]
     head = head + 1
     result.push(v)
-    @alga.DirectedGraph::for_each_successor(graph, v, fn(w) {
+    @alga.DirectedGraph::each_successor(graph, v, fn(w) {
       in_degree[w] = in_degree[w] - 1
       if in_degree[w] == 0 {
         queue.push(w)
@@ -317,11 +313,11 @@ pub fn[G : @alga.DirectedGraph] has_cycle_array(graph : G) -> Bool {
 pub fn scc_hashset(graph : @alga.AdjacencyMap) -> Array[Array[Int]] {
   let visited : @hashset.HashSet[Int] = @hashset.new()
   let finish_order : Array[Int] = []
-  @alga.DirectedGraph::for_each_vertex(graph, fn(root) {
+  @alga.DirectedGraph::each_vertex(graph, fn(root) {
     if visited.contains(root) {
       return
     }
-    let root_succs = graph.successors(root)
+    let root_succs = graph.successor_list(root)
     let stack : Array[(Int, Int, Array[Int])] = [(root, 0, root_succs)]
     visited.add(root)
     while stack.length() > 0 {
@@ -334,7 +330,7 @@ pub fn scc_hashset(graph : @alga.AdjacencyMap) -> Array[Array[Int]] {
         let w = succs[si]
         if !visited.contains(w) {
           visited.add(w)
-          stack.push((w, 0, graph.successors(w)))
+          stack.push((w, 0, graph.successor_list(w)))
         }
       } else {
         let _ = stack.unsafe_pop()
@@ -356,7 +352,7 @@ pub fn scc_hashset(graph : @alga.AdjacencyMap) -> Array[Array[Int]] {
     while stack.length() > 0 {
       let v = stack.unsafe_pop()
       component.push(v)
-      @alga.DirectedGraph::for_each_successor(transposed, v, fn(w) {
+      @alga.DirectedGraph::each_successor(transposed, v, fn(w) {
         if !visited2.contains(w) {
           visited2.add(w)
           stack.push(w)
@@ -377,11 +373,11 @@ pub fn scc_array(graph : @alga.AdjacencyMap) -> Array[Array[Int]] {
   let max_id = max_vertex_id(graph)
   let visited = Array::make(max_id + 1, false)
   let finish_order : Array[Int] = []
-  @alga.DirectedGraph::for_each_vertex(graph, fn(root) {
+  @alga.DirectedGraph::each_vertex(graph, fn(root) {
     if visited[root] {
       return
     }
-    let root_succs = graph.successors(root)
+    let root_succs = graph.successor_list(root)
     let stack : Array[(Int, Int, Array[Int])] = [(root, 0, root_succs)]
     visited[root] = true
     while stack.length() > 0 {
@@ -394,7 +390,7 @@ pub fn scc_array(graph : @alga.AdjacencyMap) -> Array[Array[Int]] {
         let w = succs[si]
         if !visited[w] {
           visited[w] = true
-          stack.push((w, 0, graph.successors(w)))
+          stack.push((w, 0, graph.successor_list(w)))
         }
       } else {
         let _ = stack.unsafe_pop()
@@ -416,7 +412,7 @@ pub fn scc_array(graph : @alga.AdjacencyMap) -> Array[Array[Int]] {
     while stack.length() > 0 {
       let v = stack.unsafe_pop()
       component.push(v)
-      @alga.DirectedGraph::for_each_successor(transposed, v, fn(w) {
+      @alga.DirectedGraph::each_successor(transposed, v, fn(w) {
         if !visited2[w] {
           visited2[w] = true
           stack.push(w)
@@ -455,7 +451,7 @@ pub fn[G : @alga.DirectedGraph, Acc] dfs_fold_fixedarray(
       break
     }
     let succs : Array[Int] = []
-    @alga.DirectedGraph::for_each_successor(graph, v, fn(w) {
+    @alga.DirectedGraph::each_successor(graph, v, fn(w) {
       if !visited[w] {
         succs.push(w)
       }
@@ -499,7 +495,7 @@ pub fn[G : @alga.DirectedGraph] reachable_gen(
     visited[v] = gen
     result.push(v)
     let succs : Array[Int] = []
-    @alga.DirectedGraph::for_each_successor(graph, v, fn(w) {
+    @alga.DirectedGraph::each_successor(graph, v, fn(w) {
       if visited[w] != gen {
         succs.push(w)
       }
@@ -532,7 +528,7 @@ pub fn[G : @alga.DirectedGraph] reachable_bitset(
     bitset_set(words, v)
     result.push(v)
     let succs : Array[Int] = []
-    @alga.DirectedGraph::for_each_successor(graph, v, fn(w) {
+    @alga.DirectedGraph::each_successor(graph, v, fn(w) {
       if !bitset_test(words, w) {
         succs.push(w)
       }
@@ -569,7 +565,7 @@ pub fn[G : @alga.DirectedGraph, Acc] bfs_fold_fixedarray(
     if !result.1 {
       break
     }
-    @alga.DirectedGraph::for_each_successor(graph, v, fn(w) {
+    @alga.DirectedGraph::each_successor(graph, v, fn(w) {
       if !visited[w] {
         visited[w] = true
         queue.push(w)
@@ -604,7 +600,7 @@ pub fn[G : @alga.DirectedGraph, Acc] bfs_fold_gen(
     if !result.1 {
       break
     }
-    @alga.DirectedGraph::for_each_successor(graph, v, fn(w) {
+    @alga.DirectedGraph::each_successor(graph, v, fn(w) {
       if visited[w] != gen {
         visited[w] = gen
         queue.push(w)
@@ -639,7 +635,7 @@ pub fn[G : @alga.DirectedGraph, Acc] bfs_fold_bitset(
     if !result.1 {
       break
     }
-    @alga.DirectedGraph::for_each_successor(graph, v, fn(w) {
+    @alga.DirectedGraph::each_successor(graph, v, fn(w) {
       if !bitset_test(words, w) {
         bitset_set(words, w)
         queue.push(w)
@@ -658,11 +654,11 @@ pub fn scc_fixedarray(graph : @alga.AdjacencyMap) -> Array[Array[Int]] {
   let max_id = max_vertex_id(graph)
   let visited = FixedArray::make(max_id + 1, false)
   let finish_order : Array[Int] = []
-  @alga.DirectedGraph::for_each_vertex(graph, fn(root) {
+  @alga.DirectedGraph::each_vertex(graph, fn(root) {
     if visited[root] {
       return
     }
-    let root_succs = graph.successors(root)
+    let root_succs = graph.successor_list(root)
     let stack : Array[(Int, Int, Array[Int])] = [(root, 0, root_succs)]
     visited[root] = true
     while stack.length() > 0 {
@@ -675,7 +671,7 @@ pub fn scc_fixedarray(graph : @alga.AdjacencyMap) -> Array[Array[Int]] {
         let w = succs[si]
         if !visited[w] {
           visited[w] = true
-          stack.push((w, 0, graph.successors(w)))
+          stack.push((w, 0, graph.successor_list(w)))
         }
       } else {
         let _ = stack.unsafe_pop()
@@ -697,7 +693,7 @@ pub fn scc_fixedarray(graph : @alga.AdjacencyMap) -> Array[Array[Int]] {
     while stack.length() > 0 {
       let v = stack.unsafe_pop()
       component.push(v)
-      @alga.DirectedGraph::for_each_successor(transposed, v, fn(w) {
+      @alga.DirectedGraph::each_successor(transposed, v, fn(w) {
         if !visited2[w] {
           visited2[w] = true
           stack.push(w)
@@ -722,11 +718,11 @@ pub fn scc_gen(
   let gen1 = gen
   let gen2 = gen + 1
   let finish_order : Array[Int] = []
-  @alga.DirectedGraph::for_each_vertex(graph, fn(root) {
+  @alga.DirectedGraph::each_vertex(graph, fn(root) {
     if visited_buf[root] == gen1 {
       return
     }
-    let root_succs = graph.successors(root)
+    let root_succs = graph.successor_list(root)
     let stack : Array[(Int, Int, Array[Int])] = [(root, 0, root_succs)]
     visited_buf[root] = gen1
     while stack.length() > 0 {
@@ -739,7 +735,7 @@ pub fn scc_gen(
         let w = succs[si]
         if visited_buf[w] != gen1 {
           visited_buf[w] = gen1
-          stack.push((w, 0, graph.successors(w)))
+          stack.push((w, 0, graph.successor_list(w)))
         }
       } else {
         let _ = stack.unsafe_pop()
@@ -760,7 +756,7 @@ pub fn scc_gen(
     while stack.length() > 0 {
       let v = stack.unsafe_pop()
       component.push(v)
-      @alga.DirectedGraph::for_each_successor(transposed, v, fn(w) {
+      @alga.DirectedGraph::each_successor(transposed, v, fn(w) {
         if visited_buf[w] != gen2 {
           visited_buf[w] = gen2
           stack.push(w)
@@ -782,11 +778,11 @@ pub fn scc_bitset(graph : @alga.AdjacencyMap) -> Array[Array[Int]] {
   let sz = bitset_size(max_id)
   let visited = FixedArray::make(sz, 0)
   let finish_order : Array[Int] = []
-  @alga.DirectedGraph::for_each_vertex(graph, fn(root) {
+  @alga.DirectedGraph::each_vertex(graph, fn(root) {
     if bitset_test(visited, root) {
       return
     }
-    let root_succs = graph.successors(root)
+    let root_succs = graph.successor_list(root)
     let stack : Array[(Int, Int, Array[Int])] = [(root, 0, root_succs)]
     bitset_set(visited, root)
     while stack.length() > 0 {
@@ -799,7 +795,7 @@ pub fn scc_bitset(graph : @alga.AdjacencyMap) -> Array[Array[Int]] {
         let w = succs[si]
         if !bitset_test(visited, w) {
           bitset_set(visited, w)
-          stack.push((w, 0, graph.successors(w)))
+          stack.push((w, 0, graph.successor_list(w)))
         }
       } else {
         let _ = stack.unsafe_pop()
@@ -821,7 +817,7 @@ pub fn scc_bitset(graph : @alga.AdjacencyMap) -> Array[Array[Int]] {
     while stack.length() > 0 {
       let v = stack.unsafe_pop()
       component.push(v)
-      @alga.DirectedGraph::for_each_successor(transposed, v, fn(w) {
+      @alga.DirectedGraph::each_successor(transposed, v, fn(w) {
         if !bitset_test(visited2, w) {
           bitset_set(visited2, w)
           stack.push(w)

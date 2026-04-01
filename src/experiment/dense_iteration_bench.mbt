@@ -1,7 +1,7 @@
 // Benchmarks: AdjacencyMap (Map) vs DenseGraph (flat Array)
 // Each algorithm tested with:
 //   map/gen      — AdjacencyMap + GenCounter visited (best from Exp 1)
-//   flat/trait   — DenseGraph + GenCounter + for_each_successor callback
+//   flat/trait   — DenseGraph + GenCounter + each_successor callback
 //   flat/direct  — DenseGraph + GenCounter + direct array iteration
 //
 // The progression isolates:

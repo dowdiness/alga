@@ -26,11 +26,9 @@
 /// Returns 0 if `v` is not in the graph or has no successors.
 /// Self-loops count: if v→v exists, it contributes 1 to outdegree.
 ///
-/// Time: O(degree(v)) — counts via `for_each_successor`.
+/// Time: O(degree(v)) — counts via `Iter::count` on successors.
 pub fn[G : DirectedGraph] outdegree(graph : G, v : Int) -> Int {
-  let mut count = 0
-  G::for_each_successor(graph, v, fn(_w) { count = count + 1 })
-  count
+  G::successors(graph, v).count()
 }
 
 ///|
@@ -44,8 +42,8 @@ pub fn[G : DirectedGraph] outdegree(graph : G, v : Int) -> Int {
 /// For bulk indegree computation, prefer a single-pass array approach.
 pub fn[G : DirectedGraph] indegree(graph : G, v : Int) -> Int {
   let mut count = 0
-  G::for_each_vertex(graph, fn(u) {
-    G::for_each_successor(graph, u, fn(w) { if w == v { count = count + 1 } })
+  G::each_vertex(graph, fn(u) {
+    G::each_successor(graph, u, fn(w) { if w == v { count = count + 1 } })
   })
   count
 }

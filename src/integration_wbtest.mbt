@@ -7,24 +7,16 @@ struct ArrayGraph {
 }
 
 ///|
-impl DirectedGraph for ArrayGraph with vertex_count(self) {
-  self.successors.length()
+impl DirectedGraph for ArrayGraph with iter(self) {
+  (0).until(self.successors.length())
 }
 
 ///|
-impl DirectedGraph for ArrayGraph with for_each_vertex(self, f) {
-  for i = 0; i < self.successors.length(); i = i + 1 {
-    f(i)
-  }
-}
-
-///|
-impl DirectedGraph for ArrayGraph with for_each_successor(self, v, f) {
+impl DirectedGraph for ArrayGraph with successors(self, v) {
   if v >= 0 && v < self.successors.length() {
-    let succs = self.successors[v]
-    for i = 0; i < succs.length(); i = i + 1 {
-      f(succs[i])
-    }
+    self.successors[v].iter()
+  } else {
+    Iter::empty()
   }
 }
 
@@ -87,7 +79,7 @@ test "external impl: dfs_fold" {
 // --- has_vertex dispatch tests ---
 //
 // These three tests verify the two-tier default/override design:
-// - ArrayGraph omits has_vertex → uses O(V) default (for_each_vertex scan)
+// - ArrayGraph omits has_vertex → uses O(V) default (Iter::contains scan)
 // - AdjacencyMap overrides has_vertex → O(1) via Map::contains
 // - DenseGraph overrides has_vertex → O(1) via range check
 // All three must produce correct results through trait dispatch.

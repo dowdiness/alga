@@ -300,12 +300,12 @@ test "bench/transpose/1000" (b : @bench.T) {
 // These benchmarks form a comparative study:
 //   AdjacencyMap_1000 — O(1) override via Map::contains
 //   DenseGraph_1000   — O(1) override via range check
-//   default_1000      — O(V) default via for_each_vertex scan
+//   default_1000      — O(V) default via Iter::contains scan
 // Together they quantify how much overriding has_vertex matters.
 
 ///|
 /// Minimal DirectedGraph implementation for benchmarking defaults.
-/// Implements ONLY the two required methods (for_each_vertex, for_each_successor)
+/// Implements ONLY the two required methods (iter, successors)
 /// so that benchmarks measure the cost of the O(V) default fallback, with no
 /// O(1) override. Compare against AdjacencyMap and DenseGraph which override.
 priv struct BenchMinimalGraph {
@@ -313,18 +313,16 @@ priv struct BenchMinimalGraph {
 }
 
 ///|
-impl DirectedGraph for BenchMinimalGraph with for_each_vertex(self, f) {
-  for i = 0; i < self.edges.length(); i = i + 1 {
-    f(i)
-  }
+impl DirectedGraph for BenchMinimalGraph with iter(self) {
+  (0).until(self.edges.length())
 }
 
 ///|
-impl DirectedGraph for BenchMinimalGraph with for_each_successor(self, v, f) {
+impl DirectedGraph for BenchMinimalGraph with successors(self, v) {
   if v >= 0 && v < self.edges.length() {
-    for w in self.edges[v] {
-      f(w)
-    }
+    self.edges[v].iter()
+  } else {
+    Iter::empty()
   }
 }
 

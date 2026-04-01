@@ -39,7 +39,7 @@ The library separates two concerns into independent layers:
 
 **Layer A — Observation ("What does this graph look like?")**
 
-The `DirectedGraph` trait defines how to query any graph: count vertices, iterate vertices, iterate successors. Any type that implements these three methods gets all algorithms (DFS, BFS, toposort, SCC, reachability, cycle detection, degree queries) for free. This layer doesn't know or care how the graph was built.
+The `DirectedGraph` trait defines how to query any graph: iterate vertices (`iter`) and iterate successors (`successors`). Any type that implements these two methods gets all algorithms (DFS, BFS, toposort, SCC, reachability, cycle detection, degree queries) for free. This layer doesn't know or care how the graph was built.
 
 **Layer B — Construction ("How do I build a graph?")**
 
@@ -53,11 +53,11 @@ The `GraphSym` trait and `Graph` enum provide the four algebraic operations. `Gr
 
 MoonBit traits don't support type parameters or associated types. We can't write `trait DirectedGraph { type Vertex; ... }`. So we fix vertices to `Int` and let users maintain their own `Id → Int` mapping.
 
-This is the same pragmatic choice made by algebraic graph libraries in languages without type families. It keeps the trait simple (3 methods) and the generic algorithms clean.
+This is the same pragmatic choice made by algebraic graph libraries in languages without type families. It keeps the trait simple (2 required methods) and the generic algorithms clean.
 
-## Why callback-style iteration?
+## Why Iter-based iteration?
 
-Without associated types, we can't return `Iter[Vertex]` from trait methods. Instead, `for_each_vertex` and `for_each_successor` push vertices into `(Int) -> Unit` callbacks (continuation-passing style). This avoids intermediate allocations and is natural for fold-based algorithms.
+`iter` and `successors` return `Iter[Int]` — MoonBit's pull-based external iterator. This design enables algorithms like Tarjan SCC that need to pause and resume successor iteration mid-traversal (via `Iter.next()`), and gives `has_vertex` free early termination via `Iter::contains`. Push-style callbacks (`each_vertex`, `each_successor`) are defaulted from the iterators for algorithms that prefer them (DFS fold, BFS fold, toposort).
 
 ## Why two representations?
 
@@ -65,7 +65,7 @@ Without associated types, we can't return `Iter[Vertex]` from trait methods. Ins
 
 ## Design principles
 
-1. **Implement the trait, get all algorithms** — the bar for new graph types is three methods
+1. **Implement the trait, get all algorithms** — the bar for new graph types is two methods (`iter`, `successors`)
 2. **Construction and observation are independent** — you can use `AdjacencyMap::from_edges` without ever touching `Graph` expressions
 3. **Algebraic laws are verified, not assumed** — property-based testing catches implementation bugs that unit tests miss
 4. **Performance is measured, not guessed** — every optimization was validated by microbenchmarks before being applied

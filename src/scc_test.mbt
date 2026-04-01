@@ -221,3 +221,108 @@ test "condensation deduplicates parallel inter-component edges" {
   assert_eq(vtoc[3], vtoc[4]) // same component
   assert_true(dag.has_edge(vtoc[1], vtoc[3]))
 }
+
+// --- tarjan_scc tests ---
+
+///|
+test "tarjan_scc dag - each vertex is its own component" {
+  let g = @alga.AdjacencyMap::from_edges([(1, 2), (2, 3), (3, 4)])
+  let components = @alga.tarjan_scc(g)
+  assert_eq(components.length(), 4)
+  for i = 0; i < components.length(); i = i + 1 {
+    assert_eq(components[i].length(), 1)
+  }
+}
+
+///|
+test "tarjan_scc single cycle" {
+  let g = @alga.AdjacencyMap::from_edges([(1, 2), (2, 3), (3, 1)])
+  let components = @alga.tarjan_scc(g)
+  assert_eq(components.length(), 1)
+  assert_eq(components[0].length(), 3)
+  assert_true(components[0].contains(1))
+  assert_true(components[0].contains(2))
+  assert_true(components[0].contains(3))
+}
+
+///|
+test "tarjan_scc two components connected" {
+  let g = @alga.AdjacencyMap::from_edges([
+    (1, 2),
+    (2, 1),
+    (2, 3),
+    (3, 4),
+    (4, 3),
+  ])
+  let components = @alga.tarjan_scc(g)
+  assert_eq(components.length(), 2)
+  let mut comp12 : Array[Int] = []
+  let mut comp34 : Array[Int] = []
+  for c in components {
+    if c.contains(1) {
+      comp12 = c
+    }
+    if c.contains(3) {
+      comp34 = c
+    }
+  }
+  assert_eq(comp12.length(), 2)
+  assert_true(comp12.contains(1))
+  assert_true(comp12.contains(2))
+  assert_eq(comp34.length(), 2)
+  assert_true(comp34.contains(3))
+  assert_true(comp34.contains(4))
+}
+
+///|
+test "tarjan_scc self loop" {
+  let g = @alga.AdjacencyMap::from_edges([(1, 1)])
+  let components = @alga.tarjan_scc(g)
+  assert_eq(components.length(), 1)
+  assert_eq(components[0].length(), 1)
+  assert_eq(components[0][0], 1)
+}
+
+///|
+test "tarjan_scc disconnected acyclic" {
+  let g = @alga.AdjacencyMap::from_edges([(1, 2), (3, 4)])
+  let components = @alga.tarjan_scc(g)
+  assert_eq(components.length(), 4)
+}
+
+///|
+test "tarjan_scc empty graph" {
+  let g = @alga.AdjacencyMap::empty()
+  let components = @alga.tarjan_scc(g)
+  assert_eq(components.length(), 0)
+}
+
+///|
+test "tarjan_scc single vertex" {
+  let g = @alga.AdjacencyMap::vertex(42)
+  let components = @alga.tarjan_scc(g)
+  assert_eq(components.length(), 1)
+  assert_eq(components[0].length(), 1)
+  assert_eq(components[0][0], 42)
+}
+
+///|
+test "tarjan_scc works on DenseGraph" {
+  let g = @alga.DenseGraph::from_edges(4, [(0, 1), (1, 2), (2, 0), (2, 3)])
+  let components = @alga.tarjan_scc(g)
+  assert_eq(components.length(), 2)
+  let mut cycle_comp : Array[Int] = []
+  let mut singleton_comp : Array[Int] = []
+  for c in components {
+    if c.length() == 3 {
+      cycle_comp = c
+    }
+    if c.length() == 1 {
+      singleton_comp = c
+    }
+  }
+  assert_true(cycle_comp.contains(0))
+  assert_true(cycle_comp.contains(1))
+  assert_true(cycle_comp.contains(2))
+  assert_eq(singleton_comp[0], 3)
+}
