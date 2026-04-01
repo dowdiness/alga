@@ -32,6 +32,7 @@
 /// | SCC              | ~460 µs (1000V) | ~50 µs (1000V)  |
 pub(all) struct DenseGraph {
   successors : Array[Array[Int]]
+  predecessors : Array[Array[Int]]
 }
 
 ///|
@@ -49,6 +50,7 @@ pub fn DenseGraph::from_edges(
   edges : Array[(Int, Int)],
 ) -> DenseGraph {
   let succs : Array[Array[Int]] = Array::makei(vertex_count, fn(_i) { [] })
+  let preds : Array[Array[Int]] = Array::makei(vertex_count, fn(_i) { [] })
   let seen : Array[@hashset.HashSet[Int]] = Array::makei(vertex_count, fn(_i) {
     @hashset.new()
   })
@@ -63,9 +65,10 @@ pub fn DenseGraph::from_edges(
     if !seen[u].contains(v) {
       seen[u].add(v)
       succs[u].push(v)
+      preds[v].push(u)
     }
   }
-  { successors: succs }
+  { successors: succs, predecessors: preds }
 }
 
 ///|
@@ -77,6 +80,7 @@ pub fn DenseGraph::from_edges(
 pub fn DenseGraph::from_adjacency_map(am : AdjacencyMap) -> DenseGraph {
   let n = am.vertex_count()
   let succs : Array[Array[Int]] = Array::makei(n, fn(_i) { [] })
+  let preds : Array[Array[Int]] = Array::makei(n, fn(_i) { [] })
   for v, s in am.adjacency {
     guard v >= 0 && v < n else {
       abort(
@@ -84,29 +88,22 @@ pub fn DenseGraph::from_adjacency_map(am : AdjacencyMap) -> DenseGraph {
       )
     }
     succs[v] = s.copy()
-    // Validate successor IDs too
     for w in s {
       guard w >= 0 && w < n else {
         abort(
           "DenseGraph::from_adjacency_map: successor \{w} of vertex \{v} out of range 0..\{n - 1}",
         )
       }
+      preds[w].push(v)
     }
   }
-  { successors: succs }
+  { successors: succs, predecessors: preds }
 }
 
 ///|
-/// Reverse all edge directions. O(V + E).
+/// Reverse all edge directions. O(1) — swaps successor and predecessor arrays.
 pub fn DenseGraph::transpose(self : DenseGraph) -> DenseGraph {
-  let n = self.successors.length()
-  let rev : Array[Array[Int]] = Array::makei(n, fn(_i) { [] })
-  for u = 0; u < n; u = u + 1 {
-    for v in self.successors[u] {
-      rev[v].push(u)
-    }
-  }
-  { successors: rev }
+  { successors: self.predecessors, predecessors: self.successors }
 }
 
 ///|
@@ -201,6 +198,15 @@ pub impl DirectedGraph for DenseGraph with successors(self, v) {
 /// O(1) override — range check on dense 0..n-1 vertex IDs.
 pub impl DirectedGraph for DenseGraph with has_vertex(self, v) {
   v >= 0 && v < self.successors.length()
+}
+
+///|
+pub impl Predecessors for DenseGraph with predecessors(self, v) {
+  if v >= 0 && v < self.predecessors.length() {
+    self.predecessors[v].iter()
+  } else {
+    Iter::empty()
+  }
 }
 
 // ============================================================

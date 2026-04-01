@@ -44,6 +44,7 @@ pub fn[G : DirectedGraph] toposort_subset(G, Array[Int]) -> Array[Int]?
 // Types and methods
 pub struct AdjacencyMap {
   adjacency : Map[Int, Array[Int]]
+  reverse : Map[Int, Array[Int]]
 }
 pub fn AdjacencyMap::condensation(Self) -> (Self, Map[Int, Int])
 pub fn AdjacencyMap::connect(Self, Self) -> Self
@@ -64,6 +65,7 @@ pub fn AdjacencyMap::vertex_count(Self) -> Int
 pub fn AdjacencyMap::vertex_list(Self) -> Array[Int]
 pub impl DirectedGraph for AdjacencyMap
 pub impl GraphSym for AdjacencyMap
+pub impl Predecessors for AdjacencyMap
 pub impl Eq for AdjacencyMap
 pub impl Show for AdjacencyMap
 pub impl @debug.Debug for AdjacencyMap
@@ -135,5 +137,9 @@ pub(open) trait GraphSym {
   vertex(Int) -> Self
   overlay(Self, Self) -> Self
   connect(Self, Self) -> Self
+}
+
+pub(open) trait Predecessors {
+  predecessors(Self, Int) -> Iter[Int]
 }
 
