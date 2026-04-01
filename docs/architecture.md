@@ -153,9 +153,11 @@ All generic algorithms take `G : DirectedGraph`. Most use the defaulted `each_ve
 | Topo levels | `toposort.mbt` | O(V+E) | Longest-path distance from sources |
 | Cycle detection | `toposort.mbt` | O(V+E) | Derived from toposort (None = cycle) |
 | Outdegree | `degree.mbt` | O(degree) | Counts via `Iter::count` on successors |
-| Indegree | `degree.mbt` | O(V+E) | Full scan — no reverse index |
+| Indegree | `degree.mbt` | O(V+E) | Full scan via `DirectedGraph` (could be O(degree) with `Predecessors`) |
+| DFS events | `dfs.mbt` | O(V+E) | Pull-based DFS with edge classification (tree/back/cross-forward) |
+| Reversed view | `reversed.mbt` | O(1) | Zero-cost reverse-direction adaptor (requires `Predecessors`) |
 | Tarjan SCC | `scc.mbt` | O(V+E) | Generic over `DirectedGraph`, no transpose, uses `Iter.next()` |
-| Kosaraju SCC | `scc.mbt` | O(V+E) | AdjacencyMap-specific, requires transpose, reverse topo order |
+| Kosaraju SCC | `scc.mbt` | O(V+E) | AdjacencyMap-specific, O(1) transpose, reverse topo order |
 | Condensation | `scc.mbt` | O(V+E) | Collapse SCCs into DAG (AdjacencyMap-specific) |
 
 DenseGraph provides optimized versions of DFS, toposort, SCC, and reachable that bypass trait dispatch for 8-23x speedup.
