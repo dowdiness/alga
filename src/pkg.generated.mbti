@@ -72,22 +72,17 @@ pub impl Eq for AdjacencyMap
 pub impl Show for AdjacencyMap
 pub impl @debug.Debug for AdjacencyMap
 
-pub(all) struct DenseGraph {
+pub struct DenseGraph {
   successors : Array[Array[Int]]
   predecessors : Array[Array[Int]]
 }
-pub fn DenseGraph::edge_count(Self) -> Int
 pub fn DenseGraph::from_adjacency_map(AdjacencyMap) -> Self
 pub fn DenseGraph::from_edges(Int, Array[(Int, Int)]) -> Self
 pub fn DenseGraph::has_cycle(Self) -> Bool
-pub fn DenseGraph::has_edge(Self, Int, Int) -> Bool
-pub fn DenseGraph::has_vertex(Self, Int) -> Bool
 pub fn DenseGraph::reachable(Self, Int) -> Array[Int]
-pub fn DenseGraph::reachable_with(Self, Int, FixedArray[Int], Int) -> Array[Int]
 pub fn DenseGraph::scc(Self) -> Array[Array[Int]]
 pub fn DenseGraph::toposort(Self) -> Array[Int]?
 pub fn DenseGraph::transpose(Self) -> Self
-pub fn DenseGraph::vertex_count(Self) -> Int
 pub impl DirectedGraph for DenseGraph
 pub impl Predecessors for DenseGraph
 pub impl Show for DenseGraph

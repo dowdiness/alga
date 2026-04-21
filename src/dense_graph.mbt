@@ -30,15 +30,9 @@
 /// | transpose        | O(1)            | O(1)            |
 /// | DFS reachable    | ~94 µs (1000V)  | ~7 µs (1000V)   |
 /// | SCC              | ~460 µs (1000V) | ~50 µs (1000V)  |
-pub(all) struct DenseGraph {
+pub struct DenseGraph {
   successors : Array[Array[Int]]
   predecessors : Array[Array[Int]]
-}
-
-///|
-/// Number of vertices (0..n-1).
-pub fn DenseGraph::vertex_count(self : DenseGraph) -> Int {
-  self.successors.length()
 }
 
 ///|
@@ -104,28 +98,6 @@ pub fn DenseGraph::from_adjacency_map(am : AdjacencyMap) -> DenseGraph {
 /// Reverse all edge directions. O(1) — swaps successor and predecessor arrays.
 pub fn DenseGraph::transpose(self : DenseGraph) -> DenseGraph {
   { successors: self.predecessors, predecessors: self.successors }
-}
-
-///|
-pub fn DenseGraph::has_vertex(self : DenseGraph, v : Int) -> Bool {
-  v >= 0 && v < self.successors.length()
-}
-
-///|
-pub fn DenseGraph::has_edge(self : DenseGraph, u : Int, v : Int) -> Bool {
-  if u < 0 || u >= self.successors.length() {
-    return false
-  }
-  self.successors[u].contains(v)
-}
-
-///|
-pub fn DenseGraph::edge_count(self : DenseGraph) -> Int {
-  for succs in self.successors; count = 0 {
-    continue count + succs.length()
-  } nobreak {
-    count
-  }
 }
 
 ///|
@@ -218,9 +190,6 @@ pub impl Predecessors for DenseGraph with predecessors(self, v) {
 /// no per-vertex allocation. Allocates a fresh visited set per call.
 ///
 /// Returns empty array if `start` is not a valid vertex.
-///
-/// For repeated calls on the same graph, use `reachable_with` to amortize
-/// the visited-set allocation via generation counter.
 pub fn DenseGraph::reachable(self : DenseGraph, start : Int) -> Array[Int] {
   let n = self.successors.length()
   if start < 0 || start >= n {
@@ -240,57 +209,6 @@ pub fn DenseGraph::reachable(self : DenseGraph, start : Int) -> Array[Int] {
     for i in (succs.length() - 1)>=..0 {
       let w = succs[i]
       if !visited[w] {
-        stack.push(w)
-      }
-    }
-  }
-  result
-}
-
-///|
-/// DFS reachable with pre-allocated generation-counter visited set.
-/// Amortizes O(V) init cost across repeated calls — each call is O(1)
-/// reset (just bump `gen`) instead of O(V) zeroing.
-///
-/// Returns empty array if `start` is not a valid vertex.
-///
-/// **Important:** `gen` must be a fresh value on each call — never reuse
-/// a previous `gen` value, and never pass `gen = 0` against a
-/// zero-initialized buffer. The simplest pattern is to increment a
-/// counter before each call:
-///
-/// ```
-/// let visited = FixedArray::make(graph.vertex_count(), 0)
-/// let mut gen = 0
-/// // Each call reuses the same buffer:
-/// gen = gen + 1
-/// let r1 = graph.reachable_with(start1, visited, gen)
-/// gen = gen + 1
-/// let r2 = graph.reachable_with(start2, visited, gen)
-/// ```
-pub fn DenseGraph::reachable_with(
-  self : DenseGraph,
-  start : Int,
-  visited : FixedArray[Int],
-  gen : Int,
-) -> Array[Int] {
-  let n = self.successors.length()
-  if start < 0 || start >= n {
-    return []
-  }
-  let stack : Array[Int] = [start]
-  let result : Array[Int] = []
-  while stack.length() > 0 {
-    let v = stack.unsafe_pop()
-    if visited[v] == gen {
-      continue
-    }
-    visited[v] = gen
-    result.push(v)
-    let succs = self.successors[v]
-    for i in (succs.length() - 1)>=..0 {
-      let w = succs[i]
-      if visited[w] != gen {
         stack.push(w)
       }
     }
