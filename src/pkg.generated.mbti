@@ -31,7 +31,7 @@ pub fn[G : DirectedGraph] reachable(G, Int) -> Array[Int]
 
 pub fn[G : DirectedGraph] reachable_multi(G, Array[Int]) -> Array[Int]
 
-pub fn[G : DirectedGraph + Predecessors] reversed(G) -> Reversed[G]
+pub fn[G] reversed(G) -> Reversed[G]
 
 pub fn[G : DirectedGraph] tarjan_scc(G) -> Array[Array[Int]]
 
@@ -123,7 +123,7 @@ pub struct Reversed[G] {
   graph : G
 }
 pub impl[G : DirectedGraph + Predecessors] DirectedGraph for Reversed[G]
-pub impl[G : DirectedGraph + Predecessors] Predecessors for Reversed[G]
+pub impl[G : DirectedGraph] Predecessors for Reversed[G]
 
 // Type aliases
 

@@ -17,7 +17,7 @@ pub struct Reversed[G] {
 }
 
 ///|
-pub fn[G : DirectedGraph + Predecessors] reversed(graph : G) -> Reversed[G] {
+pub fn[G] reversed(graph : G) -> Reversed[G] {
   { graph, }
 }
 
@@ -52,7 +52,7 @@ pub impl[G : DirectedGraph + Predecessors] DirectedGraph for Reversed[G] with ve
 }
 
 ///|
-pub impl[G : DirectedGraph + Predecessors] Predecessors for Reversed[G] with predecessors(
+pub impl[G : DirectedGraph] Predecessors for Reversed[G] with predecessors(
   self,
   v,
 ) {
