@@ -31,7 +31,7 @@ The type is stable; "downstream may bind to constructors" is exactly the contrac
 
 ## Non-goals
 
-This decision does *not* extend to other `pub(all)` types in the codebase. `DfsEvent` (also flagged) is a separate conversation — its variant set is less universal and narrowing may be fine there.
+This decision does *not* extend to other `pub(all)` types in the codebase — each needs its own evaluation. `DfsEvent` was evaluated separately and landed at the same verdict for a closely related reason (external pattern-match requires visible constructors) — see [DfsEvent enum visibility](2026-04-21-dfs-event-visibility.md).
 
 ## Reference
 
