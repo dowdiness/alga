@@ -8,7 +8,7 @@
 
 **Tech Stack:** MoonBit, moonbitlang/quickcheck for property tests
 
-**Spec:** [docs/specs/2026-03-31-has-vertex-trait-design.md](../specs/2026-03-31-has-vertex-trait-design.md)
+**Spec:** [docs/specs/2026-03-31-has-vertex-trait-design.md](../../specs/2026-03-31-has-vertex-trait-design.md)
 
 ---
 
