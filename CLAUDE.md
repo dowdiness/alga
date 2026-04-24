@@ -31,6 +31,7 @@ moon info && moon fmt          # before committing
 - **SCC algorithms:** Kosaraju (`kosaraju_scc`, generic over `DirectedGraph + Predecessors`, reverse-topo order; `AdjacencyMap::scc` is a thin wrapper) and Tarjan (`tarjan_scc`, generic over `DirectedGraph`, no `Predecessors` required, forward-topo order)
 - **All algorithms** are generic over `DirectedGraph` (condensation is still `AdjacencyMap`-only because it constructs a new graph)
 - **Cycle diagnostics:** `toposort_or_cycle` returns `Result[order, cycle_witness]`; `find_cycle` extracts one cycle path; `would_create_cycle(g, u, v)` predicts whether adding edge u→v creates a cycle (cheaper than `has_cycle` on the hypothetical graph)
+- **Conformance kit:** `check_conformance(g)` and `check_predecessors_conformance(g)` return a list of violations for adopters to run in their own test suites. Test-time only — catches contract violations (dangling successors, duplicate iter, predecessor/successor asymmetry) that algorithms would otherwise silently misbehave on.
 - **Property tests:** All 8 algebraic graph laws (Mokhov 2017) verified with `moonbitlang/quickcheck`
 - **External dep:** `moonbitlang/quickcheck` (aliased `@qc`) for property-based testing with shrinking
 
