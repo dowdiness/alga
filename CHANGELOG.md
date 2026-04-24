@@ -12,9 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Cycle diagnostics** — `find_cycle(g) -> Array[Int]?` returns one
   witness cycle (a path `[v0, …, vk]` with closing edge `vk → v0`), and
   `toposort_or_cycle(g) -> Result[Array[Int], Array[Int]]` returns the
-  topological order on success or a cycle witness on failure. More
-  informative than `has_cycle` / `toposort` for error reporting in
-  reactive-graph libraries, movable-tree CRDTs, and build systems.
+  topological order on success or a cycle witness on failure (for
+  contract-conformant graphs; returns `Err([])` if a non-conformant
+  impl leaves `toposort` and `find_cycle` disagreeing). More informative
+  than `has_cycle` / `toposort` for error reporting in reactive-graph
+  libraries, movable-tree CRDTs, and build systems.
 - **Local reachability queries** — `is_reachable(g, from, to) -> Bool`
   early-exits as soon as `to` is discovered instead of materializing
   the full reachable set. `would_create_cycle(g, u, v) -> Bool`
@@ -24,9 +26,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Generic Kosaraju SCC** — `kosaraju_scc(g)` now works on any
   `DirectedGraph + Predecessors`, not just `AdjacencyMap`. The backward
   DFS walks `predecessors` directly instead of materializing a
-  transposed graph, saving the O(V+E) transpose allocation.
-  `AdjacencyMap::scc` is preserved as a thin wrapper — existing callers
-  are unaffected.
+  transposed graph. `AdjacencyMap::scc` is preserved as a thin wrapper
+  — existing callers are unaffected. (`AdjacencyMap::transpose()` was
+  already O(1) via bidirectional storage, so `AdjacencyMap` callers
+  never paid a transpose-materialization cost; the win is that generic
+  callers now get the same cheap path.)
 - **Conformance test kit** — `check_conformance(g)` and
   `check_predecessors_conformance(g)` return an `Array[String]` of
   violation messages (empty = conformant) for adopters to call on

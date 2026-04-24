@@ -4,7 +4,7 @@ Active backlog for alga. Each item links to its source; non-trivial items should
 
 ## Active
 
-- **DenseGraph promotion** — `DenseGraph` is proven (8–23x) and already `pub(all)` in `src/dense_graph.mbt` with `DirectedGraph` impl. Verify API design is finalized and close out remaining experiment-only code. Source: [EXPERIMENT_REPORT.md](../src/experiment/EXPERIMENT_REPORT.md#what-remains)
+- **DenseGraph promotion** — `DenseGraph` is proven (8–23x) and already `pub` in `src/dense_graph.mbt` with `DirectedGraph` + `Predecessors` impls. Verify API design is finalized and close out remaining experiment-only code. Source: [EXPERIMENT_REPORT.md](../src/experiment/EXPERIMENT_REPORT.md#what-remains)
 
 ## Investigate
 

@@ -161,7 +161,7 @@ Evaluate with `expr.to_adjacency_map()` when ready to run algorithms.
 
 **Iterative algorithms.** DFS and SCC use explicit stacks, not recursion. Tested up to 10,000+ vertices without stack overflow.
 
-**Property-tested laws.** All 8 algebraic graph axioms from Mokhov (2017) are verified with [`moonbitlang/quickcheck`](https://github.com/moonbitlang/quickcheck) — 100 random graph expressions per law with automatic shrinking. 237 tests total.
+**Property-tested laws.** All 8 algebraic graph axioms from Mokhov (2017) are verified with [`moonbitlang/quickcheck`](https://github.com/moonbitlang/quickcheck) — 100 random graph expressions per law with automatic shrinking. 272 tests total.
 
 ## Repository layout
 

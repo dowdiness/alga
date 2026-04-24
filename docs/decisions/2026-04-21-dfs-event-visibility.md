@@ -37,7 +37,7 @@ The Graph decision originally claimed *"DfsEvent (also flagged) is a separate co
 
 ## Reference
 
-- `src/dfs.mbt:194` — DfsEvent definition with the white/gray/black coloring docstring
+- `src/dfs.mbt` — DfsEvent definition with the white/gray/black coloring docstring
 - `src/dfs_test.mbt` — external pattern-match sites
 - `src/graph_expr_qc.mbt` — property-based tests that pattern-match on events
 - [Graph enum visibility](2026-04-21-graph-enum-visibility.md) — prior art with the closely related reasoning
