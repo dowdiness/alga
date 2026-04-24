@@ -5,7 +5,6 @@ Active backlog for alga. Each item links to its source; non-trivial items should
 ## Active
 
 - **DenseGraph promotion** — `DenseGraph` is proven (8–23x) and already `pub(all)` in `src/dense_graph.mbt` with `DirectedGraph` impl. Verify API design is finalized and close out remaining experiment-only code. Source: [EXPERIMENT_REPORT.md](../src/experiment/EXPERIMENT_REPORT.md#what-remains)
-- **Conformance test kit for `DirectedGraph` impls** — Property-test helper adopters call on their own impl: `iter() ∪ successors*(iter())` closure, no duplicate successors, `has_vertex` consistent with `iter`, etc. Addresses the contract-violation risk Codex flagged on PR #31 (vertices yielded by `successors` but missing from `iter`) without changing the trait or algorithms. Zero runtime cost on compliant graphs. Source: [PR #31 review](https://github.com/dowdiness/alga/pull/31)
 
 ## Investigate
 
@@ -18,6 +17,8 @@ Active backlog for alga. Each item links to its source; non-trivial items should
 
 ## Done
 
+- **~~Conformance test kit for `DirectedGraph` impls~~** — `check_conformance(g) -> Array[String]` and `check_predecessors_conformance(g)` verify laws A–G (iter uniqueness, successor closure, has_vertex consistency, vertex_count agreement, successor/predecessor dedup, each_* defaults-vs-override agreement, forward/backward edge symmetry). Addresses the contract-violation risk Codex flagged on PR #31.
+- **~~Cycle diagnostics + generalized Kosaraju~~** — `is_reachable`, `would_create_cycle`, `find_cycle`, `toposort_or_cycle` (`Result[order, witness]`), and `kosaraju_scc` generic over `DirectedGraph + Predecessors`. Source: [PR #31](https://github.com/dowdiness/alga/pull/31)
 - **~~Reversed graph adaptor~~** — `Reversed[G]` zero-cost newtype + `Predecessors` capability trait + bidirectional adjacency in `AdjacencyMap`/`DenseGraph`. `transpose()` is now O(1). Source: [spec](specs/2026-04-01-reversed-graph-adaptor-design.md)
 - **~~DFS edge classification~~** — `dfs_events(graph) -> Iter[DfsEvent]` with 5 events: Discover, Finish, TreeEdge, BackEdge, CrossForwardEdge. Pull-based iterator, generic over `DirectedGraph`. Source: [spec](specs/2026-04-01-dfs-edge-classification-design.md)
 - **~~Iter-based DirectedGraph trait + Tarjan SCC~~** — Migrated trait from CPS callbacks (`for_each_vertex`/`for_each_successor`) to `Iter[Int]`-based (`iter`/`successors`). Added `tarjan_scc` generic over `DirectedGraph` — single-pass, no transpose. `has_vertex` now short-circuits via `Iter::contains`. Source: [spec](specs/2026-04-01-iter-based-trait-and-tarjan-design.md)

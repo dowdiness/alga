@@ -11,6 +11,10 @@ pub fn[G : DirectedGraph, Acc] bfs_fold(G, Int, Acc, (Acc, Int) -> (Acc, Bool)) 
 
 pub fn[G : DirectedGraph, Acc] bfs_fold_multi(G, Array[Int], Acc, (Acc, Int) -> (Acc, Bool)) -> Acc
 
+pub fn[G : DirectedGraph] check_conformance(G) -> Array[String]
+
+pub fn[G : DirectedGraph + Predecessors] check_predecessors_conformance(G) -> Array[String]
+
 pub fn[G : DirectedGraph] dfs_events(G) -> Iter[DfsEvent]
 
 pub fn[G : DirectedGraph, Acc] dfs_fold(G, Int, Acc, (Acc, Int) -> (Acc, Bool)) -> Acc
