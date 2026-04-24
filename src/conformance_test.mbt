@@ -4,6 +4,15 @@
 // violates exactly one property (where possible).
 
 ///|
+/// True if some violation message contains every substring in `parts`.
+/// Used to tie a test to a specific message (not just "some Law X appears
+/// anywhere") — combining e.g. `["Law B", "99"]` asserts that the Law B
+/// violation names the offending vertex.
+fn has_violation(violations : Array[String], parts : Array[String]) -> Bool {
+  violations.iter().any(fn(s) { parts.iter().all(fn(p) { s.contains(p) }) })
+}
+
+///|
 struct DupIter {}
 
 ///|
@@ -131,34 +140,31 @@ test "positive: self-loop conforms" {
 ///|
 test "negative: Law A — duplicate iter flagged" {
   let v = @alga.check_conformance(DupIter::{  })
-  assert_true(v.length() >= 1)
-  assert_true(v.iter().any(fn(s) { s.contains("Law A") }))
+  assert_true(has_violation(v, ["Law A"]))
 }
 
 ///|
 test "negative: Law B — dangling successor flagged" {
   let v = @alga.check_conformance(DanglingSucc::{  })
-  assert_true(v.iter().any(fn(s) { s.contains("Law B") }))
-  assert_true(v.iter().any(fn(s) { s.contains("99") }))
+  assert_true(has_violation(v, ["Law B", "99"]))
 }
 
 ///|
 test "negative: Law E — duplicate successor flagged" {
   let v = @alga.check_conformance(DupSucc::{  })
-  assert_true(v.iter().any(fn(s) { s.contains("Law E") }))
+  assert_true(has_violation(v, ["Law E"]))
 }
 
 ///|
 test "negative: Law D — vertex_count mismatch flagged" {
   let v = @alga.check_conformance(VertexCountLies::{  })
-  assert_true(v.iter().any(fn(s) { s.contains("Law D") }))
-  assert_true(v.iter().any(fn(s) { s.contains("7") }))
+  assert_true(has_violation(v, ["Law D", "7"]))
 }
 
 ///|
 test "negative: Law C — has_vertex lies flagged" {
   let v = @alga.check_conformance(HasVertexLies::{  })
-  assert_true(v.iter().any(fn(s) { s.contains("Law C") }))
+  assert_true(has_violation(v, ["Law C"]))
 }
 
 ///|
@@ -189,7 +195,7 @@ pub impl @alga.DirectedGraph for HasVertexLiesPositive with has_vertex(
 test "negative: Law C — has_vertex returns true for absent vertex flagged" {
   // has_vertex always returns true — must be flagged on synthetic outside values.
   let v = @alga.check_conformance(HasVertexLiesPositive::{  })
-  assert_true(v.iter().any(fn(s) { s.contains("Law C") && s.contains("true") }))
+  assert_true(has_violation(v, ["Law C", "true"]))
 }
 
 ///|
@@ -215,9 +221,7 @@ pub impl @alga.DirectedGraph for EachVertexWrong with each_vertex(_self, f) {
 ///|
 test "negative: Law F — each_vertex override disagrees with iter" {
   let v = @alga.check_conformance(EachVertexWrong::{  })
-  assert_true(
-    v.iter().any(fn(s) { s.contains("Law F") && s.contains("each_vertex") }),
-  )
+  assert_true(has_violation(v, ["Law F", "each_vertex"]))
 }
 
 ///|
@@ -250,9 +254,7 @@ pub impl @alga.DirectedGraph for EachSuccessorWrong with each_successor(
 ///|
 test "negative: Law F — each_successor override disagrees with successors" {
   let v = @alga.check_conformance(EachSuccessorWrong::{  })
-  assert_true(
-    v.iter().any(fn(s) { s.contains("Law F") && s.contains("each_successor") }),
-  )
+  assert_true(has_violation(v, ["Law F", "each_successor"]))
 }
 
 ///|
@@ -281,7 +283,7 @@ pub impl @alga.Predecessors for AsymmetricPred with predecessors(_self, _v) {
 ///|
 test "negative: Law G — asymmetric predecessors flagged" {
   let v = @alga.check_predecessors_conformance(AsymmetricPred::{  })
-  assert_true(v.iter().any(fn(s) { s.contains("Law G") }))
+  assert_true(has_violation(v, ["Law G"]))
 }
 
 ///|
@@ -313,5 +315,5 @@ pub impl @alga.Predecessors for DupPred with predecessors(_self, v) {
 ///|
 test "negative: Law E' — duplicate predecessor flagged" {
   let v = @alga.check_predecessors_conformance(DupPred::{  })
-  assert_true(v.iter().any(fn(s) { s.contains("Law E'") }))
+  assert_true(has_violation(v, ["Law E'"]))
 }

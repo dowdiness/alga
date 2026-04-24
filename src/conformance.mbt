@@ -98,7 +98,7 @@ pub fn[G : DirectedGraph] check_conformance(graph : G) -> Array[String] {
   // Negative consistency: pick a few candidate vertices that could not
   // have come from iter (max+1, min-1, and a large-magnitude sentinel)
   // and require has_vertex returns false.
-  let outside = outside_candidates(iter_raw)
+  let outside = outside_candidates(iter_set)
   for v in outside {
     if G::has_vertex(graph, v) {
       violations.push(
@@ -145,18 +145,18 @@ pub fn[G : DirectedGraph] check_conformance(graph : G) -> Array[String] {
 }
 
 ///|
-/// Pick a small set of vertex IDs guaranteed not to be in `iter_raw`.
+/// Pick a small set of vertex IDs guaranteed not to be in `iter_set`.
 /// Used for Law C negative consistency — we can't enumerate the complement
 /// of iter(), but we can spot-check sentinels that are guaranteed outside
 /// any finite vertex set we just observed.
-fn outside_candidates(iter_raw : Array[Int]) -> Array[Int] {
-  if iter_raw.length() == 0 {
+fn outside_candidates(iter_set : @hashset.HashSet[Int]) -> Array[Int] {
+  if iter_set.length() == 0 {
     // Any value works as "not in iter" when iter is empty.
     return [0, 1, -1, @int.MAX_VALUE, @int.MIN_VALUE]
   }
-  let mut lo = iter_raw[0]
-  let mut hi = iter_raw[0]
-  for v in iter_raw {
+  let mut lo = @int.MAX_VALUE
+  let mut hi = @int.MIN_VALUE
+  for v in iter_set {
     if v < lo {
       lo = v
     }
@@ -175,17 +175,7 @@ fn outside_candidates(iter_raw : Array[Int]) -> Array[Int] {
   candidates.push(@int.MIN_VALUE)
   // Filter out any candidate that somehow appeared (edge case if iter
   // contains both max and min): we want guaranteed-outside only.
-  let iter_set : @hashset.HashSet[Int] = @hashset.new()
-  for v in iter_raw {
-    iter_set.add(v)
-  }
-  let result : Array[Int] = []
-  for c in candidates {
-    if !iter_set.contains(c) {
-      result.push(c)
-    }
-  }
-  result
+  candidates.iter().filter(fn(c) { !iter_set.contains(c) }).collect()
 }
 
 ///|
