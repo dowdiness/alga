@@ -5,6 +5,43 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Cycle diagnostics** — `find_cycle(g) -> Array[Int]?` returns one
+  witness cycle (a path `[v0, …, vk]` with closing edge `vk → v0`), and
+  `toposort_or_cycle(g) -> Result[Array[Int], Array[Int]]` returns the
+  topological order on success or a cycle witness on failure. More
+  informative than `has_cycle` / `toposort` for error reporting in
+  reactive-graph libraries, movable-tree CRDTs, and build systems.
+- **Local reachability queries** — `is_reachable(g, from, to) -> Bool`
+  early-exits as soon as `to` is discovered instead of materializing
+  the full reachable set. `would_create_cycle(g, u, v) -> Bool`
+  predicts whether adding edge `u → v` would create a cycle (self-loop
+  case handled), strictly cheaper than constructing the hypothetical
+  graph and calling `has_cycle`.
+- **Generic Kosaraju SCC** — `kosaraju_scc(g)` now works on any
+  `DirectedGraph + Predecessors`, not just `AdjacencyMap`. The backward
+  DFS walks `predecessors` directly instead of materializing a
+  transposed graph, saving the O(V+E) transpose allocation.
+  `AdjacencyMap::scc` is preserved as a thin wrapper — existing callers
+  are unaffected.
+- **Conformance test kit** — `check_conformance(g)` and
+  `check_predecessors_conformance(g)` return an `Array[String]` of
+  violation messages (empty = conformant) for adopters to call on
+  their own `DirectedGraph` / `Predecessors` implementations. Covers
+  eight laws: `iter` uniqueness, successor-set closure, `has_vertex`
+  consistency, `vertex_count` agreement, successor / predecessor
+  dedup, `each_*` default-vs-override agreement, and
+  predecessor / successor symmetry. Test-time only — catches contract
+  violations that algorithms would otherwise silently misbehave on.
+
+### Changed
+
+- Top-level comment in `src/scc.mbt` updated — Kosaraju is no longer
+  described as AdjacencyMap-specific.
+
 ## [0.2.0] — 2026-04-21
 
 ### ⚠️ Breaking changes

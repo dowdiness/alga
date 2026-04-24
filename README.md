@@ -87,18 +87,23 @@ Every algorithm below is generic over `DirectedGraph` unless noted otherwise.
 | DFS fold | `dfs_fold(g, start, init, f)` | O(V+E) |
 | BFS fold | `bfs_fold(g, start, init, f)` | O(V+E) |
 | Multi-source DFS/BFS | `dfs_fold_multi`, `bfs_fold_multi` | O(V+E) |
-| Reachability | `reachable(g, v)` | O(V+E) |
+| Reachability (all) | `reachable(g, v)` | O(V+E) |
+| Reachability (query) | `is_reachable(g, from, to)` | O(V'+E') early-exit |
 | DFS edge classification | `dfs_events(g)` | O(V+E) |
 | Topological sort | `toposort(g)` | O(V+E) |
+| Topological sort + cycle witness | `toposort_or_cycle(g)` | O(V+E) |
 | Topological levels | `topo_levels(g)` | O(V+E) |
 | Cycle detection | `has_cycle(g)` | O(V+E) |
+| Cycle extraction | `find_cycle(g)` | O(V+E) |
+| Cycle prediction | `would_create_cycle(g, u, v)` | O(V'+E') early-exit |
 | SCC (Tarjan) | `tarjan_scc(g)` | O(V+E) |
-| SCC (Kosaraju) | `g.scc()` | O(V+E) |
+| SCC (Kosaraju) | `kosaraju_scc(g)` | O(V+E) |
 | Condensation | `g.condensation()` | O(V+E) |
 | Reversed view | `reversed(g)` | O(1) |
 | Degree queries | `outdegree(g, v)`, `indegree(g, v)` | O(deg) / O(V+E) |
+| Trait conformance check | `check_conformance(g)`, `check_predecessors_conformance(g)` | O(V+E) |
 
-Kosaraju SCC and condensation are `AdjacencyMap`-specific. `reversed(g)` requires the `Predecessors` trait. `dfs_events` returns a lazy `Iter[DfsEvent]` that classifies each edge as tree, back, or cross/forward — useful for cycle detection, post-order traversal, and scope analysis.
+`kosaraju_scc` and `reversed` require the `Predecessors` trait; `condensation` is `AdjacencyMap`-specific because it constructs a new graph. `dfs_events` returns a lazy `Iter[DfsEvent]` that classifies each edge as tree, back, or cross/forward — useful for cycle detection, post-order traversal, and scope analysis. `toposort_or_cycle` returns `Result[order, cycle]` so callers can diagnose the cycle, not just detect one. `would_create_cycle(g, u, v)` predicts whether adding edge u→v would create a cycle without constructing the hypothetical graph.
 
 ## Using your own graph type
 
@@ -119,7 +124,19 @@ impl @alga.DirectedGraph for MyGraph with successors(self, v) {
 // has_cycle(g), dfs_events(g), dfs_fold(g, ...), bfs_fold(g, ...), etc.
 ```
 
-Override `vertex_count` and `has_vertex` for O(1) if your type supports it. Implement `Predecessors` to enable `reversed(g)`.
+Override `vertex_count` and `has_vertex` for O(1) if your type supports it. Implement `Predecessors` to enable `reversed(g)` and `kosaraju_scc(g)`.
+
+Verify your impl with the conformance kit in your tests:
+
+```moonbit
+test "MyGraph conforms" {
+  let g : MyGraph = make_test_graph()
+  assert_eq(@alga.check_conformance(g), [])
+  // assert_eq(@alga.check_predecessors_conformance(g), [])  // if MyGraph impls Predecessors
+}
+```
+
+The kit catches contract violations (`iter()` duplicates, dangling successors, `has_vertex` inconsistency, predecessor/successor asymmetry) that algorithms would otherwise silently misbehave on.
 
 ## Graph construction
 
