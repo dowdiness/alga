@@ -17,6 +17,8 @@ pub fn[G : DirectedGraph, Acc] dfs_fold(G, Int, Acc, (Acc, Int) -> (Acc, Bool)) 
 
 pub fn[G : DirectedGraph, Acc] dfs_fold_multi(G, Array[Int], Acc, (Acc, Int) -> (Acc, Bool)) -> Acc
 
+pub fn[G : DirectedGraph] find_cycle(G) -> Array[Int]?
+
 pub fn[B] foldg(Graph, B, (Int) -> B, (B, B) -> B, (B, B) -> B) -> B
 
 pub fn[B] foldg_iter(Graph, B, (Int) -> B, (B, B) -> B, (B, B) -> B) -> B
@@ -24,6 +26,10 @@ pub fn[B] foldg_iter(Graph, B, (Int) -> B, (B, B) -> B, (B, B) -> B) -> B
 pub fn[G : DirectedGraph] has_cycle(G) -> Bool
 
 pub fn[G : DirectedGraph] indegree(G, Int) -> Int
+
+pub fn[G : DirectedGraph] is_reachable(G, Int, Int) -> Bool
+
+pub fn[G : DirectedGraph + Predecessors] kosaraju_scc(G) -> Array[Array[Int]]
 
 pub fn[G : DirectedGraph] outdegree(G, Int) -> Int
 
@@ -39,7 +45,11 @@ pub fn[G : DirectedGraph] topo_levels(G) -> Map[Int, Int]?
 
 pub fn[G : DirectedGraph] toposort(G) -> Array[Int]?
 
+pub fn[G : DirectedGraph] toposort_or_cycle(G) -> Result[Array[Int], Array[Int]]
+
 pub fn[G : DirectedGraph] toposort_subset(G, Array[Int]) -> Array[Int]?
+
+pub fn[G : DirectedGraph] would_create_cycle(G, Int, Int) -> Bool
 
 // Errors
 

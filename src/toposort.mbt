@@ -104,6 +104,109 @@ pub fn[G : DirectedGraph] has_cycle(graph : G) -> Bool {
 }
 
 ///|
+/// Find a directed cycle, if any.
+///
+/// Returns `Some(path)` where `path = [v0, v1, ..., vk]` and there is an
+/// edge `vk -> v0` closing the cycle, or `None` if the graph is acyclic.
+/// Self-loops are returned as `[v]` (single vertex; the closing edge is
+/// `v -> v`).
+///
+/// ## Algorithm
+///
+/// Iterative three-color DFS (white = unseen, gray = on current path,
+/// black = finished). When a gray successor is found, the cycle runs from
+/// that ancestor down through the current DFS frame stack. The closing
+/// edge is from the last element back to the first.
+///
+/// The returned path is one witness — there may be others. No ordering
+/// guarantee across graphs, but for a given graph traversal the output is
+/// deterministic (controlled by `iter` and `successors` order).
+///
+/// Time: O(V + E) worst case (acyclic graph). Early-exits on first cycle.
+/// Space: O(V).
+pub fn[G : DirectedGraph] find_cycle(graph : G) -> Array[Int]? {
+  // state: absent = white, true = gray (on stack), false = black (finished)
+  let state : Map[Int, Bool] = Map::new()
+  // position[v] = frame index of v while v is gray, enabling O(1) cycle
+  // extraction when a back-edge is encountered.
+  let position : Map[Int, Int] = Map::new()
+  let frames : Array[(Int, Iter[Int])] = []
+  for root in G::iter(graph) {
+    if state.contains(root) {
+      continue
+    }
+    state[root] = true
+    position[root] = 0
+    frames.push((root, G::successors(graph, root)))
+    while frames.length() > 0 {
+      let top_idx = frames.length() - 1
+      let v = frames[top_idx].0
+      let iter = frames[top_idx].1
+      match iter.next() {
+        Some(w) =>
+          match state.get(w) {
+            None => {
+              // Tree edge: descend into w
+              state[w] = true
+              position[w] = frames.length()
+              frames.push((w, G::successors(graph, w)))
+            }
+            Some(true) => {
+              // Back edge v -> w: w is an ancestor on the current path.
+              // Extract cycle from frames[position[w]..=top_idx].
+              let start = position[w]
+              let cycle : Array[Int] = []
+              for i in start..<=top_idx {
+                cycle.push(frames[i].0)
+              }
+              return Some(cycle)
+            }
+            Some(false) => ()
+            // Cross/forward edge — not a cycle on this path
+          }
+        None => {
+          // All successors done — finish v
+          state[v] = false
+          position.remove(v)
+          let _ = frames.unsafe_pop()
+        }
+      }
+    }
+  }
+  None
+}
+
+///|
+/// Topological sort that returns the witnessing cycle on failure.
+///
+/// `Ok(ordering)` for DAGs, `Err(cycle)` where `cycle = [v0, ..., vk]` with
+/// a closing edge `vk -> v0` when the graph has a cycle. Strictly more
+/// informative than `toposort` — use this when the caller wants to
+/// diagnose or report the cycle (reactive-graph cycle paths, movable-tree
+/// conflict diagnostics, build-system dependency errors).
+///
+/// Runs `toposort` first (O(V+E), Kahn's algorithm) and falls back to
+/// `find_cycle` on failure — so the acyclic path pays the same cost as
+/// plain `toposort`.
+pub fn[G : DirectedGraph] toposort_or_cycle(
+  graph : G,
+) -> Result[Array[Int], Array[Int]] {
+  match toposort(graph) {
+    Some(order) => Ok(order)
+    None =>
+      match find_cycle(graph) {
+        Some(cycle) => Err(cycle)
+        // Only reachable if the `DirectedGraph` contract is violated:
+        // `toposort` counts `successors(v)` vertices missing from `iter()`
+        // against its completeness check, while `find_cycle` only roots
+        // from `iter()`. On contract-compliant graphs this branch is dead.
+        // Return an empty witness rather than panic.
+        None => Err([])
+      }
+  }
+}
+
+///|
 /// # Topological Levels
 ///
 /// Computes the length of the longest path from any source (zero-in-degree

@@ -540,3 +540,83 @@ test "reversed preserves has_cycle" {
   let acyclic = @alga.AdjacencyMap::from_edges([(0, 1), (1, 2)])
   assert_true(!@alga.has_cycle(@alga.reversed(acyclic)))
 }
+
+///|
+test "is_reachable simple" {
+  let g = @alga.AdjacencyMap::from_edges([(1, 2), (2, 3), (3, 4)])
+  assert_true(@alga.is_reachable(g, 1, 4))
+  assert_true(@alga.is_reachable(g, 2, 4))
+  assert_true(!@alga.is_reachable(g, 4, 1))
+  assert_true(!@alga.is_reachable(g, 3, 2))
+}
+
+///|
+test "is_reachable reflexive on present vertex" {
+  let g = @alga.AdjacencyMap::from_edges([(1, 2)])
+  assert_true(@alga.is_reachable(g, 1, 1))
+  assert_true(@alga.is_reachable(g, 2, 2))
+}
+
+///|
+test "is_reachable missing from-vertex" {
+  let g = @alga.AdjacencyMap::from_edges([(1, 2)])
+  assert_true(!@alga.is_reachable(g, 99, 1))
+  assert_true(!@alga.is_reachable(g, 99, 99))
+}
+
+///|
+test "is_reachable disconnected components" {
+  let g = @alga.AdjacencyMap::from_edges([(1, 2), (3, 4)])
+  assert_true(@alga.is_reachable(g, 1, 2))
+  assert_true(@alga.is_reachable(g, 3, 4))
+  assert_true(!@alga.is_reachable(g, 1, 3))
+  assert_true(!@alga.is_reachable(g, 1, 4))
+}
+
+///|
+test "is_reachable in cycle" {
+  let g = @alga.AdjacencyMap::from_edges([(1, 2), (2, 3), (3, 1)])
+  assert_true(@alga.is_reachable(g, 1, 2))
+  assert_true(@alga.is_reachable(g, 2, 1))
+  assert_true(@alga.is_reachable(g, 3, 2))
+}
+
+///|
+test "would_create_cycle self-loop" {
+  let g : @alga.AdjacencyMap = @alga.AdjacencyMap::empty()
+  assert_true(@alga.would_create_cycle(g, 5, 5))
+  let g2 = @alga.AdjacencyMap::from_edges([(1, 2)])
+  assert_true(@alga.would_create_cycle(g2, 1, 1))
+}
+
+///|
+test "would_create_cycle closes path" {
+  // g: 1 -> 2 -> 3. Adding 3 -> 1 creates cycle.
+  let g = @alga.AdjacencyMap::from_edges([(1, 2), (2, 3)])
+  assert_true(@alga.would_create_cycle(g, 3, 1))
+  assert_true(@alga.would_create_cycle(g, 2, 1))
+}
+
+///|
+test "would_create_cycle no cycle" {
+  // g: 1 -> 2 -> 3. Adding 1 -> 3 does not create cycle.
+  let g = @alga.AdjacencyMap::from_edges([(1, 2), (2, 3)])
+  assert_true(!@alga.would_create_cycle(g, 1, 3))
+  assert_true(!@alga.would_create_cycle(g, 1, 2))
+}
+
+///|
+test "would_create_cycle disconnected" {
+  // Endpoints in separate components — never a cycle unless u == v.
+  let g = @alga.AdjacencyMap::from_edges([(1, 2), (3, 4)])
+  assert_true(!@alga.would_create_cycle(g, 1, 3))
+  assert_true(!@alga.would_create_cycle(g, 3, 1))
+}
+
+///|
+test "would_create_cycle endpoints missing" {
+  // Vertices not in graph — no existing paths, no cycle (unless self-loop).
+  let g : @alga.AdjacencyMap = @alga.AdjacencyMap::empty()
+  assert_true(!@alga.would_create_cycle(g, 1, 2))
+  assert_true(@alga.would_create_cycle(g, 7, 7))
+}

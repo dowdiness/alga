@@ -85,6 +85,60 @@ pub fn[G : DirectedGraph] reachable(graph : G, start : Int) -> Array[Int] {
 }
 
 ///|
+/// Early-exit reachability query: "is `to` reachable from `from`?"
+///
+/// Runs DFS from `from` and stops as soon as `to` is discovered, without
+/// materializing the full reachable set. Reflexive: `is_reachable(g, v, v)`
+/// is true (zero-length path), matching the behaviour of `reachable(g, v)`
+/// which includes `v` in its output.
+///
+/// Returns `false` if `from` is not a vertex in the graph.
+///
+/// Time: O(V' + E') where V' and E' are the vertices and edges visited
+/// before encountering `to` (bounded by the reachable subgraph from `from`).
+pub fn[G : DirectedGraph] is_reachable(graph : G, from : Int, to : Int) -> Bool {
+  if !G::has_vertex(graph, from) {
+    return false
+  }
+  dfs_fold(graph, from, false, fn(_, v) {
+    if v == to {
+      (true, false)
+    } else {
+      (false, true)
+    }
+  })
+}
+
+///|
+/// Would adding edge `u -> v` introduce a cycle?
+///
+/// A new edge `u -> v` closes a cycle iff there already exists a path
+/// `v -> ... -> u` in the graph (then `u -> v -> ... -> u` is cyclic).
+/// Self-loops (`u == v`) always create a cycle.
+///
+/// Useful for movable-tree CRDTs and reactive-graph libraries that must
+/// reject cycle-creating edges before committing them. Strictly cheaper
+/// than `has_cycle` on the hypothetical graph: early-exits as soon as the
+/// closing path is found.
+///
+/// Does not require `u` or `v` to already be in the graph — a missing
+/// endpoint cannot participate in any existing path, so no cycle is
+/// possible unless `u == v`.
+///
+/// Time: O(V' + E') where V' and E' are the vertices and edges visited
+/// searching from `v` for `u` (bounded by v's reachable subgraph).
+pub fn[G : DirectedGraph] would_create_cycle(
+  graph : G,
+  u : Int,
+  v : Int,
+) -> Bool {
+  if u == v {
+    return true
+  }
+  is_reachable(graph, v, u)
+}
+
+///|
 /// Multi-source DFS fold over vertices reachable from any vertex in `starts`.
 ///
 /// Seeds the DFS stack with all start vertices instead of one, enabling

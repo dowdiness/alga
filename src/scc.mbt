@@ -26,71 +26,82 @@
 /// in the same SCC (because reachability in the transpose means
 /// reverse-reachability in the original).
 ///
-/// ## Why AdjacencyMap, not DirectedGraph?
+/// ## Generic over Predecessors
 ///
-/// Kosaraju SCC requires `transpose()`. With bidirectional adjacency
-/// storage, transpose is O(1) (field swap). This method stays on
-/// `AdjacencyMap` for API stability, but a generic Kosaraju over
-/// `DirectedGraph + Predecessors` is now feasible via `Reversed[G]`.
-/// See also `tarjan_scc` which is already generic (no transpose needed).
+/// `kosaraju_scc` works on any `DirectedGraph + Predecessors` — the backward
+/// DFS walks `predecessors` directly rather than materializing a transposed
+/// graph, avoiding the O(V+E) transpose allocation. `AdjacencyMap::scc`
+/// is a thin wrapper. See also `tarjan_scc` (single pass, no `Predecessors`
+/// requirement, forward-topo ordering).
 ///
 /// ## Implementation: fully iterative
 ///
-/// Both DFS passes use explicit stacks instead of recursion.
-/// The forward DFS uses `(vertex, successor_index)` frames to simulate
-/// the recursive call stack and correctly record post-order finish times.
+/// Both DFS passes use explicit stacks instead of recursion. Stack frames
+/// carry `Iter[Int]` (same pause/resume trick as `tarjan_scc`) so recording
+/// post-order finish times doesn't require a successor-index counter.
 ///
-/// Time: O(V + E). Space: O(V + E) for the transposed graph.
+/// Time: O(V + E). Space: O(V).
 
 ///|
-/// Compute all strongly connected components.
+/// Compute all strongly connected components via Kosaraju's algorithm.
+///
+/// Generic over `DirectedGraph + Predecessors` — the second DFS pass walks
+/// `predecessors` directly instead of materializing a transposed graph,
+/// saving the O(V+E) transpose allocation.
 ///
 /// Returns components in reverse topological order of the component DAG
 /// (if A's component has an edge to B's component, A's component appears
-/// first in the result).
-pub fn AdjacencyMap::scc(self : AdjacencyMap) -> Array[Array[Int]] {
-  // Pass 1: Forward DFS — record finish order
-  // Uses (vertex, successor_index) stack frames to track post-order
+/// first in the result). This matches the classical Kosaraju ordering and
+/// is the *opposite* of `tarjan_scc`.
+///
+/// ## When to use which SCC
+///
+/// - `kosaraju_scc`: when `Predecessors` is available and you want reverse
+///   topological order, or benefit from the two-pass structure (e.g. you
+///   already needed finish order for something else).
+/// - `tarjan_scc`: when you lack `Predecessors`, or want forward topological
+///   order.
+///
+/// Time: O(V + E). Space: O(V) — no transpose allocation.
+pub fn[G : DirectedGraph + Predecessors] kosaraju_scc(
+  graph : G,
+) -> Array[Array[Int]] {
+  // Pass 1: Forward DFS — record finish order.
+  // Stack frames: (vertex, Iter[Int]) — iterator carries successor position,
+  // matching tarjan_scc's approach and avoiding temp-array allocation.
   let visited : Map[Int, Bool] = Map::new()
   let finish_order : Array[Int] = []
-  for root, _ in self.adjacency {
-    if visited.get(root) == Some(true) {
+  let frames : Array[(Int, Iter[Int])] = []
+  for root in G::iter(graph) {
+    if visited.contains(root) {
       continue
     }
-    let stack : Array[(Int, Int)] = [(root, 0)]
     visited[root] = true
-    while stack.length() > 0 {
-      let top_idx = stack.length() - 1
-      let v = stack[top_idx].0
-      let si = stack[top_idx].1
-      let succs = match self.adjacency.get(v) {
-        Some(s) => s
-        None => []
-      }
-      if si < succs.length() {
-        // Advance to next successor
-        stack[top_idx] = (v, si + 1)
-        let w = succs[si]
-        if visited.get(w) != Some(true) {
-          visited[w] = true
-          stack.push((w, 0))
+    frames.push((root, G::successors(graph, root)))
+    while frames.length() > 0 {
+      let top_idx = frames.length() - 1
+      let v = frames[top_idx].0
+      let iter = frames[top_idx].1
+      match iter.next() {
+        Some(w) =>
+          if !visited.contains(w) {
+            visited[w] = true
+            frames.push((w, G::successors(graph, w)))
+          }
+        None => {
+          finish_order.push(v)
+          let _ = frames.unsafe_pop()
         }
-      } else {
-        // All successors explored — record finish time
-        let _ = stack.unsafe_pop()
-        finish_order.push(v)
       }
     }
   }
-  // Pass 2: Transpose the graph (reverse all edges)
-  let transposed = self.transpose()
-  // Pass 3: Backward DFS in reverse finish order
-  // Each DFS tree on the transposed graph is one SCC
+  // Pass 2: Backward DFS in reverse finish order, walking predecessors.
+  // Each DFS tree on the reverse graph is one SCC.
   let visited2 : Map[Int, Bool] = Map::new()
   let components : Array[Array[Int]] = []
   for i in (finish_order.length() - 1)>=..0 {
     let root = finish_order[i]
-    if visited2.get(root) == Some(true) {
+    if visited2.contains(root) {
       continue
     }
     let component : Array[Int] = []
@@ -99,21 +110,25 @@ pub fn AdjacencyMap::scc(self : AdjacencyMap) -> Array[Array[Int]] {
     while stack.length() > 0 {
       let v = stack.unsafe_pop()
       component.push(v)
-      match transposed.adjacency.get(v) {
-        Some(succs) =>
-          for j in (succs.length() - 1)>=..0 {
-            let w = succs[j]
-            if visited2.get(w) != Some(true) {
-              visited2[w] = true
-              stack.push(w)
-            }
-          }
-        None => ()
-      }
+      Predecessors::predecessors(graph, v).each(fn(w) {
+        if !visited2.contains(w) {
+          visited2[w] = true
+          stack.push(w)
+        }
+      })
     }
     components.push(component)
   }
   components
+}
+
+///|
+/// Compute all strongly connected components.
+///
+/// Thin wrapper over the generic `kosaraju_scc` — see its doc comment for
+/// ordering and complexity guarantees.
+pub fn AdjacencyMap::scc(self : AdjacencyMap) -> Array[Array[Int]] {
+  kosaraju_scc(self)
 }
 
 ///|

@@ -28,8 +28,9 @@ moon info && moon fmt          # before committing
 - **Iter-based trait:** `DirectedGraph` requires `iter() -> Iter[Int]` and `successors(v) -> Iter[Int]` (pull-based). Callback methods `each_vertex`/`each_successor` are defaulted. `has_vertex` short-circuits via `Iter::contains`.
 - **Predecessors trait:** Optional capability trait for reverse-direction queries. `AdjacencyMap` and `DenseGraph` both implement it via bidirectional adjacency storage. Enables `Reversed[G]` zero-cost adaptor.
 - **Iterative algorithms:** DFS and SCC use explicit stacks, not recursion (tested up to 10K+ vertices)
-- **SCC algorithms:** Kosaraju (`AdjacencyMap::scc`, O(1) transpose) and Tarjan (`tarjan_scc`, generic over `DirectedGraph`, no transpose)
-- **All algorithms** are generic over `DirectedGraph` (except Kosaraju SCC and condensation)
+- **SCC algorithms:** Kosaraju (`kosaraju_scc`, generic over `DirectedGraph + Predecessors`, reverse-topo order; `AdjacencyMap::scc` is a thin wrapper) and Tarjan (`tarjan_scc`, generic over `DirectedGraph`, no `Predecessors` required, forward-topo order)
+- **All algorithms** are generic over `DirectedGraph` (condensation is still `AdjacencyMap`-only because it constructs a new graph)
+- **Cycle diagnostics:** `toposort_or_cycle` returns `Result[order, cycle_witness]`; `find_cycle` extracts one cycle path; `would_create_cycle(g, u, v)` predicts whether adding edge u→v creates a cycle (cheaper than `has_cycle` on the hypothetical graph)
 - **Property tests:** All 8 algebraic graph laws (Mokhov 2017) verified with `moonbitlang/quickcheck`
 - **External dep:** `moonbitlang/quickcheck` (aliased `@qc`) for property-based testing with shrinking
 
