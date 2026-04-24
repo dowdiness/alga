@@ -15,5 +15,11 @@
     "trait"
   ],
   "description": "Algebraic graphs for MoonBit — directed graph trait and algorithm library inspired by Haskell's alga",
-  "source": "src"
+  "source": "src",
+  "exclude": [
+    "docs/archive",
+    "docs/specs",
+    "docs/plans",
+    "docs/TODO.md"
+  ]
 }
