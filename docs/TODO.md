@@ -5,9 +5,11 @@ Active backlog for alga. Each item links to its source; non-trivial items should
 ## Active
 
 - **DenseGraph promotion** — `DenseGraph` is proven (8–23x) and already `pub(all)` in `src/dense_graph.mbt` with `DirectedGraph` impl. Verify API design is finalized and close out remaining experiment-only code. Source: [EXPERIMENT_REPORT.md](../src/experiment/EXPERIMENT_REPORT.md#what-remains)
+- **Conformance test kit for `DirectedGraph` impls** — Property-test helper adopters call on their own impl: `iter() ∪ successors*(iter())` closure, no duplicate successors, `has_vertex` consistent with `iter`, etc. Addresses the contract-violation risk Codex flagged on PR #31 (vertices yielded by `successors` but missing from `iter`) without changing the trait or algorithms. Zero runtime cost on compliant graphs. Source: [PR #31 review](https://github.com/dowdiness/alga/pull/31)
 
 ## Investigate
 
+- **Split `DirectedGraph` into `VertexSet` + `Successors`** — Crisper contract: algorithms needing exhaustive iteration (toposort, SCC, `topo_levels`) require both; local queries (`reachable`, `is_reachable`, `would_create_cycle`) require only `Successors`. Lets adopters honestly impl successor-only graphs (e.g. pure functions with no enumerable vertex set). Wider refactor than the conformance kit — touches every impl. Revisit after the conformance kit lands and if `loom/incr` or another adopter hits a concrete successors-only case. Source: [PR #31 review](https://github.com/dowdiness/alga/pull/31)
 - **NodeFiltered graph adaptor** — `NodeFiltered[G]` implementing `DirectedGraph` without allocation. Cheap subgraph views for scope-restricted traversals. Source: [petgraph analysis](specs/2026-04-01-petgraph-analysis.md#1-zero-copy-graph-adaptors)
 - **Traversal control flow** — Early termination for push-style callbacks beyond what `Iter::contains` provides. `has_vertex` short-circuiting is now solved by the iter-based trait. Remaining: `dfs_fold`/`bfs_fold` callback could benefit from `ControlFlow` enum. Source: [petgraph analysis](specs/2026-04-01-petgraph-analysis.md#4-traversal-control-flow)
 - **GenCounter for visited sets** — Proven 2.4–5.5x faster than `Array[Bool]`, but production algorithms still use `Array[Bool]`. Tied to DenseGraph decision (requires dense vertex IDs). Source: [EXPERIMENT_REPORT.md](../src/experiment/EXPERIMENT_REPORT.md#what-remains)

@@ -326,3 +326,33 @@ test "tarjan_scc works on DenseGraph" {
   assert_true(cycle_comp.contains(2))
   assert_eq(singleton_comp[0], 3)
 }
+
+///|
+test "kosaraju_scc generic on DenseGraph" {
+  // DenseGraph implements DirectedGraph + Predecessors — verifies the
+  // generalization really works on a non-AdjacencyMap type.
+  let g = @alga.DenseGraph::from_edges(4, [(0, 1), (1, 2), (2, 0), (2, 3)])
+  let sccs = @alga.kosaraju_scc(g)
+  assert_eq(sccs.length(), 2)
+  // Components: {0,1,2} and {3}. Kosaraju emits reverse-topo order, so the
+  // cycle component (which has an outgoing edge to {3}) comes first.
+  let cycle_comp = sccs[0]
+  let singleton = sccs[1]
+  assert_eq(cycle_comp.length(), 3)
+  assert_true(cycle_comp.contains(0))
+  assert_true(cycle_comp.contains(1))
+  assert_true(cycle_comp.contains(2))
+  assert_eq(singleton.length(), 1)
+  assert_eq(singleton[0], 3)
+}
+
+///|
+test "kosaraju_scc on reversed graph" {
+  // Reversed[G] implements DirectedGraph + Predecessors too.
+  let g = @alga.AdjacencyMap::from_edges([(1, 2), (2, 3), (3, 1), (2, 4)])
+  let direct = @alga.kosaraju_scc(g)
+  let via_reversed = @alga.kosaraju_scc(@alga.reversed(g))
+  // SCC membership is direction-invariant — the same partitions appear,
+  // though emission order may differ.
+  assert_eq(direct.length(), via_reversed.length())
+}

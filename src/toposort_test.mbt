@@ -390,3 +390,86 @@ test "topo_levels asymmetric paths (longest wins)" {
     None => assert_true(false)
   }
 }
+
+///|
+test "find_cycle acyclic" {
+  let g = @alga.AdjacencyMap::from_edges([(1, 2), (2, 3), (3, 4)])
+  assert_true(@alga.find_cycle(g) is None)
+}
+
+///|
+test "find_cycle self-loop" {
+  let g = @alga.AdjacencyMap::from_edges([(1, 2), (2, 2)])
+  match @alga.find_cycle(g) {
+    Some(cycle) => {
+      assert_eq(cycle.length(), 1)
+      assert_eq(cycle[0], 2)
+    }
+    None => assert_true(false)
+  }
+}
+
+///|
+test "find_cycle triangle" {
+  let g = @alga.AdjacencyMap::from_edges([(1, 2), (2, 3), (3, 1)])
+  match @alga.find_cycle(g) {
+    Some(cycle) => {
+      assert_eq(cycle.length(), 3)
+      // Cycle contains all three vertices in some rotation.
+      assert_true(cycle.contains(1))
+      assert_true(cycle.contains(2))
+      assert_true(cycle.contains(3))
+      // Closing edge (cycle[last] -> cycle[0]) must actually exist.
+      let first = cycle[0]
+      let last = cycle[cycle.length() - 1]
+      assert_true(g.has_edge(last, first))
+    }
+    None => assert_true(false)
+  }
+}
+
+///|
+test "find_cycle finds cycle ignoring dag prefix" {
+  // 1 -> 2 -> 3 -> 4 -> 3 (cycle between 3 and 4)
+  let g = @alga.AdjacencyMap::from_edges([(1, 2), (2, 3), (3, 4), (4, 3)])
+  match @alga.find_cycle(g) {
+    Some(cycle) => {
+      assert_true(cycle.contains(3))
+      assert_true(cycle.contains(4))
+      assert_eq(cycle.length(), 2)
+    }
+    None => assert_true(false)
+  }
+}
+
+///|
+test "toposort_or_cycle ok" {
+  let g = @alga.AdjacencyMap::from_edges([(1, 2), (2, 3)])
+  match @alga.toposort_or_cycle(g) {
+    Ok(order) => {
+      assert_eq(order.length(), 3)
+      // Verify order is a valid topological order.
+      let pos : Map[Int, Int] = Map::new()
+      for i, v in order {
+        pos[v] = i
+      }
+      assert_true(pos[1] < pos[2])
+      assert_true(pos[2] < pos[3])
+    }
+    Err(_) => assert_true(false)
+  }
+}
+
+///|
+test "toposort_or_cycle err returns cycle witness" {
+  let g = @alga.AdjacencyMap::from_edges([(1, 2), (2, 3), (3, 1)])
+  match @alga.toposort_or_cycle(g) {
+    Ok(_) => assert_true(false)
+    Err(cycle) => {
+      assert_eq(cycle.length(), 3)
+      let first = cycle[0]
+      let last = cycle[cycle.length() - 1]
+      assert_true(g.has_edge(last, first))
+    }
+  }
+}
