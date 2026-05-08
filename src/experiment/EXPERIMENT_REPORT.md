@@ -7,7 +7,7 @@
 
 ## Motivation
 
-The [CST Transform REPORT](../../loom/cst-transform/REPORT.md) established that in wasm-gc:
+The [CST Transform REPORT](../../loom/docs/performance/2026-03-30-cst-traversal-tiers.md) established that in wasm-gc:
 
 - **Allocation is the dominant cost, not dispatch** (3–4x vs 1.25x)
 - **Indirection is not free** — tree pointer chasing costs more than flat array indexing
