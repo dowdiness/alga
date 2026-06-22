@@ -222,7 +222,7 @@ pub(all) enum DfsEvent {
   BackEdge(Int, Int)
   /// (u, v): v is black (already finished). Merged forward + cross edges.
   CrossForwardEdge(Int, Int)
-} derive(Eq)
+} derive(Eq, Debug)
 
 ///|
 /// DFS event iterator — classifies every edge and emits vertex enter/exit events.

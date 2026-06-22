@@ -77,7 +77,7 @@ Commits `fa12aba`, `0998b06`: systematic benchmark-driven optimization.
 
 **Visited sets:** Replaced `Map[Int, Bool]` with `Array[Bool]` in production algorithms.
 - 2.4x faster for DFS, BFS, toposort
-- GenCounter (`FixedArray[Int]` + generation) proven 1.1-1.4x better for repeated calls, but not yet applied to production (requires dense vertex IDs)
+- GenCounter (`FixedArray[Int]` + generation) proven 1.1-1.4x better for repeated calls. Applied to production as `DenseGraph::reachable_gen` and `DenseGraph::is_reachable_gen` (June 2026, ~1.2× vs production `FixedArray[Bool]`). `scc_gen` deferred (no measurable win).
 
 **DFS mark-and-reverse:** Eliminated per-vertex temporary array allocation in `dfs_fold`.
 - 1.9x speedup — the hidden allocation was a bigger bottleneck than closure dispatch

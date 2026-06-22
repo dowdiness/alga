@@ -11,7 +11,6 @@ Single module: `dowdiness/alga`
 | Package | Path | Purpose |
 |---------|------|---------|
 | `dowdiness/alga` | `src/` | Core library: DirectedGraph trait, AdjacencyMap, GraphSym, algorithms (DFS, BFS, toposort, SCC) |
-| `dowdiness/alga/experiment` | `src/experiment/` | Performance experiments and benchmarks |
 
 ## Commands
 

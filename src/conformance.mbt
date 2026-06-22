@@ -154,8 +154,16 @@ fn outside_candidates(iter_set : @hashset.HashSet[Int]) -> Array[Int] {
     // Any value works as "not in iter" when iter is empty.
     return [0, 1, -1, @int.MAX_VALUE, @int.MIN_VALUE]
   }
-  let lo = iter_set.fold(init=@int.MAX_VALUE, fn(acc, v) { @cmp.minimum(acc, v) })
-  let hi = iter_set.fold(init=@int.MIN_VALUE, fn(acc, v) { @cmp.maximum(acc, v) })
+  let mut lo = @int.MAX_VALUE
+  let mut hi = @int.MIN_VALUE
+  for v in iter_set {
+    if v < lo {
+      lo = v
+    }
+    if v > hi {
+      hi = v
+    }
+  }
   let candidates : Array[Int] = []
   if hi < @int.MAX_VALUE {
     candidates.push(hi + 1)

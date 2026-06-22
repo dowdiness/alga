@@ -2,40 +2,21 @@
 
 Items requiring human judgment, surfaced by triage.
 
-## Active decisions
+## Resolved
 
-### DenseGraph promotion — stabilize or keep experimental?
+### DenseGraph promotion → PROMOTED (2026-06-22)
 
-**Source:** `docs/TODO.md` → "DenseGraph promotion"
-**Context:** `DenseGraph` is public, has full `DirectedGraph` + `Predecessors`
-impls, and benchmarks at 8–23× over `AdjacencyMap`. But
-`src/experiment/EXPERIMENT_REPORT.md` still treats it as experimental,
-and the "close out remaining experiment-only code" step is unresolved.
-Deciding to promote would cascade into GenCounter adoption and a
-specialized `DenseGraph::dfs_events`.
-**Blocks:** GenCounter for visited sets, specialized DenseGraph::dfs_events
-**Evidence:** Code is public and tested; interface is exported; experiment
-report wording is stale. No `docs/plans/*.md` plan exists.
-**Added:** 2026-06-22
+API is stable. `DenseGraph` has been in the production package since v0.2.0.
+Experiment package archived; report at `docs/archive/2026-03-31-perf-experiment-report.md`.
 
-### NodeFiltered graph adaptor — implement or archive?
+### NodeFiltered graph adaptor → WON'T DO (2026-06-22)
 
-**Source:** `docs/TODO.md` → "NodeFiltered graph adaptor"
-**Context:** A zero-copy `NodeFiltered[G]` adaptor implementing
-`DirectedGraph` for scope-restricted traversals. Has a source analysis
-in `docs/specs/2026-04-01-petgraph-analysis.md` but no implementation,
-no plan, and no adopter requesting it.
-**Blocks:** Nothing directly
-**Evidence:** Spec analysis exists; no code; no plan file; no open issue.
-**Added:** 2026-06-22
+Zero-copy `NodeFiltered[G]` for scope-restricted traversals. No adopter requesting
+it. Current consumers can collect + filter + rebuild. Revisit if a consumer reports
+allocation pressure from vertex filtering on large graphs.
 
-### Traversal control flow — implement or archive?
+### Traversal control flow → WON'T DO (2026-06-22)
 
-**Source:** `docs/TODO.md` → "Traversal control flow"
-**Context:** `dfs_fold`/`bfs_fold` callbacks return `(Acc, Bool)` for
-early termination. A `ControlFlow` enum would be cleaner. Already
-partially mitigated by `dfs_events` (Iter-based pull traversal). No
-implementation, no plan, no adopter requesting it.
-**Blocks:** Nothing directly
-**Evidence:** Spec analysis in petgraph doc; no code; no plan file.
-**Added:** 2026-06-22
+`ControlFlow` enum for `dfs_fold`/`bfs_fold` callbacks. Current `(Acc, Bool)`
+handles early termination. `dfs_events` provides pull-based alternative. Revisit
+if a consumer needs subtree-skipping in fold callbacks.
