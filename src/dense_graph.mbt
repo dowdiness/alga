@@ -46,7 +46,7 @@ pub fn DenseGraph::from_edges(
   let succs : Array[Array[Int]] = Array::makei(vertex_count, fn(_i) { [] })
   let preds : Array[Array[Int]] = Array::makei(vertex_count, fn(_i) { [] })
   let seen : Array[@hashset.HashSet[Int]] = Array::makei(vertex_count, fn(_i) {
-    @hashset.new()
+    @hashset.HashSet([])
   })
   for edge in edges {
     let u = edge.0
@@ -134,7 +134,7 @@ pub impl Show for DenseGraph with output(self, logger) {
 /// Debug implementation for DenseGraph.
 /// Produces structured Repr showing vertex count and edges.
 pub impl Debug for DenseGraph with to_repr(self) {
-  let fields : Map[String, @debug.Repr] = Map::new()
+  let fields : Map[String, @debug.Repr] = Map([])
   fields["vertex_count"] = @debug.to_repr(self.successors.length())
   let edges : Array[@debug.Repr] = []
   for v = 0; v < self.successors.length(); v = v + 1 {

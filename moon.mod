@@ -1,0 +1,27 @@
+name = "dowdiness/alga"
+
+version = "0.3.0"
+
+options(
+  source: "src",
+)
+
+import {
+  "moonbitlang/quickcheck@0.14.0",
+}
+
+readme = "README.md"
+
+repository = "https://github.com/dowdiness/alga"
+
+license = "Apache-2.0"
+
+keywords = [
+  "graph",
+  "directed-graph",
+  "algebraic-graphs",
+  "algorithm",
+  "trait",
+]
+
+description = "Algebraic graphs for MoonBit — directed graph trait and algorithm library inspired by Haskell's alga"

@@ -3,7 +3,9 @@ package "dowdiness/alga"
 
 import {
   "moonbitlang/core/debug",
+  "moonbitlang/core/quickcheck",
   "moonbitlang/core/quickcheck/splitmix",
+  "moonbitlang/quickcheck/shrink",
 }
 
 // Values
@@ -130,8 +132,8 @@ pub fn Graph::vertices(Array[Int]) -> Self
 pub impl GraphSym for Graph
 pub impl Show for Graph
 pub impl @debug.Debug for Graph
-pub impl @moonbitlang/core/quickcheck.Arbitrary for Graph
-pub impl @moonbitlang/quickcheck.Shrink for Graph
+pub impl @quickcheck.Arbitrary for Graph
+pub impl @shrink.Shrink for Graph
 
 pub struct Reversed[G] {
   graph : G
@@ -143,22 +145,22 @@ pub impl[G : DirectedGraph] Predecessors for Reversed[G]
 
 // Traits
 pub(open) trait DirectedGraph {
-  iter(Self) -> Iter[Int]
-  successors(Self, Int) -> Iter[Int]
-  each_vertex(Self, (Int) -> Unit) -> Unit = _
-  each_successor(Self, Int, (Int) -> Unit) -> Unit = _
-  vertex_count(Self) -> Int = _
-  has_vertex(Self, Int) -> Bool = _
+  fn iter(Self) -> Iter[Int]
+  fn successors(Self, Int) -> Iter[Int]
+  fn each_vertex(Self, (Int) -> Unit) -> Unit = _
+  fn each_successor(Self, Int, (Int) -> Unit) -> Unit = _
+  fn vertex_count(Self) -> Int = _
+  fn has_vertex(Self, Int) -> Bool = _
 }
 
 pub(open) trait GraphSym {
-  empty() -> Self
-  vertex(Int) -> Self
-  overlay(Self, Self) -> Self
-  connect(Self, Self) -> Self
+  fn empty() -> Self
+  fn vertex(Int) -> Self
+  fn overlay(Self, Self) -> Self
+  fn connect(Self, Self) -> Self
 }
 
 pub(open) trait Predecessors {
-  predecessors(Self, Int) -> Iter[Int]
+  fn predecessors(Self, Int) -> Iter[Int]
 }
 

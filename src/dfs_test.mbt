@@ -2,7 +2,7 @@
 test "reachable linear" {
   let g = @alga.AdjacencyMap::from_edges([(1, 2), (2, 3), (3, 4)])
   let r = @alga.reachable(g, 1)
-  assert_eq(r.length(), 4)
+  @test.assert_eq(r.length(), 4)
   assert_true(r.contains(1))
   assert_true(r.contains(2))
   assert_true(r.contains(3))
@@ -13,7 +13,7 @@ test "reachable linear" {
 test "reachable from middle" {
   let g = @alga.AdjacencyMap::from_edges([(1, 2), (2, 3), (3, 4)])
   let r = @alga.reachable(g, 3)
-  assert_eq(r.length(), 2)
+  @test.assert_eq(r.length(), 2)
   assert_true(r.contains(3))
   assert_true(r.contains(4))
   assert_true(!r.contains(1))
@@ -23,14 +23,14 @@ test "reachable from middle" {
 test "reachable diamond" {
   let g = @alga.AdjacencyMap::from_edges([(1, 2), (1, 3), (2, 4), (3, 4)])
   let r = @alga.reachable(g, 1)
-  assert_eq(r.length(), 4)
+  @test.assert_eq(r.length(), 4)
 }
 
 ///|
 test "reachable disconnected" {
   let g = @alga.AdjacencyMap::from_edges([(1, 2), (3, 4)])
   let r = @alga.reachable(g, 1)
-  assert_eq(r.length(), 2)
+  @test.assert_eq(r.length(), 2)
   assert_true(r.contains(1))
   assert_true(r.contains(2))
   assert_true(!r.contains(3))
@@ -40,8 +40,8 @@ test "reachable disconnected" {
 test "reachable single" {
   let g = @alga.AdjacencyMap::vertex(1)
   let r = @alga.reachable(g, 1)
-  assert_eq(r.length(), 1)
-  assert_eq(r[0], 1)
+  @test.assert_eq(r.length(), 1)
+  @test.assert_eq(r[0], 1)
 }
 
 ///|
@@ -56,7 +56,7 @@ test "dfs_fold early termination" {
       (acc + 1, true)
     }
   })
-  assert_eq(count, 2)
+  @test.assert_eq(count, 2)
 }
 
 // --- dfs_fold_multi ---
@@ -75,7 +75,7 @@ test "dfs_fold_multi single start matches dfs_fold" {
     arr.push(v)
     (arr, true)
   })
-  assert_eq(single, multi)
+  @test.assert_eq(single, multi)
 }
 
 ///|
@@ -89,7 +89,7 @@ test "dfs_fold_multi multiple starts" {
     arr.push(v)
     (arr, true)
   })
-  assert_eq(visited.length(), 6)
+  @test.assert_eq(visited.length(), 6)
   assert_true(visited.contains(1))
   assert_true(visited.contains(3))
   assert_true(visited.contains(10))
@@ -108,14 +108,14 @@ test "dfs_fold_multi overlapping reachability" {
     (arr, true)
   })
   // Each vertex appears exactly once
-  assert_eq(visited.length(), 4)
+  @test.assert_eq(visited.length(), 4)
 }
 
 ///|
 test "dfs_fold_multi empty starts" {
   let g = @alga.AdjacencyMap::from_edges([(1, 2), (2, 3)])
   let result = @alga.dfs_fold_multi(g, [], 0, fn(acc, _v) { (acc + 1, true) })
-  assert_eq(result, 0)
+  @test.assert_eq(result, 0)
 }
 
 ///|
@@ -128,7 +128,7 @@ test "dfs_fold_multi invalid starts filtered" {
     arr.push(v)
     (arr, true)
   })
-  assert_eq(visited.length(), 0)
+  @test.assert_eq(visited.length(), 0)
 }
 
 ///|
@@ -141,7 +141,7 @@ test "dfs_fold_multi disconnected components" {
     arr.push(v)
     (arr, true)
   })
-  assert_eq(visited.length(), 4)
+  @test.assert_eq(visited.length(), 4)
   assert_true(visited.contains(1))
   assert_true(visited.contains(2))
   assert_true(visited.contains(3))
@@ -159,7 +159,7 @@ test "dfs_fold_multi DenseGraph genericity" {
     arr.push(v)
     (arr, true)
   })
-  assert_eq(visited.length(), 5)
+  @test.assert_eq(visited.length(), 5)
 }
 
 ///|
@@ -174,7 +174,7 @@ test "dfs_fold_multi early termination" {
       (acc + 1, true)
     }
   })
-  assert_eq(count, 3)
+  @test.assert_eq(count, 3)
 }
 
 // --- reachable_multi ---
@@ -184,14 +184,14 @@ test "reachable_multi single start matches reachable" {
   let g = @alga.AdjacencyMap::from_edges([(1, 2), (2, 3), (3, 4)])
   let single = @alga.reachable(g, 1)
   let multi = @alga.reachable_multi(g, [1])
-  assert_eq(single, multi)
+  @test.assert_eq(single, multi)
 }
 
 ///|
 test "reachable_multi disconnected components" {
   let g = @alga.AdjacencyMap::from_edges([(1, 2), (3, 4)])
   let r = @alga.reachable_multi(g, [1, 3])
-  assert_eq(r.length(), 4)
+  @test.assert_eq(r.length(), 4)
   assert_true(r.contains(1))
   assert_true(r.contains(2))
   assert_true(r.contains(3))
@@ -202,7 +202,7 @@ test "reachable_multi disconnected components" {
 test "reachable_multi empty starts" {
   let g = @alga.AdjacencyMap::from_edges([(1, 2), (2, 3)])
   let r = @alga.reachable_multi(g, [])
-  assert_eq(r.length(), 0)
+  @test.assert_eq(r.length(), 0)
 }
 
 ///|
@@ -210,7 +210,7 @@ test "reachable_multi overlapping" {
   let g = @alga.AdjacencyMap::from_edges([(1, 2), (1, 3), (2, 4), (3, 4)])
   let r = @alga.reachable_multi(g, [1, 2])
   // No duplicates
-  assert_eq(r.length(), 4)
+  @test.assert_eq(r.length(), 4)
 }
 
 // --- dfs_events ---
@@ -219,14 +219,14 @@ test "reachable_multi overlapping" {
 test "dfs_events empty graph" {
   let g = @alga.AdjacencyMap::empty()
   let events = @alga.dfs_events(g).collect()
-  assert_eq(events.length(), 0)
+  @test.assert_eq(events.length(), 0)
 }
 
 ///|
 test "dfs_events single vertex" {
   let g = @alga.AdjacencyMap::vertex(1)
   let events = @alga.dfs_events(g).collect()
-  assert_eq(events.length(), 2)
+  @test.assert_eq(events.length(), 2)
   assert_true(events[0] is @alga.Discover(1))
   assert_true(events[1] is @alga.Finish(1))
 }
@@ -238,7 +238,7 @@ test "dfs_events chain" {
   let events = @alga.dfs_events(g).collect()
   // Expected: Discover(1), TreeEdge(1,2), Discover(2), TreeEdge(2,3),
   //           Discover(3), Finish(3), Finish(2), Finish(1)
-  assert_eq(events.length(), 8)
+  @test.assert_eq(events.length(), 8)
   // Count event types
   let mut discovers = 0
   let mut finishes = 0
@@ -251,9 +251,9 @@ test "dfs_events chain" {
       _ => ()
     }
   }
-  assert_eq(discovers, 3)
-  assert_eq(finishes, 3)
-  assert_eq(tree_edges, 2)
+  @test.assert_eq(discovers, 3)
+  @test.assert_eq(finishes, 3)
+  @test.assert_eq(tree_edges, 2)
 }
 
 ///|
@@ -269,8 +269,8 @@ test "dfs_events back edge (cycle)" {
       _ => ()
     }
   }
-  assert_eq(back_edges.length(), 1)
-  assert_eq(back_edges[0], (3, 1))
+  @test.assert_eq(back_edges.length(), 1)
+  @test.assert_eq(back_edges[0], (3, 1))
 }
 
 ///|
@@ -286,8 +286,8 @@ test "dfs_events cross/forward edge" {
       _ => ()
     }
   }
-  assert_eq(cf_edges.length(), 1)
-  assert_eq(cf_edges[0], (0, 2))
+  @test.assert_eq(cf_edges.length(), 1)
+  @test.assert_eq(cf_edges[0], (0, 2))
 }
 
 ///|
@@ -302,8 +302,8 @@ test "dfs_events self loop" {
       _ => ()
     }
   }
-  assert_eq(back_edges.length(), 1)
-  assert_eq(back_edges[0], (1, 1))
+  @test.assert_eq(back_edges.length(), 1)
+  @test.assert_eq(back_edges[0], (1, 1))
 }
 
 ///|
@@ -321,8 +321,8 @@ test "dfs_events disconnected components" {
     }
   }
   // All 4 vertices discovered and finished
-  assert_eq(discovers, 4)
-  assert_eq(finishes, 4)
+  @test.assert_eq(discovers, 4)
+  @test.assert_eq(finishes, 4)
 }
 
 ///|
@@ -336,7 +336,7 @@ test "dfs_events works on DenseGraph" {
       back_count = back_count + 1
     }
   }
-  assert_eq(back_count, 1)
+  @test.assert_eq(back_count, 1)
 }
 
 ///|
@@ -373,7 +373,7 @@ test "dfs_events total edge count" {
       _ => ()
     }
   }
-  assert_eq(edge_count, 4)
+  @test.assert_eq(edge_count, 4)
 }
 
 // --- reversed ---
@@ -384,23 +384,23 @@ test "reversed successors are predecessors" {
   let g = @alga.AdjacencyMap::from_edges([(0, 1), (1, 2)])
   let rev = @alga.reversed(g)
   // Reversed successors of 2 = predecessors of 2 = [1]
-  assert_eq(@alga.DirectedGraph::successors(rev, 2).collect(), [1])
+  @test.assert_eq(@alga.DirectedGraph::successors(rev, 2).collect(), [1])
   // Reversed successors of 0 = predecessors of 0 = []
-  assert_eq(@alga.DirectedGraph::successors(rev, 0).collect(), [])
+  @test.assert_eq(@alga.DirectedGraph::successors(rev, 0).collect(), [])
 }
 
 ///|
 test "reversed predecessors are successors" {
   let g = @alga.AdjacencyMap::from_edges([(0, 1), (1, 2)])
   let rev = @alga.reversed(g)
-  assert_eq(@alga.Predecessors::predecessors(rev, 0).collect(), [1])
+  @test.assert_eq(@alga.Predecessors::predecessors(rev, 0).collect(), [1])
 }
 
 ///|
 test "reversed vertex count unchanged" {
   let g = @alga.AdjacencyMap::from_edges([(0, 1), (1, 2), (2, 3)])
   let rev = @alga.reversed(g)
-  assert_eq(@alga.DirectedGraph::vertex_count(rev), 4)
+  @test.assert_eq(@alga.DirectedGraph::vertex_count(rev), 4)
 }
 
 ///|
@@ -422,7 +422,7 @@ test "reversed involution" {
     let double = @alga.DirectedGraph::successors(rr, v).collect()
     orig.sort()
     double.sort()
-    assert_eq(orig, double)
+    @test.assert_eq(orig, double)
   }
 }
 
@@ -441,8 +441,8 @@ test "reversed works with dfs_events" {
       _ => ()
     }
   }
-  assert_eq(discovers, 3)
-  assert_eq(finishes, 3)
+  @test.assert_eq(discovers, 3)
+  @test.assert_eq(finishes, 3)
 }
 
 ///|
@@ -451,22 +451,22 @@ test "reversed works with reachable" {
   let g = @alga.AdjacencyMap::from_edges([(0, 1), (1, 2), (2, 3)])
   let rev = @alga.reversed(g)
   let r = @alga.reachable(rev, 3)
-  assert_eq(r.length(), 4)
+  @test.assert_eq(r.length(), 4)
 }
 
 ///|
 test "reversed DenseGraph" {
   let g = @alga.DenseGraph::from_edges(3, [(0, 1), (1, 2)])
   let rev = @alga.reversed(g)
-  assert_eq(@alga.DirectedGraph::successors(rev, 2).collect(), [1])
-  assert_eq(@alga.DirectedGraph::successors(rev, 0).collect(), [])
+  @test.assert_eq(@alga.DirectedGraph::successors(rev, 2).collect(), [1])
+  @test.assert_eq(@alga.DirectedGraph::successors(rev, 0).collect(), [])
 }
 
 ///|
 test "reversed empty graph" {
   let g = @alga.AdjacencyMap::empty()
   let rev = @alga.reversed(g)
-  assert_eq(@alga.dfs_events(rev).collect().length(), 0)
+  @test.assert_eq(@alga.dfs_events(rev).collect().length(), 0)
 }
 
 ///|
@@ -474,16 +474,16 @@ test "reversed self loop" {
   let g = @alga.AdjacencyMap::from_edges([(1, 1)])
   let rev = @alga.reversed(g)
   // Self-loop stays a self-loop when reversed
-  assert_eq(@alga.DirectedGraph::successors(rev, 1).collect(), [1])
+  @test.assert_eq(@alga.DirectedGraph::successors(rev, 1).collect(), [1])
 }
 
 ///|
 test "predecessors on DenseGraph" {
   let g = @alga.DenseGraph::from_edges(3, [(0, 1), (1, 2), (0, 2)])
-  assert_eq(@alga.Predecessors::predecessors(g, 0).collect(), [])
-  assert_eq(@alga.Predecessors::predecessors(g, 1).collect(), [0])
+  @test.assert_eq(@alga.Predecessors::predecessors(g, 0).collect(), [])
+  @test.assert_eq(@alga.Predecessors::predecessors(g, 1).collect(), [0])
   let preds_2 = @alga.Predecessors::predecessors(g, 2).collect()
-  assert_eq(preds_2.length(), 2)
+  @test.assert_eq(preds_2.length(), 2)
   assert_true(preds_2.contains(1))
   assert_true(preds_2.contains(0))
 }
@@ -492,8 +492,8 @@ test "predecessors on DenseGraph" {
 test "DenseGraph transpose regression" {
   let g = @alga.DenseGraph::from_edges(3, [(0, 1), (1, 2)])
   let t = g.transpose()
-  assert_eq(@alga.DirectedGraph::successors(t, 2).collect(), [1])
-  assert_eq(@alga.Predecessors::predecessors(t, 0).collect(), [1])
+  @test.assert_eq(@alga.DirectedGraph::successors(t, 2).collect(), [1])
+  @test.assert_eq(@alga.Predecessors::predecessors(t, 0).collect(), [1])
 }
 
 ///|
@@ -502,7 +502,7 @@ test "reversed works with toposort" {
   let g = @alga.AdjacencyMap::from_edges([(0, 1), (1, 2)])
   let rev_topo = @alga.toposort(@alga.reversed(g))
   match rev_topo {
-    Some(order) => assert_eq(order, [2, 1, 0])
+    Some(order) => @test.assert_eq(order, [2, 1, 0])
     None => assert_true(false)
   }
 }
@@ -514,7 +514,7 @@ test "reversed works with tarjan_scc" {
   let orig_sccs = @alga.tarjan_scc(g)
   let rev_sccs = @alga.tarjan_scc(@alga.reversed(g))
   // Same number of SCCs
-  assert_eq(orig_sccs.length(), rev_sccs.length())
+  @test.assert_eq(orig_sccs.length(), rev_sccs.length())
   // The cyclic SCC {0,1,2} should appear in both (order may differ)
   fn find_scc_containing(sccs : Array[Array[Int]], v : Int) -> Array[Int] {
     for scc in sccs {
@@ -529,7 +529,7 @@ test "reversed works with tarjan_scc" {
   let rev_cycle = find_scc_containing(rev_sccs, 0)
   orig_cycle.sort()
   rev_cycle.sort()
-  assert_eq(orig_cycle, rev_cycle)
+  @test.assert_eq(orig_cycle, rev_cycle)
 }
 
 ///|

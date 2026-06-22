@@ -14,7 +14,7 @@ test "correctness/foldg_iter/vertex_count" {
   ) {
     a + b
   })
-  inspect(count_rec == count_iter, content="true")
+  debug_inspect(count_rec == count_iter, content="true")
 }
 
 ///|
@@ -26,7 +26,7 @@ test "correctness/foldg_iter/empty" {
   ) {
     a + b
   })
-  inspect(count, content="0")
+  debug_inspect(count, content="0")
 }
 
 ///|
@@ -38,7 +38,7 @@ test "correctness/foldg_iter/single_vertex" {
   ) {
     a + b
   })
-  inspect(count, content="1")
+  debug_inspect(count, content="1")
 }
 
 ///|
@@ -60,11 +60,11 @@ test "correctness/foldg_iter/connect_order" {
     fn(a, b) { a.connect(b) },
   )
   // Should have edge 1->2, NOT 2->1
-  inspect(rec_map.has_edge(1, 2), content="true")
-  inspect(rec_map.has_edge(2, 1), content="false")
-  inspect(iter_map.has_edge(1, 2), content="true")
-  inspect(iter_map.has_edge(2, 1), content="false")
-  inspect(rec_map == iter_map, content="true")
+  debug_inspect(rec_map.has_edge(1, 2), content="true")
+  debug_inspect(rec_map.has_edge(2, 1), content="false")
+  debug_inspect(iter_map.has_edge(1, 2), content="true")
+  debug_inspect(iter_map.has_edge(2, 1), content="false")
+  debug_inspect(rec_map == iter_map, content="true")
 }
 
 // === to_adjacency_map_letrec: same result as recursive, no stack overflow ===
@@ -74,7 +74,7 @@ test "correctness/to_adjacency_map_letrec/path" {
   let g = @alga.Graph::path([1, 2, 3, 4, 5])
   let expected = g.to_adjacency_map()
   let actual = to_adjacency_map_letrec(g)
-  inspect(actual == expected, content="true")
+  debug_inspect(actual == expected, content="true")
 }
 
 ///|
@@ -82,7 +82,7 @@ test "correctness/to_adjacency_map_letrec/clique" {
   let g = @alga.Graph::clique([1, 2, 3, 4])
   let expected = g.to_adjacency_map()
   let actual = to_adjacency_map_letrec(g)
-  inspect(actual == expected, content="true")
+  debug_inspect(actual == expected, content="true")
 }
 
 ///|
@@ -90,7 +90,7 @@ test "correctness/to_adjacency_map_letrec/star" {
   let g = @alga.Graph::star(0, [1, 2, 3, 4])
   let expected = g.to_adjacency_map()
   let actual = to_adjacency_map_letrec(g)
-  inspect(actual == expected, content="true")
+  debug_inspect(actual == expected, content="true")
 }
 
 ///|
@@ -98,7 +98,7 @@ test "correctness/to_adjacency_map_letrec/circuit" {
   let g = @alga.Graph::circuit([1, 2, 3])
   let expected = g.to_adjacency_map()
   let actual = to_adjacency_map_letrec(g)
-  inspect(actual == expected, content="true")
+  debug_inspect(actual == expected, content="true")
 }
 
 // === to_adjacency_map: same result as recursive ===
@@ -108,7 +108,7 @@ test "correctness/to_adjacency_map/path" {
   let g = @alga.Graph::path([1, 2, 3, 4, 5])
   let expected = g.to_adjacency_map()
   let actual = g.to_adjacency_map()
-  inspect(actual == expected, content="true")
+  debug_inspect(actual == expected, content="true")
 }
 
 ///|
@@ -116,7 +116,7 @@ test "correctness/to_adjacency_map/clique" {
   let g = @alga.Graph::clique([1, 2, 3, 4])
   let expected = g.to_adjacency_map()
   let actual = g.to_adjacency_map()
-  inspect(actual == expected, content="true")
+  debug_inspect(actual == expected, content="true")
 }
 
 ///|
@@ -124,7 +124,7 @@ test "correctness/to_adjacency_map/star" {
   let g = @alga.Graph::star(0, [1, 2, 3, 4])
   let expected = g.to_adjacency_map()
   let actual = g.to_adjacency_map()
-  inspect(actual == expected, content="true")
+  debug_inspect(actual == expected, content="true")
 }
 
 ///|
@@ -132,7 +132,7 @@ test "correctness/to_adjacency_map/circuit" {
   let g = @alga.Graph::circuit([1, 2, 3])
   let expected = g.to_adjacency_map()
   let actual = g.to_adjacency_map()
-  inspect(actual == expected, content="true")
+  debug_inspect(actual == expected, content="true")
 }
 
 ///|
@@ -140,7 +140,7 @@ test "correctness/to_adjacency_map/empty" {
   let g : @alga.Graph = @alga.Graph::Empty
   let expected = g.to_adjacency_map()
   let actual = g.to_adjacency_map()
-  inspect(actual == expected, content="true")
+  debug_inspect(actual == expected, content="true")
 }
 
 ///|
@@ -149,9 +149,9 @@ test "correctness/to_adjacency_map/isolated_vertices" {
   let g = @alga.Graph::vertices([1, 2, 3])
   let expected = g.to_adjacency_map()
   let actual = g.to_adjacency_map()
-  inspect(actual == expected, content="true")
-  inspect(actual.vertex_count(), content="3")
-  inspect(actual.edge_count(), content="0")
+  debug_inspect(actual == expected, content="true")
+  debug_inspect(actual.vertex_count(), content="3")
+  debug_inspect(actual.edge_count(), content="0")
 }
 
 ///|
@@ -159,7 +159,7 @@ test "correctness/to_adjacency_map/edges" {
   let g = @alga.Graph::edges([(1, 2), (3, 4), (2, 3)])
   let expected = g.to_adjacency_map()
   let actual = g.to_adjacency_map()
-  inspect(actual == expected, content="true")
+  debug_inspect(actual == expected, content="true")
 }
 
 // === Large graph correctness (not just small examples) ===
@@ -169,9 +169,9 @@ test "correctness/to_adjacency_map/large_path" {
   let g = @alga.Graph::path(Array::makei(200, fn(i) { i }))
   let expected = g.to_adjacency_map()
   let actual = g.to_adjacency_map()
-  inspect(actual == expected, content="true")
-  inspect(actual.vertex_count(), content="200")
-  inspect(actual.edge_count(), content="199")
+  debug_inspect(actual == expected, content="true")
+  debug_inspect(actual.vertex_count(), content="200")
+  debug_inspect(actual.edge_count(), content="199")
 }
 
 // === gmap via foldg_iter ===
@@ -188,9 +188,9 @@ test "correctness/foldg_iter/gmap" {
     fn(a, b) { @alga.Graph::Overlay(a, b) },
     fn(a, b) { @alga.Graph::Connect(a, b) },
   ).to_adjacency_map()
-  inspect(rec_result == iter_result, content="true")
-  inspect(rec_result.has_edge(2, 4), content="true")
-  inspect(rec_result.has_edge(4, 6), content="true")
+  debug_inspect(rec_result == iter_result, content="true")
+  debug_inspect(rec_result.has_edge(2, 4), content="true")
+  debug_inspect(rec_result.has_edge(4, 6), content="true")
 }
 
 // === foldg_inner_fn and foldg_letrec produce same results as foldg ===
@@ -207,7 +207,7 @@ test "correctness/foldg_inner_fn/vertex_count" {
   ) {
     a + b
   })
-  inspect(count_rec == count_inner, content="true")
+  debug_inspect(count_rec == count_inner, content="true")
 }
 
 ///|
@@ -222,7 +222,7 @@ test "correctness/foldg_letrec/vertex_count" {
   ) {
     a + b
   })
-  inspect(count_rec == count_letrec, content="true")
+  debug_inspect(count_rec == count_letrec, content="true")
 }
 
 ///|
@@ -234,7 +234,7 @@ test "correctness/foldg_cps/vertex_count" {
   let count_cps = foldg_cps(g, 0, fn(_v) { 1 }, fn(a, b) { a + b }, fn(a, b) {
     a + b
   })
-  inspect(count_rec == count_cps, content="true")
+  debug_inspect(count_rec == count_cps, content="true")
 }
 
 ///|
@@ -242,7 +242,7 @@ test "correctness/to_adjacency_map_cps/path" {
   let g = @alga.Graph::path([1, 2, 3, 4, 5])
   let expected = g.to_adjacency_map()
   let actual = to_adjacency_map_cps(g)
-  inspect(actual == expected, content="true")
+  debug_inspect(actual == expected, content="true")
 }
 
 ///|
@@ -250,7 +250,7 @@ test "correctness/to_adjacency_map_inner_fn/path" {
   let g = @alga.Graph::path([1, 2, 3, 4, 5])
   let expected = g.to_adjacency_map()
   let actual = to_adjacency_map_inner_fn(g)
-  inspect(actual == expected, content="true")
+  debug_inspect(actual == expected, content="true")
 }
 
 ///|
@@ -258,9 +258,9 @@ test "correctness/to_adjacency_map_cps/connect_order" {
   let g = @alga.Graph::Connect(@alga.Graph::Vertex(1), @alga.Graph::Vertex(2))
   let expected = g.to_adjacency_map()
   let actual = to_adjacency_map_cps(g)
-  inspect(actual == expected, content="true")
-  inspect(actual.has_edge(1, 2), content="true")
-  inspect(actual.has_edge(2, 1), content="false")
+  debug_inspect(actual == expected, content="true")
+  debug_inspect(actual.has_edge(1, 2), content="true")
+  debug_inspect(actual.has_edge(2, 1), content="false")
 }
 
 ///|
@@ -268,7 +268,7 @@ test "correctness/to_adjacency_map_inner_fn/connect_order" {
   let g = @alga.Graph::Connect(@alga.Graph::Vertex(1), @alga.Graph::Vertex(2))
   let expected = g.to_adjacency_map()
   let actual = to_adjacency_map_inner_fn(g)
-  inspect(actual == expected, content="true")
-  inspect(actual.has_edge(1, 2), content="true")
-  inspect(actual.has_edge(2, 1), content="false")
+  debug_inspect(actual == expected, content="true")
+  debug_inspect(actual.has_edge(1, 2), content="true")
+  debug_inspect(actual.has_edge(2, 1), content="false")
 }

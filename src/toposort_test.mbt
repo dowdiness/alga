@@ -5,9 +5,9 @@ test "toposort linear" {
   assert_true(result is Some(_))
   match result {
     Some(order) => {
-      assert_eq(order.length(), 4)
+      @test.assert_eq(order.length(), 4)
       // Validate: for every edge (u, v), u appears before v
-      let pos : Map[Int, Int] = Map::new()
+      let pos : Map[Int, Int] = Map([])
       for i = 0; i < order.length(); i = i + 1 {
         pos[order[i]] = i
       }
@@ -35,10 +35,10 @@ test "toposort diamond" {
   assert_true(result is Some(_))
   match result {
     Some(order) => {
-      assert_eq(order.length(), 4)
+      @test.assert_eq(order.length(), 4)
       // 1 must be first, 4 must be last
-      assert_eq(order[0], 1)
-      assert_eq(order[3], 4)
+      @test.assert_eq(order[0], 1)
+      @test.assert_eq(order[3], 4)
     }
     None => assert_true(false)
   }
@@ -64,7 +64,7 @@ test "toposort disconnected" {
   let result = @alga.toposort(g)
   assert_true(result is Some(_))
   match result {
-    Some(order) => assert_eq(order.length(), 4)
+    Some(order) => @test.assert_eq(order.length(), 4)
     None => assert_true(false)
   }
 }
@@ -78,9 +78,9 @@ test "toposort_subset linear middle" {
   let result = @alga.toposort_subset(g, [1, 2, 3])
   match result {
     Some(order) => {
-      assert_eq(order.length(), 3)
+      @test.assert_eq(order.length(), 3)
       // Validate ordering: 1 before 2 before 3
-      let pos : Map[Int, Int] = Map::new()
+      let pos : Map[Int, Int] = Map([])
       for i = 0; i < order.length(); i = i + 1 {
         pos[order[i]] = i
       }
@@ -98,9 +98,9 @@ test "toposort_subset full graph matches toposort" {
   let subset = @alga.toposort_subset(g, [0, 1, 2, 3])
   match (full, subset) {
     (Some(f), Some(s)) => {
-      assert_eq(f.length(), s.length())
+      @test.assert_eq(f.length(), s.length())
       // Both should be valid topological orderings
-      assert_eq(s.length(), 4)
+      @test.assert_eq(s.length(), 4)
     }
     _ => assert_true(false)
   }
@@ -111,7 +111,7 @@ test "toposort_subset empty" {
   let g = @alga.AdjacencyMap::from_edges([(0, 1), (1, 2)])
   let result = @alga.toposort_subset(g, [])
   match result {
-    Some(order) => assert_eq(order.length(), 0)
+    Some(order) => @test.assert_eq(order.length(), 0)
     None => assert_true(false)
   }
 }
@@ -130,7 +130,7 @@ test "toposort_subset disconnected vertices" {
   let g = @alga.AdjacencyMap::from_edges([(0, 1), (2, 3)])
   let result = @alga.toposort_subset(g, [0, 2])
   match result {
-    Some(order) => assert_eq(order.length(), 2)
+    Some(order) => @test.assert_eq(order.length(), 2)
     None => assert_true(false)
   }
 }
@@ -141,8 +141,8 @@ test "toposort_subset single vertex" {
   let result = @alga.toposort_subset(g, [1])
   match result {
     Some(order) => {
-      assert_eq(order.length(), 1)
-      assert_eq(order[0], 1)
+      @test.assert_eq(order.length(), 1)
+      @test.assert_eq(order[0], 1)
     }
     None => assert_true(false)
   }
@@ -156,7 +156,7 @@ test "toposort_subset ignores edges outside subset" {
   let result = @alga.toposort_subset(g, [1, 3])
   match result {
     Some(order) => {
-      assert_eq(order.length(), 2)
+      @test.assert_eq(order.length(), 2)
       // Both 1 and 3 should appear, no ordering required between them
       let has_1 = order.contains(1)
       let has_3 = order.contains(3)
@@ -174,8 +174,8 @@ test "toposort_subset duplicate vertices" {
   let result = @alga.toposort_subset(g, [1, 2, 2, 3, 1])
   match result {
     Some(order) => {
-      assert_eq(order.length(), 3)
-      let pos : Map[Int, Int] = Map::new()
+      @test.assert_eq(order.length(), 3)
+      let pos : Map[Int, Int] = Map([])
       for i = 0; i < order.length(); i = i + 1 {
         pos[order[i]] = i
       }
@@ -192,7 +192,7 @@ test "toposort_subset nonexistent vertex filtered out" {
   let result = @alga.toposort_subset(g, [0, 1, 99])
   match result {
     Some(order) => {
-      assert_eq(order.length(), 2)
+      @test.assert_eq(order.length(), 2)
       assert_true(!order.contains(99))
       assert_true(order.contains(0))
       assert_true(order.contains(1))
@@ -207,7 +207,7 @@ test "toposort_subset invalid vertex on DenseGraph" {
   let result = @alga.toposort_subset(g, [0, 1, 99])
   match result {
     Some(order) => {
-      assert_eq(order.length(), 2)
+      @test.assert_eq(order.length(), 2)
       assert_true(!order.contains(99))
     }
     None => assert_true(false)
@@ -220,7 +220,7 @@ test "toposort_subset negative vertex ID filtered" {
   let result = @alga.toposort_subset(g, [0, -5, 1])
   match result {
     Some(order) => {
-      assert_eq(order.length(), 2)
+      @test.assert_eq(order.length(), 2)
       assert_true(!order.contains(-5))
     }
     None => assert_true(false)
@@ -258,10 +258,10 @@ test "topo_levels linear chain" {
   let result = @alga.topo_levels(g)
   match result {
     Some(levels) => {
-      assert_eq(levels[1], 0)
-      assert_eq(levels[2], 1)
-      assert_eq(levels[3], 2)
-      assert_eq(levels[4], 3)
+      @test.assert_eq(levels[1], 0)
+      @test.assert_eq(levels[2], 1)
+      @test.assert_eq(levels[3], 2)
+      @test.assert_eq(levels[4], 3)
     }
     None => assert_true(false)
   }
@@ -274,10 +274,10 @@ test "topo_levels diamond" {
   let result = @alga.topo_levels(g)
   match result {
     Some(levels) => {
-      assert_eq(levels[1], 0)
-      assert_eq(levels[2], 1)
-      assert_eq(levels[3], 1)
-      assert_eq(levels[4], 2)
+      @test.assert_eq(levels[1], 0)
+      @test.assert_eq(levels[2], 1)
+      @test.assert_eq(levels[3], 1)
+      @test.assert_eq(levels[4], 2)
     }
     None => assert_true(false)
   }
@@ -290,10 +290,10 @@ test "topo_levels multiple sources" {
   let result = @alga.topo_levels(g)
   match result {
     Some(levels) => {
-      assert_eq(levels[1], 0)
-      assert_eq(levels[2], 1)
-      assert_eq(levels[3], 0)
-      assert_eq(levels[4], 1)
+      @test.assert_eq(levels[1], 0)
+      @test.assert_eq(levels[2], 1)
+      @test.assert_eq(levels[3], 0)
+      @test.assert_eq(levels[4], 1)
     }
     None => assert_true(false)
   }
@@ -304,7 +304,7 @@ test "topo_levels single vertex" {
   let g = @alga.AdjacencyMap::vertex(42)
   let result = @alga.topo_levels(g)
   match result {
-    Some(levels) => assert_eq(levels[42], 0)
+    Some(levels) => @test.assert_eq(levels[42], 0)
     None => assert_true(false)
   }
 }
@@ -314,7 +314,7 @@ test "topo_levels empty graph" {
   let g = @alga.AdjacencyMap::empty()
   let result = @alga.topo_levels(g)
   match result {
-    Some(levels) => assert_eq(levels.length(), 0)
+    Some(levels) => @test.assert_eq(levels.length(), 0)
     None => assert_true(false)
   }
 }
@@ -340,10 +340,10 @@ test "topo_levels DenseGraph" {
   let result = @alga.topo_levels(g)
   match result {
     Some(levels) => {
-      assert_eq(levels[0], 0)
-      assert_eq(levels[1], 1)
-      assert_eq(levels[2], 1)
-      assert_eq(levels[3], 2)
+      @test.assert_eq(levels[0], 0)
+      @test.assert_eq(levels[1], 1)
+      @test.assert_eq(levels[2], 1)
+      @test.assert_eq(levels[3], 2)
     }
     None => assert_true(false)
   }
@@ -356,11 +356,11 @@ test "topo_levels wide star" {
   let result = @alga.topo_levels(g)
   match result {
     Some(levels) => {
-      assert_eq(levels[0], 0)
-      assert_eq(levels[1], 1)
-      assert_eq(levels[2], 1)
-      assert_eq(levels[3], 1)
-      assert_eq(levels[4], 1)
+      @test.assert_eq(levels[0], 0)
+      @test.assert_eq(levels[1], 1)
+      @test.assert_eq(levels[2], 1)
+      @test.assert_eq(levels[3], 1)
+      @test.assert_eq(levels[4], 1)
     }
     None => assert_true(false)
   }
@@ -381,11 +381,11 @@ test "topo_levels asymmetric paths (longest wins)" {
   let result = @alga.topo_levels(g)
   match result {
     Some(levels) => {
-      assert_eq(levels[1], 0)
-      assert_eq(levels[2], 1)
-      assert_eq(levels[3], 2)
-      assert_eq(levels[4], 1)
-      assert_eq(levels[5], 3) // longest path: 1→2→3→5, not shortest 1→4→5
+      @test.assert_eq(levels[1], 0)
+      @test.assert_eq(levels[2], 1)
+      @test.assert_eq(levels[3], 2)
+      @test.assert_eq(levels[4], 1)
+      @test.assert_eq(levels[5], 3) // longest path: 1→2→3→5, not shortest 1→4→5
     }
     None => assert_true(false)
   }
@@ -402,8 +402,8 @@ test "find_cycle self-loop" {
   let g = @alga.AdjacencyMap::from_edges([(1, 2), (2, 2)])
   match @alga.find_cycle(g) {
     Some(cycle) => {
-      assert_eq(cycle.length(), 1)
-      assert_eq(cycle[0], 2)
+      @test.assert_eq(cycle.length(), 1)
+      @test.assert_eq(cycle[0], 2)
     }
     None => assert_true(false)
   }
@@ -414,7 +414,7 @@ test "find_cycle triangle" {
   let g = @alga.AdjacencyMap::from_edges([(1, 2), (2, 3), (3, 1)])
   match @alga.find_cycle(g) {
     Some(cycle) => {
-      assert_eq(cycle.length(), 3)
+      @test.assert_eq(cycle.length(), 3)
       // Cycle contains all three vertices in some rotation.
       assert_true(cycle.contains(1))
       assert_true(cycle.contains(2))
@@ -436,7 +436,7 @@ test "find_cycle finds cycle ignoring dag prefix" {
     Some(cycle) => {
       assert_true(cycle.contains(3))
       assert_true(cycle.contains(4))
-      assert_eq(cycle.length(), 2)
+      @test.assert_eq(cycle.length(), 2)
     }
     None => assert_true(false)
   }
@@ -447,9 +447,9 @@ test "toposort_or_cycle ok" {
   let g = @alga.AdjacencyMap::from_edges([(1, 2), (2, 3)])
   match @alga.toposort_or_cycle(g) {
     Ok(order) => {
-      assert_eq(order.length(), 3)
+      @test.assert_eq(order.length(), 3)
       // Verify order is a valid topological order.
-      let pos : Map[Int, Int] = Map::new()
+      let pos : Map[Int, Int] = Map([])
       for i, v in order {
         pos[v] = i
       }
@@ -466,7 +466,7 @@ test "toposort_or_cycle err returns cycle witness" {
   match @alga.toposort_or_cycle(g) {
     Ok(_) => assert_true(false)
     Err(cycle) => {
-      assert_eq(cycle.length(), 3)
+      @test.assert_eq(cycle.length(), 3)
       let first = cycle[0]
       let last = cycle[cycle.length() - 1]
       assert_true(g.has_edge(last, first))

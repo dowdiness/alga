@@ -69,7 +69,7 @@ pub fn[G : DirectedGraph + Predecessors] kosaraju_scc(
   // Pass 1: Forward DFS — record finish order.
   // Stack frames: (vertex, Iter[Int]) — iterator carries successor position,
   // matching tarjan_scc's approach and avoiding temp-array allocation.
-  let visited : Map[Int, Bool] = Map::new()
+  let visited : Map[Int, Bool] = Map([])
   let finish_order : Array[Int] = []
   let frames : Array[(Int, Iter[Int])] = []
   for root in G::iter(graph) {
@@ -97,7 +97,7 @@ pub fn[G : DirectedGraph + Predecessors] kosaraju_scc(
   }
   // Pass 2: Backward DFS in reverse finish order, walking predecessors.
   // Each DFS tree on the reverse graph is one SCC.
-  let visited2 : Map[Int, Bool] = Map::new()
+  let visited2 : Map[Int, Bool] = Map([])
   let components : Array[Array[Int]] = []
   for i in (finish_order.length() - 1)>=..0 {
     let root = finish_order[i]
@@ -167,7 +167,7 @@ pub fn AdjacencyMap::condensation(
 ) -> (AdjacencyMap, Map[Int, Int]) {
   let components = self.scc()
   // Build vertex → component_id mapping
-  let vertex_to_component : Map[Int, Int] = Map::new()
+  let vertex_to_component : Map[Int, Int] = Map([])
   for i, component in components {
     for v in component {
       vertex_to_component[v] = i
@@ -235,7 +235,7 @@ pub fn AdjacencyMap::condensation(
 pub fn[G : DirectedGraph] tarjan_scc(graph : G) -> Array[Array[Int]] {
   // Per-vertex state: (discovery_index, lowlink, on_scc_stack).
   // Merged into one map to avoid 3 separate hash lookups per edge.
-  let state : Map[Int, (Int, Int, Bool)] = Map::new()
+  let state : Map[Int, (Int, Int, Bool)] = Map([])
   let scc_stack : Array[Int] = []
   let result : Array[Array[Int]] = []
   let mut counter = 0

@@ -46,15 +46,15 @@ pub struct AdjacencyMap {
 /// The empty graph: no vertices, no edges.
 /// Identity element for both overlay and connect.
 pub fn AdjacencyMap::empty() -> AdjacencyMap {
-  { adjacency: Map::new(), predecessors: Map::new() }
+  { adjacency: Map([]), predecessors: Map([]) }
 }
 
 ///|
 /// A graph with a single vertex and no edges.
 pub fn AdjacencyMap::vertex(v : Int) -> AdjacencyMap {
-  let m : Map[Int, Array[Int]] = Map::new()
+  let m : Map[Int, Array[Int]] = Map([])
   m[v] = []
-  let r : Map[Int, Array[Int]] = Map::new()
+  let r : Map[Int, Array[Int]] = Map([])
   r[v] = []
   { adjacency: m, predecessors: r }
 }
@@ -63,8 +63,8 @@ pub fn AdjacencyMap::vertex(v : Int) -> AdjacencyMap {
 /// A graph with a single directed edge u -> v.
 /// Both u and v are added as vertices (maintaining the key invariant).
 pub fn AdjacencyMap::edge(u : Int, v : Int) -> AdjacencyMap {
-  let m : Map[Int, Array[Int]] = Map::new()
-  let r : Map[Int, Array[Int]] = Map::new()
+  let m : Map[Int, Array[Int]] = Map([])
+  let r : Map[Int, Array[Int]] = Map([])
   m[u] = [v]
   r[v] = [u]
   if u != v {
@@ -81,9 +81,9 @@ pub fn AdjacencyMap::edge(u : Int, v : Int) -> AdjacencyMap {
 ///
 /// Uses `HashSet` internally for O(1) duplicate edge detection.
 pub fn AdjacencyMap::from_edges(edges : Array[(Int, Int)]) -> AdjacencyMap {
-  let m : Map[Int, Array[Int]] = Map::new()
-  let r : Map[Int, Array[Int]] = Map::new()
-  let seen : Map[Int, @hashset.HashSet[Int]] = Map::new()
+  let m : Map[Int, Array[Int]] = Map([])
+  let r : Map[Int, Array[Int]] = Map([])
+  let seen : Map[Int, @hashset.HashSet[Int]] = Map([])
   for edge in edges {
     let u = edge.0
     let v = edge.1
@@ -100,7 +100,7 @@ pub fn AdjacencyMap::from_edges(edges : Array[(Int, Int)]) -> AdjacencyMap {
           true
         }
       None => {
-        let set : @hashset.HashSet[Int] = @hashset.new()
+        let set : @hashset.HashSet[Int] = @hashset.HashSet([])
         set.add(v)
         seen[u] = set
         m[u] = [v]
@@ -139,12 +139,12 @@ pub fn AdjacencyMap::overlay(
     a : Map[Int, Array[Int]],
     b : Map[Int, Array[Int]],
   ) -> Map[Int, Array[Int]] {
-    let m : Map[Int, Array[Int]] = Map::new()
-    let seen : Map[Int, @hashset.HashSet[Int]] = Map::new()
+    let m : Map[Int, Array[Int]] = Map([])
+    let seen : Map[Int, @hashset.HashSet[Int]] = Map([])
     for k, v in a {
       let arr = v.copy()
       m[k] = arr
-      let set : @hashset.HashSet[Int] = @hashset.new()
+      let set : @hashset.HashSet[Int] = @hashset.HashSet([])
       for elem in arr {
         set.add(elem)
       }
@@ -156,7 +156,7 @@ pub fn AdjacencyMap::overlay(
           let set = match seen.get(k) {
             Some(s) => s
             None => {
-              let s : @hashset.HashSet[Int] = @hashset.new()
+              let s : @hashset.HashSet[Int] = @hashset.HashSet([])
               seen[k] = s
               s
             }
@@ -170,7 +170,7 @@ pub fn AdjacencyMap::overlay(
         }
         None => {
           m[k] = v.copy()
-          let set : @hashset.HashSet[Int] = @hashset.new()
+          let set : @hashset.HashSet[Int] = @hashset.HashSet([])
           for elem in v {
             set.add(elem)
           }
@@ -223,7 +223,7 @@ pub fn AdjacencyMap::connect(
         Some(s) => s
         None => []
       }
-      let set : @hashset.HashSet[Int] = @hashset.new()
+      let set : @hashset.HashSet[Int] = @hashset.HashSet([])
       for elem in current {
         set.add(elem)
       }
@@ -314,8 +314,8 @@ pub fn AdjacencyMap::transpose(self : AdjacencyMap) -> AdjacencyMap {
 /// Remove all self-loops (edges v -> v) from the graph.
 /// Returns a new graph with the same vertex set but no self-loops.
 pub fn AdjacencyMap::remove_self_loops(self : AdjacencyMap) -> AdjacencyMap {
-  let m : Map[Int, Array[Int]] = Map::new()
-  let r : Map[Int, Array[Int]] = Map::new()
+  let m : Map[Int, Array[Int]] = Map([])
+  let r : Map[Int, Array[Int]] = Map([])
   for k, succs in self.adjacency {
     let filtered : Array[Int] = []
     for v in succs {
