@@ -3,7 +3,7 @@
 /// Generates random graph expressions with bounded depth.
 /// Uses small vertex IDs (0..size) to increase chance of structural overlap.
 /// Depth capped at 4 to keep expression trees manageable (max ~16 leaves).
-pub impl @coreqc.Arbitrary for Graph with arbitrary(size, rs) {
+pub impl @coreqc.Arbitrary for Graph with fn arbitrary(size, rs) {
   fn go(depth : Int, rs : @splitmix.RandomState) -> Graph {
     if depth <= 0 {
       // 2/3 Vertex, 1/3 Empty at leaves — biases toward non-trivial graphs
@@ -34,7 +34,7 @@ pub impl @coreqc.Arbitrary for Graph with arbitrary(size, rs) {
 /// 2. Weakened form (Connect→Overlay)
 /// 3. Collapse to Empty
 /// 4. Recursive shrinks inside each child (preserves constructor)
-pub impl @qc.Shrink for Graph with shrink(self) {
+pub impl @qc.Shrink for Graph with fn shrink(self) {
   match self {
     Empty => Iter::empty()
     Vertex(_) => [Empty].iter()
@@ -150,9 +150,9 @@ test "prop: reversed successors match predecessors" {
     fn(g : Graph) -> Bool {
       let am = g.to_adjacency_map()
       let rev = reversed(am)
-      for v in DirectedGraph::iter(am) {
+      for v in VertexSet::iter(am) {
         let preds = Predecessors::predecessors(am, v).collect()
-        let rev_succs = DirectedGraph::successors(rev, v).collect()
+        let rev_succs = Successors::successors(rev, v).collect()
         preds.sort()
         rev_succs.sort()
         if preds != rev_succs {

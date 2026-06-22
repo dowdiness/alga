@@ -1,9 +1,16 @@
 ///|
 /// # Reversed — zero-cost reverse-direction graph view
 ///
-/// Wraps any graph that implements `DirectedGraph + Predecessors` and
-/// swaps the direction of all edge queries. `successors` on the reversed
-/// graph returns `predecessors` on the original, and vice versa.
+/// Wraps any graph and swaps the direction of all edge queries.
+/// `successors` on the reversed graph returns `predecessors` on the
+/// original, and vice versa.
+///
+/// ## Capabilities provided
+///
+/// - `VertexSet for Reversed[G]` when `G : VertexSet`
+/// - `Successors for Reversed[G]` when `G : Predecessors`
+/// - `Predecessors for Reversed[G]` when `G : Successors`
+/// - `DirectedGraph for Reversed[G]` when `G : VertexSet + Predecessors`
 ///
 /// ## Properties
 ///
@@ -22,14 +29,22 @@ pub fn[G] reversed(graph : G) -> Reversed[G] {
 }
 
 ///|
-pub impl[G : DirectedGraph + Predecessors] DirectedGraph for Reversed[G] with iter(
-  self,
-) {
+pub impl[G : VertexSet] VertexSet for Reversed[G] with fn iter(self) {
   G::iter(self.graph)
 }
 
 ///|
-pub impl[G : DirectedGraph + Predecessors] DirectedGraph for Reversed[G] with successors(
+pub impl[G : VertexSet] VertexSet for Reversed[G] with fn has_vertex(self, v) {
+  G::has_vertex(self.graph, v)
+}
+
+///|
+pub impl[G : VertexSet] VertexSet for Reversed[G] with fn vertex_count(self) {
+  G::vertex_count(self.graph)
+}
+
+///|
+pub impl[G : Predecessors] Successors for Reversed[G] with fn successors(
   self,
   v,
 ) {
@@ -37,22 +52,10 @@ pub impl[G : DirectedGraph + Predecessors] DirectedGraph for Reversed[G] with su
 }
 
 ///|
-pub impl[G : DirectedGraph + Predecessors] DirectedGraph for Reversed[G] with has_vertex(
-  self,
-  v,
-) {
-  G::has_vertex(self.graph, v)
-}
+pub impl[G : VertexSet + Predecessors] DirectedGraph for Reversed[G]
 
 ///|
-pub impl[G : DirectedGraph + Predecessors] DirectedGraph for Reversed[G] with vertex_count(
-  self,
-) {
-  G::vertex_count(self.graph)
-}
-
-///|
-pub impl[G : DirectedGraph] Predecessors for Reversed[G] with predecessors(
+pub impl[G : Successors] Predecessors for Reversed[G] with fn predecessors(
   self,
   v,
 ) {

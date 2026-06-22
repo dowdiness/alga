@@ -332,7 +332,7 @@ pub fn Graph::circuit(vs : Array[Int]) -> Graph {
 ///|
 /// Show implementation for Graph.
 /// Format: expression tree structure, e.g. `Overlay(Vertex(1), Connect(Vertex(2), Vertex(3)))`
-pub impl Show for Graph with output(self, logger) {
+pub impl Show for Graph with fn output(self, logger) {
   match self {
     Empty => logger.write_string("Empty")
     Vertex(v) => {
@@ -360,7 +360,7 @@ pub impl Show for Graph with output(self, logger) {
 ///|
 /// Debug implementation for Graph.
 /// Produces structured Repr for inspect/debugging tools.
-pub impl Debug for Graph with to_repr(self) {
+pub impl Debug for Graph with fn to_repr(self) {
   match self {
     Empty => @debug.Repr::ctor("Empty", [])
     Vertex(v) => @debug.Repr::ctor("Vertex", [(None, @debug.to_repr(v))])
@@ -380,21 +380,21 @@ pub impl Debug for Graph with to_repr(self) {
 ///|
 /// Graph also implements GraphSym — it IS the free algebra.
 /// The constructors are the interpretation.
-pub impl GraphSym for Graph with empty() {
+pub impl GraphSym for Graph with fn empty() {
   Empty
 }
 
 ///|
-pub impl GraphSym for Graph with vertex(v) {
+pub impl GraphSym for Graph with fn vertex(v) {
   Vertex(v)
 }
 
 ///|
-pub impl GraphSym for Graph with overlay(a, b) {
+pub impl GraphSym for Graph with fn overlay(a, b) {
   Overlay(a, b)
 }
 
 ///|
-pub impl GraphSym for Graph with connect(a, b) {
+pub impl GraphSym for Graph with fn connect(a, b) {
   Connect(a, b)
 }

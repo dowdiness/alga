@@ -9,7 +9,7 @@ import {
 }
 
 // Values
-pub fn[G : DirectedGraph, Acc] bfs_fold(G, Int, Acc, (Acc, Int) -> (Acc, Bool)) -> Acc
+pub fn[G : Successors, Acc] bfs_fold(G, Int, Acc, (Acc, Int) -> (Acc, Bool)) -> Acc
 
 pub fn[G : DirectedGraph, Acc] bfs_fold_multi(G, Array[Int], Acc, (Acc, Int) -> (Acc, Bool)) -> Acc
 
@@ -19,7 +19,7 @@ pub fn[G : DirectedGraph + Predecessors] check_predecessors_conformance(G) -> Ar
 
 pub fn[G : DirectedGraph] dfs_events(G) -> Iter[DfsEvent]
 
-pub fn[G : DirectedGraph, Acc] dfs_fold(G, Int, Acc, (Acc, Int) -> (Acc, Bool)) -> Acc
+pub fn[G : Successors, Acc] dfs_fold(G, Int, Acc, (Acc, Int) -> (Acc, Bool)) -> Acc
 
 pub fn[G : DirectedGraph, Acc] dfs_fold_multi(G, Array[Int], Acc, (Acc, Int) -> (Acc, Bool)) -> Acc
 
@@ -37,9 +37,9 @@ pub fn[G : DirectedGraph] is_reachable(G, Int, Int) -> Bool
 
 pub fn[G : DirectedGraph + Predecessors] kosaraju_scc(G) -> Array[Array[Int]]
 
-pub fn[G : DirectedGraph] outdegree(G, Int) -> Int
+pub fn[G : Successors] outdegree(G, Int) -> Int
 
-pub fn[G : DirectedGraph] reachable(G, Int) -> Array[Int]
+pub fn[G : Successors] reachable(G, Int) -> Array[Int]
 
 pub fn[G : DirectedGraph] reachable_multi(G, Array[Int]) -> Array[Int]
 
@@ -72,18 +72,18 @@ pub fn AdjacencyMap::edge_list(Self) -> Array[(Int, Int)]
 pub fn AdjacencyMap::empty() -> Self
 pub fn AdjacencyMap::from_edges(Array[(Int, Int)]) -> Self
 pub fn AdjacencyMap::has_edge(Self, Int, Int) -> Bool
-pub fn AdjacencyMap::has_vertex(Self, Int) -> Bool
 pub fn AdjacencyMap::overlay(Self, Self) -> Self
 pub fn AdjacencyMap::remove_self_loops(Self) -> Self
 pub fn AdjacencyMap::scc(Self) -> Array[Array[Int]]
 pub fn AdjacencyMap::successor_list(Self, Int) -> Array[Int]
 pub fn AdjacencyMap::transpose(Self) -> Self
 pub fn AdjacencyMap::vertex(Int) -> Self
-pub fn AdjacencyMap::vertex_count(Self) -> Int
 pub fn AdjacencyMap::vertex_list(Self) -> Array[Int]
 pub impl DirectedGraph for AdjacencyMap
 pub impl GraphSym for AdjacencyMap
 pub impl Predecessors for AdjacencyMap
+pub impl Successors for AdjacencyMap
+pub impl VertexSet for AdjacencyMap
 pub impl Eq for AdjacencyMap
 pub impl Show for AdjacencyMap
 pub impl @debug.Debug for AdjacencyMap
@@ -101,6 +101,8 @@ pub fn DenseGraph::toposort(Self) -> Array[Int]?
 pub fn DenseGraph::transpose(Self) -> Self
 pub impl DirectedGraph for DenseGraph
 pub impl Predecessors for DenseGraph
+pub impl Successors for DenseGraph
+pub impl VertexSet for DenseGraph
 pub impl Show for DenseGraph
 pub impl @debug.Debug for DenseGraph
 
@@ -138,19 +140,15 @@ pub impl @shrink.Shrink for Graph
 pub struct Reversed[G] {
   graph : G
 }
-pub impl[G : DirectedGraph + Predecessors] DirectedGraph for Reversed[G]
-pub impl[G : DirectedGraph] Predecessors for Reversed[G]
+pub impl[G : VertexSet + Predecessors] DirectedGraph for Reversed[G]
+pub impl[G : Successors] Predecessors for Reversed[G]
+pub impl[G : Predecessors] Successors for Reversed[G]
+pub impl[G : VertexSet] VertexSet for Reversed[G]
 
 // Type aliases
 
 // Traits
-pub(open) trait DirectedGraph {
-  fn iter(Self) -> Iter[Int]
-  fn successors(Self, Int) -> Iter[Int]
-  fn each_vertex(Self, (Int) -> Unit) -> Unit = _
-  fn each_successor(Self, Int, (Int) -> Unit) -> Unit = _
-  fn vertex_count(Self) -> Int = _
-  fn has_vertex(Self, Int) -> Bool = _
+pub(open) trait DirectedGraph : VertexSet + Successors {
 }
 
 pub(open) trait GraphSym {
@@ -162,5 +160,19 @@ pub(open) trait GraphSym {
 
 pub(open) trait Predecessors {
   fn predecessors(Self, Int) -> Iter[Int]
+}
+
+pub(open) trait Successors {
+  fn successors(Self, Int) -> Iter[Int]
+  fn[Acc] dfs_fold(Self, Int, Acc, (Acc, Int) -> (Acc, Bool)) -> Acc = _
+  fn[Acc] bfs_fold(Self, Int, Acc, (Acc, Int) -> (Acc, Bool)) -> Acc = _
+  fn each_successor(Self, Int, (Int) -> Unit) -> Unit = _
+}
+
+pub(open) trait VertexSet {
+  fn iter(Self) -> Iter[Int]
+  fn each_vertex(Self, (Int) -> Unit) -> Unit = _
+  fn vertex_count(Self) -> Int = _
+  fn has_vertex(Self, Int) -> Bool = _
 }
 

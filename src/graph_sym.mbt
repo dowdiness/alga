@@ -43,30 +43,30 @@
 /// Andrey Mokhov, "Algebraic Graphs with Class" (Haskell Symposium, 2017)
 /// https://dl.acm.org/doi/10.1145/3122955.3122956
 pub(open) trait GraphSym {
-  empty() -> Self
-  vertex(Int) -> Self
-  overlay(Self, Self) -> Self
-  connect(Self, Self) -> Self
+  fn empty() -> Self
+  fn vertex(Int) -> Self
+  fn overlay(Self, Self) -> Self
+  fn connect(Self, Self) -> Self
 }
 
 ///|
 /// AdjacencyMap implements GraphSym by directly building the adjacency
 /// representation — no intermediate syntax tree needed.
-pub impl GraphSym for AdjacencyMap with empty() {
+pub impl GraphSym for AdjacencyMap with fn empty() {
   AdjacencyMap::empty()
 }
 
 ///|
-pub impl GraphSym for AdjacencyMap with vertex(v) {
+pub impl GraphSym for AdjacencyMap with fn vertex(v) {
   AdjacencyMap::vertex(v)
 }
 
 ///|
-pub impl GraphSym for AdjacencyMap with overlay(a, b) {
+pub impl GraphSym for AdjacencyMap with fn overlay(a, b) {
   a.overlay(b)
 }
 
 ///|
-pub impl GraphSym for AdjacencyMap with connect(a, b) {
+pub impl GraphSym for AdjacencyMap with fn connect(a, b) {
   a.connect(b)
 }

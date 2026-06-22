@@ -333,18 +333,21 @@ priv struct BenchMinimalGraph {
 }
 
 ///|
-impl DirectedGraph for BenchMinimalGraph with iter(self) {
+impl VertexSet for BenchMinimalGraph with fn iter(self) {
   (0).until(self.edges.length())
 }
 
 ///|
-impl DirectedGraph for BenchMinimalGraph with successors(self, v) {
+impl Successors for BenchMinimalGraph with fn successors(self, v) {
   if v >= 0 && v < self.edges.length() {
     self.edges[v].iter()
   } else {
     Iter::empty()
   }
 }
+
+///|
+impl DirectedGraph for BenchMinimalGraph
 
 ///|
 fn build_minimal_chain(n : Int) -> BenchMinimalGraph {
@@ -361,20 +364,20 @@ fn build_minimal_chain(n : Int) -> BenchMinimalGraph {
 ///|
 test "bench/has_vertex/AdjacencyMap_1000" (b : @bench.T) {
   let g = build_chain(1000)
-  b.bench(fn() { b.keep(DirectedGraph::has_vertex(g, 500)) })
+  b.bench(fn() { b.keep(VertexSet::has_vertex(g, 500)) })
 }
 
 ///|
 test "bench/has_vertex/DenseGraph_1000" (b : @bench.T) {
   let am = build_chain(1000)
   let g = DenseGraph::from_adjacency_map(am)
-  b.bench(fn() { b.keep(DirectedGraph::has_vertex(g, 500)) })
+  b.bench(fn() { b.keep(VertexSet::has_vertex(g, 500)) })
 }
 
 ///|
 test "bench/has_vertex/default_1000" (b : @bench.T) {
   let g = build_minimal_chain(1000)
-  b.bench(fn() { b.keep(DirectedGraph::has_vertex(g, 500)) })
+  b.bench(fn() { b.keep(VertexSet::has_vertex(g, 500)) })
 }
 
 ///|
@@ -382,7 +385,7 @@ test "bench/has_vertex/default_1000" (b : @bench.T) {
 /// Compare against AdjacencyMap::vertex_count which is O(1) via Map::length().
 test "bench/vertex_count/default_1000" (b : @bench.T) {
   let g = build_minimal_chain(1000)
-  b.bench(fn() { b.keep(DirectedGraph::vertex_count(g)) })
+  b.bench(fn() { b.keep(VertexSet::vertex_count(g)) })
 }
 
 // --- condensation ---

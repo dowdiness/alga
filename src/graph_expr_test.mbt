@@ -162,7 +162,10 @@ test "Graph Show" {
 ///|
 test "DenseGraph Show" {
   let g = @alga.DenseGraph::from_edges(3, [(0, 1), (0, 2), (1, 2)])
-  debug_inspect(g, content="<DenseGraph: { vertex_count: 3, edges: [(0, 1), (0, 2), (1, 2)] }>")
+  debug_inspect(
+    g,
+    content="<DenseGraph: { vertex_count: 3, edges: [(0, 1), (0, 2), (1, 2)] }>",
+  )
   let empty = @alga.DenseGraph::from_edges(2, [])
   debug_inspect(empty, content="<DenseGraph: { vertex_count: 2, edges: [] }>")
 }

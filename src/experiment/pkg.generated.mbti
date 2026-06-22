@@ -18,13 +18,13 @@ pub fn[G : @alga.DirectedGraph, Acc] bfs_fold_fixedarray(G, Int, Acc, (Acc, Int)
 
 pub fn[G : @alga.DirectedGraph, Acc] bfs_fold_gen(G, Int, Acc, (Acc, Int) -> (Acc, Bool), FixedArray[Int], Int) -> Acc
 
-pub fn[G : @alga.DirectedGraph, Acc] bfs_fold_hashset(G, Int, Acc, (Acc, Int) -> (Acc, Bool)) -> Acc
+pub fn[G : @alga.Successors, Acc] bfs_fold_hashset(G, Int, Acc, (Acc, Int) -> (Acc, Bool)) -> Acc
 
 pub fn[G : @alga.DirectedGraph, Acc] dfs_fold_array(G, Int, Acc, (Acc, Int) -> (Acc, Bool)) -> Acc
 
 pub fn[G : @alga.DirectedGraph, Acc] dfs_fold_fixedarray(G, Int, Acc, (Acc, Int) -> (Acc, Bool)) -> Acc
 
-pub fn[G : @alga.DirectedGraph, Acc] dfs_fold_hashset(G, Int, Acc, (Acc, Int) -> (Acc, Bool)) -> Acc
+pub fn[G : @alga.Successors, Acc] dfs_fold_hashset(G, Int, Acc, (Acc, Int) -> (Acc, Bool)) -> Acc
 
 pub fn[B] foldg_cps(@alga.Graph, B, (Int) -> B, (B, B) -> B, (B, B) -> B) -> B
 
@@ -48,7 +48,7 @@ pub fn[G : @alga.DirectedGraph] reachable_fixedarray(G, Int) -> Array[Int]
 
 pub fn[G : @alga.DirectedGraph] reachable_gen(G, Int, FixedArray[Int], Int) -> Array[Int]
 
-pub fn[G : @alga.DirectedGraph] reachable_hashset(G, Int) -> Array[Int]
+pub fn[G : @alga.Successors] reachable_hashset(G, Int) -> Array[Int]
 
 pub fn reachable_mark_rev(@alga.DenseGraph, Int, FixedArray[Int], Int) -> Array[Int]
 
