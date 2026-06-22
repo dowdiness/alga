@@ -184,5 +184,4 @@ src/
 ├── scc.mbt              # SCC: Kosaraju (AdjacencyMap), Tarjan (generic), condensation
 ├── degree.mbt           # Outdegree, indegree
 ├── benchmark.mbt        # Performance benchmarks
-└── experiment/           # Performance experiments and variants
 ```

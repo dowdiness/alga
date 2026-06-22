@@ -92,10 +92,13 @@ pub struct DenseGraph {
   successors : Array[Array[Int]]
   predecessors : Array[Array[Int]]
 }
+pub fn DenseGraph::dfs_events(Self) -> Iter[DfsEvent]
 pub fn DenseGraph::from_adjacency_map(AdjacencyMap) -> Self
 pub fn DenseGraph::from_edges(Int, Array[(Int, Int)]) -> Self
 pub fn DenseGraph::has_cycle(Self) -> Bool
+pub fn DenseGraph::is_reachable_gen(Self, Int, Int, FixedArray[Int], Int) -> Bool
 pub fn DenseGraph::reachable(Self, Int) -> Array[Int]
+pub fn DenseGraph::reachable_gen(Self, Int, FixedArray[Int], Int) -> Array[Int]
 pub fn DenseGraph::scc(Self) -> Array[Array[Int]]
 pub fn DenseGraph::toposort(Self) -> Array[Int]?
 pub fn DenseGraph::transpose(Self) -> Self
@@ -112,7 +115,7 @@ pub(all) enum DfsEvent {
   TreeEdge(Int, Int)
   BackEdge(Int, Int)
   CrossForwardEdge(Int, Int)
-} derive(Eq)
+} derive(Eq, Debug)
 
 pub(all) enum Graph {
   Empty

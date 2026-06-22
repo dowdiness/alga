@@ -502,6 +502,9 @@ pub fn DenseGraph::is_reachable_gen(
       "DenseGraph::is_reachable_gen: marks.length() = \{marks.length()} < vertex_count = \{n}",
     )
   }
+  guard gen != 0 else {
+    abort("DenseGraph::is_reachable_gen: gen must be ≠ 0")
+  }
   if from < 0 || from >= n {
     return false
   }
@@ -571,6 +574,9 @@ pub fn DenseGraph::reachable_gen(
     abort(
       "DenseGraph::reachable_gen: marks.length() = \{marks.length()} < vertex_count = \{n}",
     )
+  }
+  guard gen != 0 else {
+    abort("DenseGraph::reachable_gen: gen must be ≠ 0")
   }
   if start < 0 || start >= n {
     return []

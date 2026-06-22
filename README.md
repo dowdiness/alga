@@ -178,7 +178,6 @@ src/
   toposort.mbt        Topological sort, topo levels, cycle detection
   scc.mbt             Kosaraju SCC, Tarjan SCC, condensation
   degree.mbt          Indegree, outdegree
-  experiment/         Performance experiments (DenseGraph, visited sets)
 docs/
   philosophy.md       Why algebraic graphs, the axiom system, design principles
   architecture.md     Two-layer design, trait system, algorithm details

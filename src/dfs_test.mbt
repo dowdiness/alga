@@ -754,3 +754,64 @@ test "is_reachable_gen invalid from returns false" {
   @test.assert_eq(dg.is_reachable_gen(-1, 2, marks, 1), false)
   @test.assert_eq(dg.is_reachable_gen(99, 2, marks, 2), false)
 }
+
+///|
+test "dfs_events DenseGraph empty graph" {
+  let g = @alga.DenseGraph::from_edges(0, [])
+  let events = g.dfs_events().collect()
+  @test.assert_eq(events.length(), 0)
+}
+
+///|
+test "dfs_events DenseGraph single vertex" {
+  let g = @alga.DenseGraph::from_edges(1, [])
+  let events = g.dfs_events().collect()
+  @test.assert_eq(events.length(), 2)
+  // Discover(0), Finish(0)
+  @test.assert_eq(events[0], @alga.Discover(0))
+  @test.assert_eq(events[1], @alga.Finish(0))
+}
+
+///|
+test "dfs_events DenseGraph self loop" {
+  let g = @alga.DenseGraph::from_edges(2, [(0, 0)])
+  let events = g.dfs_events().collect()
+  let mut back_edges = 0
+  for e in events.iter() {
+    if e is @alga.BackEdge(_, _) {
+      back_edges = back_edges + 1
+    }
+  }
+  @test.assert_eq(back_edges, 1)
+}
+
+///|
+test "dfs_events DenseGraph cross forward edge" {
+  let g = @alga.DenseGraph::from_edges(3, [(0, 1), (1, 2), (0, 2)])
+  let events = g.dfs_events().collect()
+  let mut cf_edges = 0
+  for e in events.iter() {
+    if e is @alga.CrossForwardEdge(_, _) {
+      cf_edges = cf_edges + 1
+    }
+  }
+  @test.assert_eq(cf_edges, 1)
+}
+
+///|
+test "dfs_events DenseGraph disconnected components" {
+  let g = @alga.DenseGraph::from_edges(4, [(0, 1), (2, 3)])
+  let events = g.dfs_events().collect()
+  let mut discovers = 0
+  let mut finishes = 0
+  for e in events.iter() {
+    if e is @alga.Discover(_) {
+      discovers = discovers + 1
+    }
+    if e is @alga.Finish(_) {
+      finishes = finishes + 1
+    }
+  }
+  @test.assert_eq(discovers, 4)
+  @test.assert_eq(finishes, 4)
+}

@@ -406,37 +406,6 @@ test "bench/condensation/cyclic_1000" (b : @bench.T) {
 // GenCounter microbenchmarks — validate claim vs current production
 // ============================================================
 
-/// GenCounter DFS prototype for benchmarking (not public API).
-fn reachable_gen_proto(
-  graph : DenseGraph,
-  start : Int,
-  marks : FixedArray[Int],
-  gen : Int,
-) -> Array[Int] {
-  let n = graph.successors.length()
-  if start < 0 || start >= n {
-    return []
-  }
-  let stack : Array[Int] = [start]
-  let result : Array[Int] = []
-  while stack.length() > 0 {
-    let v = stack.unsafe_pop()
-    if marks[v] == gen {
-      continue
-    }
-    marks[v] = gen
-    result.push(v)
-    let succs = graph.successors[v]
-    for i in (succs.length() - 1)>=..0 {
-      let w = succs[i]
-      if marks[w] != gen {
-        stack.push(w)
-      }
-    }
-  }
-  result
-}
-
 ///|
 test "bench/reachable/DenseGraph/chain_1000" (b : @bench.T) {
   let am = build_chain(1000)
@@ -472,7 +441,7 @@ test "bench/reachable/DenseGraph_gen/chain_1000" (b : @bench.T) {
         marks[i] = 0
       }
     }
-    b.keep(reachable_gen_proto(g, 0, marks, gen))
+    b.keep(g.reachable_gen(0, marks, gen))
   })
 }
 
@@ -490,7 +459,7 @@ test "bench/reachable/DenseGraph_gen/chain_10000" (b : @bench.T) {
         marks[i] = 0
       }
     }
-    b.keep(reachable_gen_proto(g, 0, marks, gen))
+    b.keep(g.reachable_gen(0, marks, gen))
   })
 }
 
@@ -508,6 +477,6 @@ test "bench/reachable/DenseGraph_gen/diamond_1000" (b : @bench.T) {
         marks[i] = 0
       }
     }
-    b.keep(reachable_gen_proto(g, 0, marks, gen))
+    b.keep(g.reachable_gen(0, marks, gen))
   })
 }
