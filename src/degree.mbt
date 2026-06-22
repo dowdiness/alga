@@ -23,11 +23,12 @@
 ///|
 /// Number of outgoing edges from vertex `v`.
 ///
-/// Returns 0 if `v` is not in the graph or has no successors.
+/// Returns 0 if `v` has no successors (including if `v` is not a vertex
+/// in the graph — `successors` returns `Iter::empty()` for absent vertices).
 /// Self-loops count: if v→v exists, it contributes 1 to outdegree.
 ///
 /// Time: O(degree(v)) — counts via `Iter::count` on successors.
-pub fn[G : DirectedGraph] outdegree(graph : G, v : Int) -> Int {
+pub fn[G : Successors] outdegree(graph : G, v : Int) -> Int {
   G::successors(graph, v).count()
 }
 

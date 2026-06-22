@@ -384,9 +384,9 @@ test "reversed successors are predecessors" {
   let g = @alga.AdjacencyMap::from_edges([(0, 1), (1, 2)])
   let rev = @alga.reversed(g)
   // Reversed successors of 2 = predecessors of 2 = [1]
-  @test.assert_eq(@alga.DirectedGraph::successors(rev, 2).collect(), [1])
+  @test.assert_eq(@alga.Successors::successors(rev, 2).collect(), [1])
   // Reversed successors of 0 = predecessors of 0 = []
-  @test.assert_eq(@alga.DirectedGraph::successors(rev, 0).collect(), [])
+  @test.assert_eq(@alga.Successors::successors(rev, 0).collect(), [])
 }
 
 ///|
@@ -400,16 +400,16 @@ test "reversed predecessors are successors" {
 test "reversed vertex count unchanged" {
   let g = @alga.AdjacencyMap::from_edges([(0, 1), (1, 2), (2, 3)])
   let rev = @alga.reversed(g)
-  @test.assert_eq(@alga.DirectedGraph::vertex_count(rev), 4)
+  @test.assert_eq(@alga.VertexSet::vertex_count(rev), 4)
 }
 
 ///|
 test "reversed has_vertex unchanged" {
   let g = @alga.AdjacencyMap::from_edges([(0, 1)])
   let rev = @alga.reversed(g)
-  assert_true(@alga.DirectedGraph::has_vertex(rev, 0))
-  assert_true(@alga.DirectedGraph::has_vertex(rev, 1))
-  assert_true(!@alga.DirectedGraph::has_vertex(rev, 99))
+  assert_true(@alga.VertexSet::has_vertex(rev, 0))
+  assert_true(@alga.VertexSet::has_vertex(rev, 1))
+  assert_true(!@alga.VertexSet::has_vertex(rev, 99))
 }
 
 ///|
@@ -417,9 +417,9 @@ test "reversed involution" {
   // reversed(reversed(g)) has same successors as g
   let g = @alga.AdjacencyMap::from_edges([(0, 1), (1, 2), (0, 2)])
   let rr = @alga.reversed(@alga.reversed(g))
-  for v in @alga.DirectedGraph::iter(g) {
-    let orig = @alga.DirectedGraph::successors(g, v).collect()
-    let double = @alga.DirectedGraph::successors(rr, v).collect()
+  for v in @alga.VertexSet::iter(g) {
+    let orig = @alga.Successors::successors(g, v).collect()
+    let double = @alga.Successors::successors(rr, v).collect()
     orig.sort()
     double.sort()
     @test.assert_eq(orig, double)
@@ -458,8 +458,8 @@ test "reversed works with reachable" {
 test "reversed DenseGraph" {
   let g = @alga.DenseGraph::from_edges(3, [(0, 1), (1, 2)])
   let rev = @alga.reversed(g)
-  @test.assert_eq(@alga.DirectedGraph::successors(rev, 2).collect(), [1])
-  @test.assert_eq(@alga.DirectedGraph::successors(rev, 0).collect(), [])
+  @test.assert_eq(@alga.Successors::successors(rev, 2).collect(), [1])
+  @test.assert_eq(@alga.Successors::successors(rev, 0).collect(), [])
 }
 
 ///|
@@ -474,7 +474,7 @@ test "reversed self loop" {
   let g = @alga.AdjacencyMap::from_edges([(1, 1)])
   let rev = @alga.reversed(g)
   // Self-loop stays a self-loop when reversed
-  @test.assert_eq(@alga.DirectedGraph::successors(rev, 1).collect(), [1])
+  @test.assert_eq(@alga.Successors::successors(rev, 1).collect(), [1])
 }
 
 ///|
@@ -492,7 +492,7 @@ test "predecessors on DenseGraph" {
 test "DenseGraph transpose regression" {
   let g = @alga.DenseGraph::from_edges(3, [(0, 1), (1, 2)])
   let t = g.transpose()
-  @test.assert_eq(@alga.DirectedGraph::successors(t, 2).collect(), [1])
+  @test.assert_eq(@alga.Successors::successors(t, 2).collect(), [1])
   @test.assert_eq(@alga.Predecessors::predecessors(t, 0).collect(), [1])
 }
 

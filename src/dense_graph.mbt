@@ -103,7 +103,7 @@ pub fn DenseGraph::transpose(self : DenseGraph) -> DenseGraph {
 ///|
 /// Show implementation for DenseGraph.
 /// Format: `DenseGraph(3 vertices, [0 -> [1, 2], 1 -> [2]])`
-pub impl Show for DenseGraph with output(self, logger) {
+pub impl Show for DenseGraph with fn output(self, logger) {
   let n = self.successors.length()
   logger.write_string("DenseGraph(")
   logger.write_string(n.to_string())
@@ -133,7 +133,7 @@ pub impl Show for DenseGraph with output(self, logger) {
 ///|
 /// Debug implementation for DenseGraph.
 /// Produces structured Repr showing vertex count and edges.
-pub impl Debug for DenseGraph with to_repr(self) {
+pub impl Debug for DenseGraph with fn to_repr(self) {
   let fields : Map[String, @debug.Repr] = Map([])
   fields["vertex_count"] = @debug.to_repr(self.successors.length())
   let edges : Array[@debug.Repr] = []
@@ -147,18 +147,18 @@ pub impl Debug for DenseGraph with to_repr(self) {
 }
 
 ///|
-pub impl DirectedGraph for DenseGraph with iter(self) {
+pub impl VertexSet for DenseGraph with fn iter(self) {
   (0).until(self.successors.length())
 }
 
 ///|
 /// O(1) override — array length, bypasses the O(V) default iteration.
-pub impl DirectedGraph for DenseGraph with vertex_count(self) {
+pub impl VertexSet for DenseGraph with fn vertex_count(self) {
   self.successors.length()
 }
 
 ///|
-pub impl DirectedGraph for DenseGraph with successors(self, v) {
+pub impl Successors for DenseGraph with fn successors(self, v) {
   if v >= 0 && v < self.successors.length() {
     self.successors[v].iter()
   } else {
@@ -168,12 +168,82 @@ pub impl DirectedGraph for DenseGraph with successors(self, v) {
 
 ///|
 /// O(1) override — range check on dense 0..n-1 vertex IDs.
-pub impl DirectedGraph for DenseGraph with has_vertex(self, v) {
+pub impl VertexSet for DenseGraph with fn has_vertex(self, v) {
   v >= 0 && v < self.successors.length()
 }
 
 ///|
-pub impl Predecessors for DenseGraph with predecessors(self, v) {
+/// DFS fold with direct array access + `FixedArray[Bool]` visited set.
+/// Eliminates `Map[Int, Bool]` (O(log V) → O(1)) and `each_successor`
+/// callback dispatch (→ direct `Array[Int]` iteration).
+pub impl Successors for DenseGraph with fn dfs_fold(self, start, init, f) {
+  let n = self.successors.length()
+  if start < 0 || start >= n {
+    return init
+  }
+  let visited = FixedArray::make(n, false)
+  let stack : Array[Int] = [start]
+  let mut acc = init
+  while stack.length() > 0 {
+    let v = stack.unsafe_pop()
+    if visited[v] {
+      continue
+    }
+    visited[v] = true
+    let result = f(acc, v)
+    acc = result.0
+    if !result.1 {
+      break
+    }
+    let succs = self.successors[v]
+    for i in (succs.length() - 1)>=..0 {
+      let w = succs[i]
+      if !visited[w] {
+        stack.push(w)
+      }
+    }
+  }
+  acc
+}
+
+///|
+/// BFS fold with direct array access + `FixedArray[Bool]` visited set.
+/// Eliminates `Map[Int, Bool]` (O(log V) → O(1)) and `each_successor`
+/// callback dispatch (→ direct `Array[Int]` iteration).
+pub impl Successors for DenseGraph with fn bfs_fold(self, start, init, f) {
+  let n = self.successors.length()
+  if start < 0 || start >= n {
+    return init
+  }
+  let visited = FixedArray::make(n, false)
+  let queue : Array[Int] = [start]
+  visited[start] = true
+  let mut acc = init
+  let mut head = 0
+  while head < queue.length() {
+    let v = queue[head]
+    head = head + 1
+    let result = f(acc, v)
+    acc = result.0
+    if !result.1 {
+      break
+    }
+    let succs = self.successors[v]
+    for w in succs {
+      if !visited[w] {
+        visited[w] = true
+        queue.push(w)
+      }
+    }
+  }
+  acc
+}
+
+///|
+pub impl DirectedGraph for DenseGraph
+
+///|
+pub impl Predecessors for DenseGraph with fn predecessors(self, v) {
   if v >= 0 && v < self.predecessors.length() {
     self.predecessors[v].iter()
   } else {

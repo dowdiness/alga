@@ -7,18 +7,21 @@ struct ArrayGraph {
 }
 
 ///|
-impl DirectedGraph for ArrayGraph with iter(self) {
+impl VertexSet for ArrayGraph with fn iter(self) {
   (0).until(self.successors.length())
 }
 
 ///|
-impl DirectedGraph for ArrayGraph with successors(self, v) {
+impl Successors for ArrayGraph with fn successors(self, v) {
   if v >= 0 && v < self.successors.length() {
     self.successors[v].iter()
   } else {
     Iter::empty()
   }
 }
+
+///|
+impl DirectedGraph for ArrayGraph
 
 ///|
 test "external impl: reachable" {
@@ -90,22 +93,22 @@ test "default has_vertex works on ArrayGraph" {
   // This exercises the O(V) default from traits.mbt, proving
   // the default impl is dispatched when no override exists.
   let g = ArrayGraph::{ successors: [[1, 2], [2], [3], []] }
-  assert_true(DirectedGraph::has_vertex(g, 0))
-  assert_true(DirectedGraph::has_vertex(g, 3))
-  assert_true(!DirectedGraph::has_vertex(g, 4))
-  assert_true(!DirectedGraph::has_vertex(g, -1))
+  assert_true(VertexSet::has_vertex(g, 0))
+  assert_true(VertexSet::has_vertex(g, 3))
+  assert_true(!VertexSet::has_vertex(g, 4))
+  assert_true(!VertexSet::has_vertex(g, -1))
 }
 
 ///|
 test "has_vertex O(1) override on AdjacencyMap" {
   // AdjacencyMap provides an O(1) override (Map::contains).
-  // Calling through DirectedGraph:: verifies the trait impl is
+  // Calling through VertexSet:: verifies the trait impl is
   // dispatched, not just the standalone AdjacencyMap::has_vertex.
   let g = AdjacencyMap::from_edges([(0, 1), (1, 2)])
-  assert_true(DirectedGraph::has_vertex(g, 0))
-  assert_true(DirectedGraph::has_vertex(g, 2))
-  assert_true(!DirectedGraph::has_vertex(g, 3))
-  assert_true(!DirectedGraph::has_vertex(g, -1))
+  assert_true(VertexSet::has_vertex(g, 0))
+  assert_true(VertexSet::has_vertex(g, 2))
+  assert_true(!VertexSet::has_vertex(g, 3))
+  assert_true(!VertexSet::has_vertex(g, -1))
 }
 
 ///|
@@ -114,8 +117,8 @@ test "has_vertex O(1) override on DenseGraph" {
   // Vertex 3 is out of range for a 3-vertex graph (valid: 0, 1, 2).
   // Negative IDs are always invalid.
   let g = DenseGraph::from_edges(3, [(0, 1), (1, 2)])
-  assert_true(DirectedGraph::has_vertex(g, 0))
-  assert_true(DirectedGraph::has_vertex(g, 2))
-  assert_true(!DirectedGraph::has_vertex(g, 3))
-  assert_true(!DirectedGraph::has_vertex(g, -1))
+  assert_true(VertexSet::has_vertex(g, 0))
+  assert_true(VertexSet::has_vertex(g, 2))
+  assert_true(!VertexSet::has_vertex(g, 3))
+  assert_true(!VertexSet::has_vertex(g, -1))
 }

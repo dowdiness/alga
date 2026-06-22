@@ -32,33 +32,13 @@
 /// before any vertex at distance d+1.
 ///
 /// Time: O(V + E) where V and E are the reachable vertices and edges.
-pub fn[G : DirectedGraph, Acc] bfs_fold(
+pub fn[G : Successors, Acc] bfs_fold(
   graph : G,
   start : Int,
   init : Acc,
   f : (Acc, Int) -> (Acc, Bool),
 ) -> Acc {
-  let visited : Map[Int, Bool] = Map([])
-  let queue : Array[Int] = [start]
-  visited[start] = true
-  let mut acc = init
-  let mut head = 0
-  while head < queue.length() {
-    let v = queue[head]
-    head = head + 1
-    let result = f(acc, v)
-    acc = result.0
-    if !result.1 {
-      break
-    }
-    G::each_successor(graph, v, fn(w) {
-      if visited.get(w) != Some(true) {
-        visited[w] = true
-        queue.push(w)
-      }
-    })
-  }
-  acc
+  graph.bfs_fold(start, init, f)
 }
 
 ///|

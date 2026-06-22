@@ -274,21 +274,11 @@ pub fn AdjacencyMap::successor_list(self : AdjacencyMap, v : Int) -> Array[Int] 
 }
 
 ///|
-pub fn AdjacencyMap::has_vertex(self : AdjacencyMap, v : Int) -> Bool {
-  self.adjacency.contains(v)
-}
-
-///|
 pub fn AdjacencyMap::has_edge(self : AdjacencyMap, u : Int, v : Int) -> Bool {
   match self.adjacency.get(u) {
     Some(s) => s.contains(v)
     None => false
   }
-}
-
-///|
-pub fn AdjacencyMap::vertex_count(self : AdjacencyMap) -> Int {
-  self.adjacency.length()
 }
 
 ///|
@@ -340,7 +330,7 @@ pub fn AdjacencyMap::remove_self_loops(self : AdjacencyMap) -> AdjacencyMap {
 ///|
 /// Show implementation for AdjacencyMap.
 /// Format: `AdjacencyMap({1: [2, 3], 2: []})`
-pub impl Show for AdjacencyMap with output(self, logger) {
+pub impl Show for AdjacencyMap with fn output(self, logger) {
   logger.write_string("AdjacencyMap({")
   let keys : Array[Int] = []
   for k, _ in self.adjacency {
@@ -373,7 +363,7 @@ pub impl Show for AdjacencyMap with output(self, logger) {
 ///|
 /// Debug implementation for AdjacencyMap.
 /// Produces structured Repr for inspect/debugging tools.
-pub impl Debug for AdjacencyMap with to_repr(self) {
+pub impl Debug for AdjacencyMap with fn to_repr(self) {
   let entries : Array[(@debug.Repr, @debug.Repr)] = []
   let keys : Array[Int] = []
   for k, _ in self.adjacency {
@@ -403,7 +393,7 @@ pub impl Debug for AdjacencyMap with to_repr(self) {
 /// Successor arrays are sorted before comparison since order may differ.
 // Only compares adjacency (forward edges). The predecessors map is derived —
 // if forward edges are equal, predecessors must be too (given correct construction).
-pub impl Eq for AdjacencyMap with equal(self, other) -> Bool {
+pub impl Eq for AdjacencyMap with fn equal(self, other) -> Bool {
   fn maps_equal(a : Map[Int, Array[Int]], b : Map[Int, Array[Int]]) -> Bool {
     if a.length() != b.length() {
       return false
@@ -435,17 +425,17 @@ pub impl Eq for AdjacencyMap with equal(self, other) -> Bool {
 
 ///|
 /// DirectedGraph trait implementation — delegates to the adjacency map.
-pub impl DirectedGraph for AdjacencyMap with vertex_count(self) {
+pub impl VertexSet for AdjacencyMap with fn vertex_count(self) {
   self.adjacency.length()
 }
 
 ///|
-pub impl DirectedGraph for AdjacencyMap with iter(self) {
+pub impl VertexSet for AdjacencyMap with fn iter(self) {
   self.adjacency.iter().map(fn(pair) { pair.0 })
 }
 
 ///|
-pub impl DirectedGraph for AdjacencyMap with successors(self, v) {
+pub impl Successors for AdjacencyMap with fn successors(self, v) {
   match self.adjacency.get(v) {
     Some(s) => s.iter()
     None => Iter::empty()
@@ -454,12 +444,15 @@ pub impl DirectedGraph for AdjacencyMap with successors(self, v) {
 
 ///|
 /// O(1) override — Map key lookup, bypasses the O(V) default scan.
-pub impl DirectedGraph for AdjacencyMap with has_vertex(self, v) {
+pub impl VertexSet for AdjacencyMap with fn has_vertex(self, v) {
   self.adjacency.contains(v)
 }
 
 ///|
-pub impl Predecessors for AdjacencyMap with predecessors(self, v) {
+pub impl DirectedGraph for AdjacencyMap
+
+///|
+pub impl Predecessors for AdjacencyMap with fn predecessors(self, v) {
   match self.predecessors.get(v) {
     Some(s) => s.iter()
     None => Iter::empty()

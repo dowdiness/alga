@@ -29,7 +29,7 @@ pub fn reachable_callback_no_temp(
     }
     visited[v] = gen
     result.push(v)
-    @alga.DirectedGraph::each_successor(graph, v, fn(w) {
+    @alga.Successors::each_successor(graph, v, fn(w) {
       if visited[w] != gen {
         stack.push(w)
       }
@@ -84,7 +84,7 @@ pub fn reachable_mark_rev(
     visited[v] = gen
     result.push(v)
     let mark = stack.length()
-    @alga.DirectedGraph::each_successor(graph, v, fn(w) {
+    @alga.Successors::each_successor(graph, v, fn(w) {
       if visited[w] != gen {
         stack.push(w)
       }
@@ -123,7 +123,7 @@ pub fn reachable_reuse_buf(
     while succs.length() > 0 {
       let _ = succs.unsafe_pop()
     }
-    @alga.DirectedGraph::each_successor(graph, v, fn(w) {
+    @alga.Successors::each_successor(graph, v, fn(w) {
       if visited[w] != gen {
         succs.push(w)
       }

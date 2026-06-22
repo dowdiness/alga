@@ -34,50 +34,18 @@
 /// When `should_continue` is `false`, traversal halts immediately.
 ///
 /// Time: O(V + E) where V and E are the reachable vertices and edges.
-pub fn[G : DirectedGraph, Acc] dfs_fold(
+pub fn[G : Successors, Acc] dfs_fold(
   graph : G,
   start : Int,
   init : Acc,
   f : (Acc, Int) -> (Acc, Bool),
 ) -> Acc {
-  let visited : Map[Int, Bool] = Map([])
-  let stack : Array[Int] = [start]
-  let mut acc = init
-  while stack.length() > 0 {
-    let v = stack.unsafe_pop()
-    if visited.get(v) == Some(true) {
-      continue
-    }
-    visited[v] = true
-    let result = f(acc, v)
-    acc = result.0
-    if !result.1 {
-      break
-    }
-    // Push successors directly, then reverse in place so first successor
-    // is on top of the stack. Avoids per-vertex temporary array allocation.
-    let mark = stack.length()
-    G::each_successor(graph, v, fn(w) {
-      if visited.get(w) != Some(true) {
-        stack.push(w)
-      }
-    })
-    let mut lo = mark
-    let mut hi = stack.length() - 1
-    while lo < hi {
-      let tmp = stack[lo]
-      stack[lo] = stack[hi]
-      stack[hi] = tmp
-      lo = lo + 1
-      hi = hi - 1
-    }
-  }
-  acc
+  graph.dfs_fold(start, init, f)
 }
 
 ///|
 /// All vertices reachable from `start`, in DFS pre-order.
-pub fn[G : DirectedGraph] reachable(graph : G, start : Int) -> Array[Int] {
+pub fn[G : Successors] reachable(graph : G, start : Int) -> Array[Int] {
   dfs_fold(graph, start, [], fn(arr, v) {
     arr.push(v)
     (arr, true)
@@ -173,14 +141,12 @@ pub fn[G : DirectedGraph, Acc] dfs_fold_multi(
   // so the main loop's visited-check + fold runs normally for each seed.
   // After seeding, clear visited so the main loop starts fresh.
   let seen : @hashset.HashSet[Int] = @hashset.HashSet([])
-  let mut i = starts.length() - 1
-  while i >= 0 {
+  for i in (starts.length() - 1)>=..0 {
     let s = starts[i]
     if !seen.contains(s) && G::has_vertex(graph, s) {
       seen.add(s)
       stack.push(s)
     }
-    i = i - 1
   }
   let mut acc = init
   while stack.length() > 0 {
