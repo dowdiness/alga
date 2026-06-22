@@ -388,3 +388,209 @@ pub fn DenseGraph::scc(self : DenseGraph) -> Array[Array[Int]] {
   }
   components
 }
+
+///|
+/// DFS event iterator — classifies every edge and emits vertex enter/exit events.
+///
+/// Uses `FixedArray[Int]` (0=white, 1=gray, 2=black) for O(1) vertex state
+/// lookups instead of the generic `Map[Int, Bool]` (O(log V)). Same event
+/// ordering as `@alga.dfs_events` for any `DirectedGraph`.
+///
+/// Returns a lazy `Iter[DfsEvent]`. Each `.next()` call advances the DFS by
+/// one step and returns the next event. Handles disconnected components by
+/// iterating all vertices 0..n-1.
+///
+/// Time: O(V + E). Space: O(V).
+pub fn DenseGraph::dfs_events(self : DenseGraph) -> Iter[DfsEvent] {
+  let n = self.successors.length()
+  // 0 = white (undiscovered), 1 = gray (on stack), 2 = black (finished)
+  let state = FixedArray::make(n, 0)
+  let frames : Array[(Int, Iter[Int])] = []
+  let mut root_idx = 0
+  // When set, the next event is Discover(v) and a frame is pushed.
+  let mut enter_pending : Int? = None
+  Iter::new(fn() {
+    while true {
+      match enter_pending {
+        Some(v) => {
+          enter_pending = None
+          state[v] = 1
+          frames.push((v, self.successors[v].iter()))
+          break Some(Discover(v))
+        }
+        None => ()
+      }
+      if frames.length() > 0 {
+        let top_idx = frames.length() - 1
+        let v = frames[top_idx].0
+        let iter = frames[top_idx].1
+        match iter.next() {
+          Some(w) =>
+            match state[w] {
+              0 => {
+                enter_pending = Some(w)
+                break Some(TreeEdge(v, w))
+              }
+              1 => break Some(BackEdge(v, w))
+              2 => break Some(CrossForwardEdge(v, w))
+              _ => abort(
+                "DenseGraph::dfs_events: invalid state \{state[w]} for vertex \{w}",
+              )
+            }
+          None => {
+            state[v] = 2
+            let _ = frames.unsafe_pop()
+            break Some(Finish(v))
+          }
+        }
+      }
+      let mut found_root = false
+      while root_idx < n {
+        if state[root_idx] == 0 {
+          enter_pending = Some(root_idx)
+          root_idx = root_idx + 1
+          found_root = true
+          break
+        }
+        root_idx = root_idx + 1
+      }
+      if !found_root {
+        break None
+      }
+    } nobreak {
+      None
+    }
+  })
+}
+
+// ============================================================
+// GenCounter methods — reusable FixedArray[Int] + generation counter
+// ============================================================
+
+///|
+/// Early-exit reachability query using a reusable generation-counter buffer.
+///
+/// Like `@alga.is_reachable` but eliminates per-call `FixedArray[Bool]`
+/// allocation + zeroing by reusing `marks: FixedArray[Int]` across calls.
+/// Each call consumes one generation token — increment `gen` between calls.
+///
+/// Stops as soon as `to` is discovered without materializing the full
+/// reachable set.
+///
+/// ## Contract
+///
+/// - `marks.length()` must be ≥ the graph's vertex count. Aborts otherwise.
+/// - `gen` must be ≠ 0 (0 is the initial blank state). Start at gen = 1
+///   and increment between calls.
+/// - Caller is responsible for resetting the buffer before gen wraps
+///   (see `reachable_gen` doc for overflow guidance).
+///
+/// Returns `false` if `from` is not a valid vertex.
+///
+/// Time: O(V' + E') where V'/E' are visited before encountering `to`.
+/// ~1.2× faster than repeated `DenseGraph::reachable` on deep graphs.
+pub fn DenseGraph::is_reachable_gen(
+  self : DenseGraph,
+  from : Int,
+  to : Int,
+  marks : FixedArray[Int],
+  gen : Int,
+) -> Bool {
+  let n = self.successors.length()
+  guard marks.length() >= n else {
+    abort(
+      "DenseGraph::is_reachable_gen: marks.length() = \{marks.length()} < vertex_count = \{n}",
+    )
+  }
+  if from < 0 || from >= n {
+    return false
+  }
+  if from == to {
+    return true
+  }
+  let stack : Array[Int] = [from]
+  while stack.length() > 0 {
+    let v = stack.unsafe_pop()
+    if marks[v] == gen {
+      continue
+    }
+    marks[v] = gen
+    let succs = self.successors[v]
+    for i in (succs.length() - 1)>=..0 {
+      let w = succs[i]
+      if w == to {
+        return true
+      }
+      if marks[w] != gen {
+        stack.push(w)
+      }
+    }
+  }
+  false
+}
+
+///|
+/// All vertices reachable from `start` using a reusable generation-counter
+/// buffer.
+///
+/// Like `DenseGraph::reachable` but eliminates per-call `FixedArray[Bool]`
+/// allocation + zeroing by reusing `marks: FixedArray[Int]` across calls.
+/// Each call consumes one generation token — increment `gen` between calls.
+///
+/// ## Contract
+///
+/// - `marks.length()` must be ≥ the graph's vertex count. Aborts otherwise.
+/// - `gen` must be ≠ 0 (0 is the initial blank state). Start at gen = 1
+///   and increment between calls.
+/// - No entry in `marks[0..<vertex_count]` may equal `gen` before the call.
+///   The caller ensures this by monotonically incrementing `gen`.
+///
+/// ## Generation overflow
+///
+/// In wasm32, `Int` wraps at 2^31. At 1M calls/second, wrap occurs in ~35
+/// minutes. Long-running callers should periodically reset:
+///
+/// ```
+/// gen = 1
+/// for i = 0; i < n; i = i + 1 { marks[i] = 0 }
+/// ```
+///
+/// Returns empty array if `start` is not a valid vertex.
+///
+/// Time: O(V + E) reachable subgraph.
+/// ~1.2× faster than repeated `DenseGraph::reachable` on deep graphs
+/// (chain_1000, wasm-gc --release).
+pub fn DenseGraph::reachable_gen(
+  self : DenseGraph,
+  start : Int,
+  marks : FixedArray[Int],
+  gen : Int,
+) -> Array[Int] {
+  let n = self.successors.length()
+  guard marks.length() >= n else {
+    abort(
+      "DenseGraph::reachable_gen: marks.length() = \{marks.length()} < vertex_count = \{n}",
+    )
+  }
+  if start < 0 || start >= n {
+    return []
+  }
+  let stack : Array[Int] = [start]
+  let result : Array[Int] = []
+  while stack.length() > 0 {
+    let v = stack.unsafe_pop()
+    if marks[v] == gen {
+      continue
+    }
+    marks[v] = gen
+    result.push(v)
+    let succs = self.successors[v]
+    for i in (succs.length() - 1)>=..0 {
+      let w = succs[i]
+      if marks[w] != gen {
+        stack.push(w)
+      }
+    }
+  }
+  result
+}

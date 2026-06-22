@@ -222,7 +222,42 @@ pub(all) enum DfsEvent {
   BackEdge(Int, Int)
   /// (u, v): v is black (already finished). Merged forward + cross edges.
   CrossForwardEdge(Int, Int)
-} derive(Eq)
+} derive(Eq, Debug)
+
+// ============================================================
+// Test helpers — used by dfs_test.mbt and graph_expr_qc.mbt
+// ============================================================
+
+///|
+/// Count DFS events matching a predicate.
+pub fn count_events(events : Array[DfsEvent], pred : (DfsEvent) -> Bool) -> Int {
+  let mut n = 0
+  for e in events.iter() {
+    if pred(e) {
+      n = n + 1
+    }
+  }
+  n
+}
+
+///|
+/// Collect edge events matching a predicate as (u, v) pairs.
+pub fn collect_edge_pairs(
+  events : Array[DfsEvent],
+  pred : (DfsEvent) -> Bool,
+) -> Array[(Int, Int)] {
+  let result : Array[(Int, Int)] = []
+  for e in events.iter() {
+    match e {
+      TreeEdge(u, v) | BackEdge(u, v) | CrossForwardEdge(u, v) =>
+        if pred(e) {
+          result.push((u, v))
+        }
+      _ => ()
+    }
+  }
+  result
+}
 
 ///|
 /// DFS event iterator — classifies every edge and emits vertex enter/exit events.

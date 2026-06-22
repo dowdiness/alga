@@ -620,3 +620,137 @@ test "would_create_cycle endpoints missing" {
   assert_true(!@alga.would_create_cycle(g, 1, 2))
   assert_true(@alga.would_create_cycle(g, 7, 7))
 }
+
+// ============================================================
+// DenseGraph dfs_events specialized
+// ============================================================
+
+///|
+test "dfs_events DenseGraph specialized matches generic" {
+  let g = @alga.DenseGraph::from_edges(5, [(0, 1), (1, 2), (2, 0), (3, 4)])
+  let generic = @alga.dfs_events(g).collect()
+  let specialized = g.dfs_events().collect()
+  @test.assert_eq(generic.length(), specialized.length())
+  for i, expected in generic {
+    @test.assert_eq(expected, specialized[i])
+  }
+}
+
+///|
+test "dfs_events DenseGraph chain" {
+  let g = @alga.DenseGraph::from_edges(4, [(0, 1), (1, 2), (2, 3)])
+  let events = g.dfs_events().collect()
+  @test.assert_eq(events.length(), 11)
+  let mut discover_count = 0
+  let mut finish_count = 0
+  for e in events.iter() {
+    if e is @alga.Discover(_) {
+      discover_count = discover_count + 1
+    }
+    if e is @alga.Finish(_) {
+      finish_count = finish_count + 1
+    }
+  }
+  @test.assert_eq(discover_count, 4)
+  @test.assert_eq(finish_count, 4)
+}
+
+// ============================================================
+// DenseGraph GenCounter methods
+// ============================================================
+
+///|
+test "reachable_gen matches reachable on chain" {
+  let dg = @alga.DenseGraph::from_edges(4, [(0, 1), (1, 2), (2, 3)])
+  let expected = dg.reachable(0)
+  let marks = FixedArray::make(4, 0)
+  let actual = dg.reachable_gen(0, marks, 1)
+  @test.assert_eq(expected, actual)
+}
+
+///|
+test "reachable_gen matches reachable on cycle" {
+  let dg = @alga.DenseGraph::from_edges(4, [(0, 1), (1, 2), (2, 3), (3, 0)])
+  let expected = dg.reachable(0)
+  let marks = FixedArray::make(4, 0)
+  let actual = dg.reachable_gen(0, marks, 1)
+  @test.assert_eq(expected, actual)
+}
+
+///|
+test "reachable_gen matches reachable on diamond" {
+  let dg = @alga.DenseGraph::from_edges(5, [(0, 1), (0, 2), (1, 3), (2, 3), (3, 4)])
+  let expected = dg.reachable(0)
+  let marks = FixedArray::make(5, 0)
+  let actual = dg.reachable_gen(0, marks, 1)
+  @test.assert_eq(expected, actual)
+}
+
+///|
+test "reachable_gen gen reuse across multiple calls" {
+  let dg = @alga.DenseGraph::from_edges(5, [(0, 1), (1, 2), (3, 4)])
+  let marks = FixedArray::make(5, 0)
+  let r1 = dg.reachable_gen(0, marks, 1)
+  @test.assert_eq(r1, dg.reachable(0))
+  let r2 = dg.reachable_gen(3, marks, 2)
+  @test.assert_eq(r2, dg.reachable(3))
+  let r3 = dg.reachable_gen(0, marks, 3)
+  @test.assert_eq(r3, dg.reachable(0))
+}
+
+///|
+test "is_reachable_gen matches is_reachable on chain" {
+  let dg = @alga.DenseGraph::from_edges(4, [(0, 1), (1, 2), (2, 3)])
+  let marks = FixedArray::make(4, 0)
+  @test.assert_eq(dg.is_reachable_gen(0, 3, marks, 1), @alga.is_reachable(dg, 0, 3))
+  @test.assert_eq(dg.is_reachable_gen(0, 0, marks, 2), @alga.is_reachable(dg, 0, 0))
+  @test.assert_eq(dg.is_reachable_gen(3, 0, marks, 3), @alga.is_reachable(dg, 3, 0))
+}
+
+///|
+test "is_reachable_gen early exit — stops at target" {
+  let dg = @alga.DenseGraph::from_edges(5, [(0, 1), (1, 2), (2, 3), (3, 4)])
+  let marks = FixedArray::make(5, 0)
+  @test.assert_eq(dg.is_reachable_gen(0, 2, marks, 1), true)
+  @test.assert_eq(marks[3], 0)
+  @test.assert_eq(marks[4], 0)
+}
+
+///|
+test "is_reachable_gen gen reuse across calls" {
+  let dg = @alga.DenseGraph::from_edges(5, [(0, 1), (1, 2), (3, 4)])
+  let marks = FixedArray::make(5, 0)
+  @test.assert_eq(dg.is_reachable_gen(0, 2, marks, 1), true)
+  @test.assert_eq(dg.is_reachable_gen(3, 4, marks, 2), true)
+  @test.assert_eq(dg.is_reachable_gen(3, 0, marks, 3), false)
+}
+
+///|
+test "reachable_gen and is_reachable_gen mixed calls" {
+  let dg = @alga.DenseGraph::from_edges(5, [(0, 1), (1, 2), (3, 4)])
+  let marks = FixedArray::make(5, 0)
+  let r1 = dg.reachable_gen(0, marks, 1)
+  @test.assert_eq(r1.length(), 3)
+  @test.assert_eq(dg.is_reachable_gen(3, 4, marks, 2), true)
+  let r3 = dg.reachable_gen(0, marks, 3)
+  @test.assert_eq(r3.length(), 3)
+  @test.assert_eq(dg.is_reachable_gen(0, 3, marks, 4), false)
+}
+
+///|
+test "reachable_gen invalid start returns empty" {
+  let dg = @alga.DenseGraph::from_edges(3, [(0, 1), (1, 2)])
+  let marks = FixedArray::make(3, 0)
+  let r = dg.reachable_gen(-1, marks, 1)
+  @test.assert_eq(r, [])
+  let r2 = dg.reachable_gen(99, marks, 2)
+  @test.assert_eq(r2, [])
+}
+
+///|
+test "is_reachable_gen invalid from returns false" {
+  let dg = @alga.DenseGraph::from_edges(3, [(0, 1), (1, 2)])
+  let marks = FixedArray::make(3, 0)
+  @test.assert_eq(dg.is_reachable_gen(-1, 2, marks, 1), false)
+  @test.assert_eq(dg.is_reachable_gen(99, 2, marks, 2), false)
+}
