@@ -23,7 +23,7 @@ Active backlog for alga. Each item links to its source; non-trivial items should
 - **Split DirectedGraph into VertexSet + Successors** — Traits split; all impls updated.
 - **DenseGraph::dfs_events** — Specialized DFS event iterator using `FixedArray[Int]`.
 - **GenCounter for visited sets** — `DenseGraph::reachable_gen` + `DenseGraph::is_reachable_gen`. Plan: [2026-06-22-gencounter-densegraph.md](plans/2026-06-22-gencounter-densegraph.md).
-- **DFS event test helpers** — `count_events` and `collect_edge_pairs` in `dfs.mbt`.
+- **DFS event test helpers** — `count_events` and `collect_edge_pairs` in `dfs.mbt`. Removed (zero callers); will be re-added when test refactoring lands.
 
 ## Won't Do
 

@@ -17,9 +17,9 @@ Keep `pub(all)`. Treat the linter hint as a false positive for this type.
 
 From `src/graph_expr.mbt:1–48`: Graph preserves the construction history precisely so that external code can fold it into any target algebra (AdjacencyMap, vertex count, edge list, visualization, custom IR…). That requires downstream packages to both construct values with bare constructors and pattern-match on them exhaustively. Both need `pub(all)`.
 
-**2. A cross-package consumer already proves the need.**
+**2. A cross-package consumer already proves the need (and the experiment package confirms it).**
 
-`src/experiment/foldg_variants.mbt:21–24, 48–51, 74–78` pattern-matches on `@alga.Graph::Empty | Vertex | Overlay | Connect` from a separate package, and `src/experiment/foldg_variants_test.mbt` constructs values with `@alga.Graph::Vertex(42)` etc. Narrowing to `pub` would break both. The analyzer's "can be removed" looks at *"is (all) strictly required for a single match form?"*, not *"do external consumers construct and match here?"*
+`src/experiment/foldg_variants.mbt` and `src/experiment/foldg_variants_test.mbt` (archived June 2026 in the DenseGraph promotion cleanup; report at `docs/archive/2026-03-31-perf-experiment-report.md`) pattern-matched on `@alga.Graph::Empty | Vertex | Overlay | Connect` from a separate package, and `src/graph_expr_qc.mbt` continues to construct and match on Graph variants in property tests. Narrowing to `pub` would break property tests and any external consumers using algebraic fold. The analyzer's "can be removed" looks at *"is (all) strictly required for a single match form?"*, not *"do external consumers construct and match here?"*
 
 **3. `pub(open)` is semantically wrong.**
 
@@ -37,4 +37,4 @@ This decision does *not* extend to other `pub(all)` types in the codebase — ea
 
 - Andrey Mokhov, [*Algebraic Graphs with Class*](https://dl.acm.org/doi/10.1145/3122955.3122956) (Haskell Symposium 2017)
 - `src/graph_expr.mbt` — definition and docstring
-- `src/experiment/foldg_variants.mbt` — cross-package consumer proving the need
+- `src/experiment/foldg_variants.mbt` — cross-package consumer (archived June 2026; report at `docs/archive/2026-03-31-perf-experiment-report.md`)

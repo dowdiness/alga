@@ -157,7 +157,7 @@ All generic algorithms take `G : DirectedGraph`. Most use the defaulted `each_ve
 | DFS events | `dfs.mbt` | O(V+E) | Pull-based DFS with edge classification (tree/back/cross-forward) |
 | Reversed view | `reversed.mbt` | O(1) | Zero-cost reverse-direction adaptor (requires `Predecessors`) |
 | Tarjan SCC | `scc.mbt` | O(V+E) | Generic over `DirectedGraph`, no transpose, uses `Iter.next()` |
-| Kosaraju SCC | `scc.mbt` | O(V+E) | AdjacencyMap-specific, O(1) transpose, reverse topo order |
+| Kosaraju SCC | `scc.mbt` | O(V+E) | Generic over `DirectedGraph + Predecessors`, O(1) transpose via `Predecessors`, reverse topo order |
 | Condensation | `scc.mbt` | O(V+E) | Collapse SCCs into DAG (AdjacencyMap-specific) |
 
 DenseGraph provides optimized versions of DFS, toposort, SCC, and reachable that bypass trait dispatch for 8-23x speedup.
@@ -175,6 +175,7 @@ src/
 ├── traits.mbt           # DirectedGraph trait definition
 ├── adjacency_map.mbt    # AdjacencyMap: Map-based representation
 ├── dense_graph.mbt      # DenseGraph: Array-based fast representation
+├── reversed.mbt         # Reversed[G] zero-cost reverse-direction adaptor
 ├── graph_sym.mbt        # GraphSym trait + AdjacencyMap impl
 ├── graph_expr.mbt       # Graph enum, foldg, foldg_iter, combinators
 ├── graph_expr_qc.mbt    # Arbitrary + Shrink for Graph (property testing)
@@ -183,5 +184,6 @@ src/
 ├── toposort.mbt         # Toposort, toposort_subset, has_cycle
 ├── scc.mbt              # SCC: Kosaraju (AdjacencyMap), Tarjan (generic), condensation
 ├── degree.mbt           # Outdegree, indegree
+├── conformance.mbt      # check_conformance, check_predecessors_conformance
 ├── benchmark.mbt        # Performance benchmarks
 ```
