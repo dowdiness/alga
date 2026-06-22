@@ -52,7 +52,7 @@ pub fn[G : @alga.DirectedGraph, Acc] dfs_fold_hashset(
   init : Acc,
   f : (Acc, Int) -> (Acc, Bool),
 ) -> Acc {
-  let visited : @hashset.HashSet[Int] = @hashset.new()
+  let visited : @hashset.HashSet[Int] = @hashset.HashSet([])
   let stack : Array[Int] = [start]
   let mut acc = init
   while stack.length() > 0 {
@@ -151,7 +151,7 @@ pub fn[G : @alga.DirectedGraph, Acc] bfs_fold_hashset(
   init : Acc,
   f : (Acc, Int) -> (Acc, Bool),
 ) -> Acc {
-  let visited : @hashset.HashSet[Int] = @hashset.new()
+  let visited : @hashset.HashSet[Int] = @hashset.HashSet([])
   let queue : Array[Int] = [start]
   visited.add(start)
   let mut acc = init
@@ -215,7 +215,7 @@ pub fn[G : @alga.DirectedGraph, Acc] bfs_fold_array(
 
 ///|
 pub fn[G : @alga.DirectedGraph] toposort_hashset(graph : G) -> Array[Int]? {
-  let in_degree : @hashmap.HashMap[Int, Int] = @hashmap.new()
+  let in_degree : @hashmap.HashMap[Int, Int] = @hashmap.HashMap([])
   @alga.DirectedGraph::each_vertex(graph, fn(v) { in_degree[v] = 0 })
   @alga.DirectedGraph::each_vertex(graph, fn(v) {
     @alga.DirectedGraph::each_successor(graph, v, fn(w) {
@@ -311,7 +311,7 @@ pub fn[G : @alga.DirectedGraph] has_cycle_array(graph : G) -> Bool {
 
 ///|
 pub fn scc_hashset(graph : @alga.AdjacencyMap) -> Array[Array[Int]] {
-  let visited : @hashset.HashSet[Int] = @hashset.new()
+  let visited : @hashset.HashSet[Int] = @hashset.HashSet([])
   let finish_order : Array[Int] = []
   @alga.DirectedGraph::each_vertex(graph, fn(root) {
     if visited.contains(root) {
@@ -339,7 +339,7 @@ pub fn scc_hashset(graph : @alga.AdjacencyMap) -> Array[Array[Int]] {
     }
   })
   let transposed = graph.transpose()
-  let visited2 : @hashset.HashSet[Int] = @hashset.new()
+  let visited2 : @hashset.HashSet[Int] = @hashset.HashSet([])
   let components : Array[Array[Int]] = []
   for i in (finish_order.length() - 1)>=..0 {
     let root = finish_order[i]

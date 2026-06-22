@@ -5,8 +5,8 @@ test "foldg vertex count" {
     @alga.Connect(@alga.Vertex(2), @alga.Vertex(3)),
   )
   let am = g.to_adjacency_map()
-  assert_eq(am.vertex_count(), 3)
-  assert_eq(am.edge_count(), 1)
+  @test.assert_eq(am.vertex_count(), 3)
+  @test.assert_eq(am.edge_count(), 1)
   assert_true(am.has_edge(2, 3))
 }
 
@@ -17,7 +17,7 @@ test "to_adjacency_map preserves structure" {
     @alga.Overlay(@alga.Vertex(2), @alga.Vertex(3)),
   )
   let am = g.to_adjacency_map()
-  assert_eq(am.vertex_count(), 3)
+  @test.assert_eq(am.vertex_count(), 3)
   assert_true(am.has_edge(1, 2))
   assert_true(am.has_edge(1, 3))
   assert_true(!am.has_edge(2, 3))
@@ -66,7 +66,7 @@ test "induce filtering" {
 test "path combinator" {
   let g = @alga.Graph::path([1, 2, 3])
   let am = g.to_adjacency_map()
-  assert_eq(am.edge_count(), 2)
+  @test.assert_eq(am.edge_count(), 2)
   assert_true(am.has_edge(1, 2))
   assert_true(am.has_edge(2, 3))
   assert_true(!am.has_edge(1, 3))
@@ -76,13 +76,13 @@ test "path combinator" {
 test "clique combinator" {
   let g = @alga.Graph::clique([1, 2, 3])
   let am = g.to_adjacency_map()
-  assert_eq(am.vertex_count(), 3)
+  @test.assert_eq(am.vertex_count(), 3)
   // clique via connect chain: connect(connect(1, 2), 3)
   // = overlay(connect(1,2), connect(1,3), connect(2,3))
   assert_true(am.has_edge(1, 2))
   assert_true(am.has_edge(1, 3))
   assert_true(am.has_edge(2, 3))
-  assert_eq(am.edge_count(), 3)
+  @test.assert_eq(am.edge_count(), 3)
 }
 
 ///|
@@ -92,7 +92,7 @@ test "circuit combinator" {
   assert_true(am.has_edge(1, 2))
   assert_true(am.has_edge(2, 3))
   assert_true(am.has_edge(3, 1))
-  assert_eq(am.edge_count(), 3)
+  @test.assert_eq(am.edge_count(), 3)
 }
 
 ///|
@@ -102,7 +102,7 @@ test "star combinator" {
   assert_true(am.has_edge(1, 2))
   assert_true(am.has_edge(1, 3))
   assert_true(am.has_edge(1, 4))
-  assert_eq(am.vertex_count(), 4)
+  @test.assert_eq(am.vertex_count(), 4)
 }
 
 ///|
@@ -118,8 +118,8 @@ test "roundtrip path to adjacency_map" {
 test "empty graph expression" {
   let g : @alga.Graph = @alga.Empty
   let am = g.to_adjacency_map()
-  assert_eq(am.vertex_count(), 0)
-  assert_eq(am.edge_count(), 0)
+  @test.assert_eq(am.vertex_count(), 0)
+  @test.assert_eq(am.edge_count(), 0)
 }
 
 ///|
@@ -136,8 +136,8 @@ test "remove_vertex" {
 test "vertices combinator" {
   let g = @alga.Graph::vertices([1, 2, 3])
   let am = g.to_adjacency_map()
-  assert_eq(am.vertex_count(), 3)
-  assert_eq(am.edge_count(), 0)
+  @test.assert_eq(am.vertex_count(), 3)
+  @test.assert_eq(am.edge_count(), 0)
 }
 
 ///|
@@ -146,25 +146,25 @@ test "edges combinator" {
   let am = g.to_adjacency_map()
   assert_true(am.has_edge(1, 2))
   assert_true(am.has_edge(3, 4))
-  assert_eq(am.edge_count(), 2)
+  @test.assert_eq(am.edge_count(), 2)
 }
 
 ///|
 test "Graph Show" {
-  inspect(
+  debug_inspect(
     @alga.Graph::path([1, 2, 3]),
-    content="Overlay(Overlay(Vertex(1), Connect(Vertex(1), Vertex(2))), Connect(Vertex(2), Vertex(3)))",
+    content="Overlay(\n  Overlay(Vertex(1), Connect(Vertex(1), Vertex(2))),\n  Connect(Vertex(2), Vertex(3)),\n)",
   )
-  inspect(@alga.Empty, content="Empty")
-  inspect(@alga.Vertex(42), content="Vertex(42)")
+  debug_inspect(@alga.Empty, content="Empty")
+  debug_inspect(@alga.Vertex(42), content="Vertex(42)")
 }
 
 ///|
 test "DenseGraph Show" {
   let g = @alga.DenseGraph::from_edges(3, [(0, 1), (0, 2), (1, 2)])
-  inspect(g, content="DenseGraph(3 vertices, [0 -> [1, 2], 1 -> [2]])")
+  debug_inspect(g, content="<DenseGraph: { vertex_count: 3, edges: [(0, 1), (0, 2), (1, 2)] }>")
   let empty = @alga.DenseGraph::from_edges(2, [])
-  inspect(empty, content="DenseGraph(2 vertices, [])")
+  debug_inspect(empty, content="<DenseGraph: { vertex_count: 2, edges: [] }>")
 }
 
 // ============================================================

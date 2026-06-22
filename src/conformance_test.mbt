@@ -98,43 +98,43 @@ pub impl @alga.DirectedGraph for HasVertexLies with has_vertex(_self, _v) {
 ///|
 test "positive: AdjacencyMap conforms" {
   let g = @alga.AdjacencyMap::from_edges([(1, 2), (2, 3), (3, 1)])
-  assert_eq(@alga.check_conformance(g), [])
+  @test.assert_eq(@alga.check_conformance(g), [])
 }
 
 ///|
 test "positive: AdjacencyMap with Predecessors conforms" {
   let g = @alga.AdjacencyMap::from_edges([(1, 2), (2, 3), (3, 1), (1, 3)])
-  assert_eq(@alga.check_predecessors_conformance(g), [])
+  @test.assert_eq(@alga.check_predecessors_conformance(g), [])
 }
 
 ///|
 test "positive: DenseGraph conforms" {
   let g = @alga.DenseGraph::from_edges(4, [(0, 1), (1, 2), (2, 0), (2, 3)])
-  assert_eq(@alga.check_predecessors_conformance(g), [])
+  @test.assert_eq(@alga.check_predecessors_conformance(g), [])
 }
 
 ///|
 test "positive: Reversed conforms" {
   let g = @alga.AdjacencyMap::from_edges([(1, 2), (2, 3)])
-  assert_eq(@alga.check_predecessors_conformance(@alga.reversed(g)), [])
+  @test.assert_eq(@alga.check_predecessors_conformance(@alga.reversed(g)), [])
 }
 
 ///|
 test "positive: empty graph conforms" {
   let g : @alga.AdjacencyMap = @alga.AdjacencyMap::empty()
-  assert_eq(@alga.check_predecessors_conformance(g), [])
+  @test.assert_eq(@alga.check_predecessors_conformance(g), [])
 }
 
 ///|
 test "positive: single vertex conforms" {
   let g = @alga.AdjacencyMap::vertex(42)
-  assert_eq(@alga.check_predecessors_conformance(g), [])
+  @test.assert_eq(@alga.check_predecessors_conformance(g), [])
 }
 
 ///|
 test "positive: self-loop conforms" {
   let g = @alga.AdjacencyMap::from_edges([(1, 1)])
-  assert_eq(@alga.check_predecessors_conformance(g), [])
+  @test.assert_eq(@alga.check_predecessors_conformance(g), [])
 }
 
 ///|

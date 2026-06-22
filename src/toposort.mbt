@@ -39,7 +39,7 @@
 /// Compute in-degrees for all vertices. Shared by toposort and topo_levels.
 /// Returns a Map where every vertex has an entry (0 if no incoming edges).
 fn[G : DirectedGraph] compute_in_degrees(graph : G) -> Map[Int, Int] {
-  let in_degree : Map[Int, Int] = Map::new()
+  let in_degree : Map[Int, Int] = Map([])
   G::each_vertex(graph, fn(v) { in_degree[v] = 0 })
   G::each_vertex(graph, fn(v) {
     G::each_successor(graph, v, fn(w) {
@@ -126,10 +126,10 @@ pub fn[G : DirectedGraph] has_cycle(graph : G) -> Bool {
 /// Space: O(V).
 pub fn[G : DirectedGraph] find_cycle(graph : G) -> Array[Int]? {
   // state: absent = white, true = gray (on stack), false = black (finished)
-  let state : Map[Int, Bool] = Map::new()
+  let state : Map[Int, Bool] = Map([])
   // position[v] = frame index of v while v is gray, enabling O(1) cycle
   // extraction when a back-edge is encountered.
-  let position : Map[Int, Int] = Map::new()
+  let position : Map[Int, Int] = Map([])
   let frames : Array[(Int, Iter[Int])] = []
   for root in G::iter(graph) {
     if state.contains(root) {
@@ -242,7 +242,7 @@ pub fn[G : DirectedGraph] toposort_or_cycle(
 pub fn[G : DirectedGraph] topo_levels(graph : G) -> Map[Int, Int]? {
   let in_degree = compute_in_degrees(graph)
   // Step 1: Seed queue with sources (in-degree 0) at level 0
-  let levels : Map[Int, Int] = Map::new()
+  let levels : Map[Int, Int] = Map([])
   let queue : Array[Int] = []
   for v, d in in_degree {
     if d == 0 {
@@ -316,7 +316,7 @@ pub fn[G : DirectedGraph] toposort_subset(
   // has_vertex filters out IDs not in the graph — prevents panics on
   // DenseGraph (out-of-bounds) and inconsistent results on AdjacencyMap
   // (unknown IDs treated as isolated vertices with in-degree 0).
-  let subset : @hashset.HashSet[Int] = @hashset.new()
+  let subset : @hashset.HashSet[Int] = @hashset.HashSet([])
   let unique : Array[Int] = []
   for v in vertices {
     if !subset.contains(v) && G::has_vertex(graph, v) {
@@ -329,7 +329,7 @@ pub fn[G : DirectedGraph] toposort_subset(
     return Some([])
   }
   // Compute in-degrees within the induced subgraph
-  let in_degree : @hashmap.HashMap[Int, Int] = @hashmap.new()
+  let in_degree : @hashmap.HashMap[Int, Int] = @hashmap.HashMap([])
   for v in unique {
     G::each_successor(graph, v, fn(w) {
       if subset.contains(w) {

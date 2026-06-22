@@ -61,8 +61,8 @@ pub fn[G : DirectedGraph] check_conformance(graph : G) -> Array[String] {
   //   vertex_count/each_vertex delegate to iter() including duplicates.
   // - iter_set: vertex membership oracle for Law B.
   let iter_raw : Array[Int] = []
-  let iter_set : @hashset.HashSet[Int] = @hashset.new()
-  let dup_reported : @hashset.HashSet[Int] = @hashset.new()
+  let iter_set : @hashset.HashSet[Int] = @hashset.HashSet([])
+  let dup_reported : @hashset.HashSet[Int] = @hashset.HashSet([])
   for v in G::iter(graph) {
     iter_raw.push(v)
     if iter_set.contains(v) {
@@ -108,7 +108,7 @@ pub fn[G : DirectedGraph] check_conformance(graph : G) -> Array[String] {
   }
   // Laws B + E: successors closure + no duplicates.
   for v in iter_set {
-    let succ_seen : @hashset.HashSet[Int] = @hashset.new()
+    let succ_seen : @hashset.HashSet[Int] = @hashset.HashSet([])
     for w in G::successors(graph, v) {
       if succ_seen.contains(w) {
         violations.push("Law E: successors(\{v}) yielded duplicate vertex \{w}")
@@ -193,7 +193,7 @@ pub fn[G : DirectedGraph + Predecessors] check_predecessors_conformance(
   // Collect vertices once — no need to re-run iter duplicate check.
   let iter_list : Array[Int] = G::iter(graph).collect()
   // Build forward edge set: (u, v) for v ∈ successors(u).
-  let forward : @hashset.HashSet[(Int, Int)] = @hashset.new()
+  let forward : @hashset.HashSet[(Int, Int)] = @hashset.HashSet([])
   for u in iter_list {
     for v in G::successors(graph, u) {
       forward.add((u, v))
@@ -201,9 +201,9 @@ pub fn[G : DirectedGraph + Predecessors] check_predecessors_conformance(
   }
   // Build backward edge set: (u, v) for u ∈ predecessors(v).
   // Also checks Law E' (no duplicate predecessors per vertex).
-  let backward : @hashset.HashSet[(Int, Int)] = @hashset.new()
+  let backward : @hashset.HashSet[(Int, Int)] = @hashset.HashSet([])
   for v in iter_list {
-    let pred_seen : @hashset.HashSet[Int] = @hashset.new()
+    let pred_seen : @hashset.HashSet[Int] = @hashset.HashSet([])
     for u in Predecessors::predecessors(graph, v) {
       if pred_seen.contains(u) {
         violations.push(
@@ -239,7 +239,7 @@ fn multiset_eq(a : Array[Int], b : Array[Int]) -> Bool {
   if a.length() != b.length() {
     return false
   }
-  let counts : @hashmap.HashMap[Int, Int] = @hashmap.new()
+  let counts : @hashmap.HashMap[Int, Int] = @hashmap.HashMap([])
   for x in a {
     match counts.get(x) {
       Some(n) => counts[x] = n + 1

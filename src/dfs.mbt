@@ -40,7 +40,7 @@ pub fn[G : DirectedGraph, Acc] dfs_fold(
   init : Acc,
   f : (Acc, Int) -> (Acc, Bool),
 ) -> Acc {
-  let visited : Map[Int, Bool] = Map::new()
+  let visited : Map[Int, Bool] = Map([])
   let stack : Array[Int] = [start]
   let mut acc = init
   while stack.length() > 0 {
@@ -166,13 +166,13 @@ pub fn[G : DirectedGraph, Acc] dfs_fold_multi(
   init : Acc,
   f : (Acc, Int) -> (Acc, Bool),
 ) -> Acc {
-  let visited : Map[Int, Bool] = Map::new()
+  let visited : Map[Int, Bool] = Map([])
   let stack : Array[Int] = []
   // Seed in reverse order so starts[0] ends up on top of the stack (LIFO).
   // Use visited for dedup — seeds are pushed but NOT marked as visited,
   // so the main loop's visited-check + fold runs normally for each seed.
   // After seeding, clear visited so the main loop starts fresh.
-  let seen : @hashset.HashSet[Int] = @hashset.new()
+  let seen : @hashset.HashSet[Int] = @hashset.HashSet([])
   let mut i = starts.length() - 1
   while i >= 0 {
     let s = starts[i]
@@ -283,7 +283,7 @@ pub(all) enum DfsEvent {
 /// Benchmark: ~155µs chain, ~179µs cyclic, ~257µs diamond (1000 vertices, AdjacencyMap).
 pub fn[G : DirectedGraph] dfs_events(graph : G) -> Iter[DfsEvent] {
   // absent = white (undiscovered), true = gray (on stack), false = black (finished)
-  let state : Map[Int, Bool] = Map::new()
+  let state : Map[Int, Bool] = Map([])
   let frames : Array[(Int, Iter[Int])] = []
   let roots = G::iter(graph)
   // When set, the next event is Discover(v) and a frame is pushed.

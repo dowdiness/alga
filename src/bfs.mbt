@@ -38,7 +38,7 @@ pub fn[G : DirectedGraph, Acc] bfs_fold(
   init : Acc,
   f : (Acc, Int) -> (Acc, Bool),
 ) -> Acc {
-  let visited : Map[Int, Bool] = Map::new()
+  let visited : Map[Int, Bool] = Map([])
   let queue : Array[Int] = [start]
   visited[start] = true
   let mut acc = init
@@ -90,7 +90,7 @@ pub fn[G : DirectedGraph, Acc] bfs_fold_multi(
   init : Acc,
   f : (Acc, Int) -> (Acc, Bool),
 ) -> Acc {
-  let visited : Map[Int, Bool] = Map::new()
+  let visited : Map[Int, Bool] = Map([])
   let queue : Array[Int] = []
   for s in starts {
     if !visited.contains(s) && G::has_vertex(graph, s) {

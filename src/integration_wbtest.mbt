@@ -25,7 +25,7 @@ test "external impl: reachable" {
   // 0 → 1 → 2 → 3
   let g : ArrayGraph = { successors: [[1], [2], [3], []] }
   let r = reachable(g, 0)
-  assert_eq(r.length(), 4)
+  @test.assert_eq(r.length(), 4)
 }
 
 ///|
@@ -34,7 +34,7 @@ test "external impl: toposort" {
   let result = toposort(g)
   assert_true(result is Some(_))
   match result {
-    Some(order) => assert_eq(order.length(), 4)
+    Some(order) => @test.assert_eq(order.length(), 4)
     None => assert_true(false)
   }
 }
@@ -60,10 +60,10 @@ test "external impl: bfs_fold" {
     arr.push(v)
     (arr, true)
   })
-  assert_eq(order.length(), 4)
-  assert_eq(order[0], 0)
+  @test.assert_eq(order.length(), 4)
+  @test.assert_eq(order[0], 0)
   // 3 should be last
-  assert_eq(order[3], 3)
+  @test.assert_eq(order[3], 3)
 }
 
 ///|
@@ -73,7 +73,7 @@ test "external impl: dfs_fold" {
     arr.push(v)
     (arr, true)
   })
-  assert_eq(visited.length(), 4)
+  @test.assert_eq(visited.length(), 4)
 }
 
 // --- has_vertex dispatch tests ---

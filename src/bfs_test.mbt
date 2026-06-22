@@ -5,9 +5,9 @@ test "bfs_fold diamond order" {
     arr.push(v)
     (arr, true)
   })
-  assert_eq(order.length(), 4)
-  assert_eq(order[0], 1)
-  assert_eq(order[3], 4)
+  @test.assert_eq(order.length(), 4)
+  @test.assert_eq(order[0], 1)
+  @test.assert_eq(order[3], 4)
   assert_true(
     (order[1] == 2 && order[2] == 3) || (order[1] == 3 && order[2] == 2),
   )
@@ -20,7 +20,7 @@ test "bfs_fold reachability" {
     arr.push(v)
     (arr, true)
   })
-  assert_eq(visited.length(), 4)
+  @test.assert_eq(visited.length(), 4)
 }
 
 ///|
@@ -35,7 +35,7 @@ test "bfs_fold early termination" {
       (acc + 1, true)
     }
   })
-  assert_eq(count, 2)
+  @test.assert_eq(count, 2)
 }
 
 // --- bfs_fold_multi ---
@@ -54,7 +54,7 @@ test "bfs_fold_multi single start matches bfs_fold" {
     arr.push(v)
     (arr, true)
   })
-  assert_eq(single, multi)
+  @test.assert_eq(single, multi)
 }
 
 ///|
@@ -68,7 +68,7 @@ test "bfs_fold_multi multiple starts" {
     arr.push(v)
     (arr, true)
   })
-  assert_eq(visited.length(), 6)
+  @test.assert_eq(visited.length(), 6)
   assert_true(visited.contains(1))
   assert_true(visited.contains(3))
   assert_true(visited.contains(10))
@@ -87,14 +87,14 @@ test "bfs_fold_multi overlapping reachability" {
     (arr, true)
   })
   // Each vertex appears exactly once
-  assert_eq(visited.length(), 4)
+  @test.assert_eq(visited.length(), 4)
 }
 
 ///|
 test "bfs_fold_multi empty starts" {
   let g = @alga.AdjacencyMap::from_edges([(1, 2), (2, 3)])
   let result = @alga.bfs_fold_multi(g, [], 0, fn(acc, _v) { (acc + 1, true) })
-  assert_eq(result, 0)
+  @test.assert_eq(result, 0)
 }
 
 ///|
@@ -107,7 +107,7 @@ test "bfs_fold_multi invalid starts filtered" {
     arr.push(v)
     (arr, true)
   })
-  assert_eq(visited.length(), 0)
+  @test.assert_eq(visited.length(), 0)
 }
 
 ///|
@@ -120,7 +120,7 @@ test "bfs_fold_multi disconnected components" {
     arr.push(v)
     (arr, true)
   })
-  assert_eq(visited.length(), 4)
+  @test.assert_eq(visited.length(), 4)
   assert_true(visited.contains(1))
   assert_true(visited.contains(2))
   assert_true(visited.contains(3))
@@ -138,7 +138,7 @@ test "bfs_fold_multi DenseGraph genericity" {
     arr.push(v)
     (arr, true)
   })
-  assert_eq(visited.length(), 5)
+  @test.assert_eq(visited.length(), 5)
 }
 
 ///|
@@ -153,5 +153,5 @@ test "bfs_fold_multi early termination" {
       (acc + 1, true)
     }
   })
-  assert_eq(count, 3)
+  @test.assert_eq(count, 3)
 }
