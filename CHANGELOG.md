@@ -5,6 +5,44 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] — 2026-06-22
+
+### ⚠️ Breaking changes
+
+- `DirectedGraph` trait decomposed into finer-grained `VertexSet` and
+  `Successors` capability traits. `DirectedGraph` remains as a convenience
+  alias (`VertexSet + Successors`). Algorithms that only need edge
+  traversal (`dfs_fold`, `bfs_fold`, `reachable`, `outdegree`) now accept
+  `[G : Successors]` instead of requiring the full `DirectedGraph` bound.
+  Existing `impl DirectedGraph` blocks must be split into separate
+  `VertexSet` and `Successors` blocks.
+
+### Added
+
+- **`DenseGraph::dfs_events()`** — specialized DFS event iterator using
+  `FixedArray[Int]` (0=white, 1=gray, 2=black) for O(1) vertex state
+  lookups instead of the generic `Map[Int, Bool]` (O(log V)).
+- **`DenseGraph::is_reachable_gen(from, to, marks, gen)`** — early-exit
+  reachability query using a reusable `FixedArray[Int]` + generation
+  counter, eliminating per-call visited-set allocation.
+- **`DenseGraph::reachable_gen(start, marks, gen)`** — full reachability
+  with reusable generation-counter buffer. ~1.2× faster than repeated
+  `DenseGraph::reachable` on deep graphs (chain_1000, wasm-gc --release).
+- **`SuccessorsOnly` test helper** — conformance test verifying that
+  `reachable`, `dfs_fold`, `bfs_fold`, and `outdegree` work without
+  requiring `VertexSet`.
+
+### Removed
+
+- **`src/experiment/` package** — performance experiment code (visited-set
+  variants, foldg variants, DenseGraph iteration archeology) archived.
+  Experiment report preserved at `docs/archive/2026-03-31-perf-experiment-report.md`.
+
+### Fixed
+
+- `conformance.mbt`: replaced `HashSet.fold()` with manual `each()` loop
+  (the `fold` method does not exist on `HashSet`).
+
 ## [0.3.1] — 2026-06-22
 
 ### Changed

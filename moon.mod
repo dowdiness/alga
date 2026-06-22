@@ -1,6 +1,6 @@
 name = "dowdiness/alga"
 
-version = "0.3.1"
+version = "0.4.0"
 
 import {
   "moonbitlang/quickcheck@0.14.0",
