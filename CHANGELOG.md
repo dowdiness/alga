@@ -5,6 +5,19 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1] — 2026-06-22
+
+### Changed
+
+- Migrated to current MoonBit `moon.mod` DSL and refreshed the
+  quickcheck dependency (0.11.2 → 0.14.0).
+
+### Fixed
+
+- Stale relative link in the CST traversal experiment report
+  repointed to the preserved copy at
+  `loom/docs/performance/2026-03-30-cst-traversal-tiers.md`.
+
 ## [0.3.0] — 2026-04-24
 
 ### Added
@@ -21,8 +34,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   early-exits as soon as `to` is discovered instead of materializing
   the full reachable set. `would_create_cycle(g, u, v) -> Bool`
   predicts whether adding edge `u → v` would create a cycle (self-loop
-  case handled), strictly cheaper than constructing the hypothetical
-  graph and calling `has_cycle`.
+  case handled). Avoids constructing the hypothetical graph and
+  early-exits as soon as a back-edge is found — cheaper than
+  `has_cycle` on a materialized graph, though still traversal-scale
+  in the worst case.
 - **Generic Kosaraju SCC** — `kosaraju_scc(g)` now works on any
   `DirectedGraph + Predecessors`, not just `AdjacencyMap`. The backward
   DFS walks `predecessors` directly instead of materializing a
@@ -36,7 +51,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   violation messages (empty = conformant) for adopters to call on
   their own `DirectedGraph` / `Predecessors` implementations. Covers
   eight laws: `iter` uniqueness, successor-set closure, `has_vertex`
-  consistency, `vertex_count` agreement, successor / predecessor
+  consistency (spot-checked, not exhaustively proven),
+  `vertex_count` agreement, successor / predecessor
   dedup, `each_*` default-vs-override agreement, and
   predecessor / successor symmetry. Test-time only — catches contract
   violations that algorithms would otherwise silently misbehave on.
@@ -75,7 +91,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   distance from sources; useful for scheduling and glitch-free reactive
   systems.
 - **Multi-source BFS and DFS** — `bfs_fold_multi`, `dfs_fold_multi`,
-  `reachable_multi` accept an `Iter[Int]` seed set rather than a single
+  `reachable_multi` accept an `Array[Int]` seed set rather than a single
   start vertex.
 - **`has_vertex`** method and default `vertex_count` on the
   `DirectedGraph` trait. `toposort_subset` now filters out-of-range
@@ -108,7 +124,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - DFS and SCC traversals are iterative (explicit stack) — no stack
-  overflow on deep graphs (tested to 10 000+ vertices).
+  overflow on deep graphs (verified on graphs up to 10 000 vertices
+  in benchmarks; SCC correctness verified with property tests
+  up to 200 vertices).
 - Negative modulo bias and `Int::MIN` overflow in the `Arbitrary`
   instance used by property-based tests.
 - Non-deterministic vertex ordering in `toposort_subset` output.

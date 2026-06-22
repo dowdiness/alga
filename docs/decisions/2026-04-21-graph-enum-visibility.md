@@ -19,7 +19,7 @@ From `src/graph_expr.mbt:1–48`: Graph preserves the construction history preci
 
 **2. A cross-package consumer already proves the need.**
 
-`src/experiment/foldg_variants.mbt:21–24, 48–51, 74–78` pattern-matches on `@alga.Graph::Empty | Vertex | Overlay | Connect` from a separate package, and `foldg_variants_test.mbt` constructs values with `@alga.Graph::Vertex(42)` etc. Narrowing to `pub` would break both. The analyzer's "can be removed" looks at *"is (all) strictly required for a single match form?"*, not *"do external consumers construct and match here?"*
+`src/experiment/foldg_variants.mbt:21–24, 48–51, 74–78` pattern-matches on `@alga.Graph::Empty | Vertex | Overlay | Connect` from a separate package, and `src/experiment/foldg_variants_test.mbt` constructs values with `@alga.Graph::Vertex(42)` etc. Narrowing to `pub` would break both. The analyzer's "can be removed" looks at *"is (all) strictly required for a single match form?"*, not *"do external consumers construct and match here?"*
 
 **3. `pub(open)` is semantically wrong.**
 
