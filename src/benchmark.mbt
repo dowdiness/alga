@@ -346,8 +346,6 @@ impl Successors for BenchMinimalGraph with fn successors(self, v) {
   }
 }
 
-///|
-impl DirectedGraph for BenchMinimalGraph
 
 ///|
 fn build_minimal_chain(n : Int) -> BenchMinimalGraph {
