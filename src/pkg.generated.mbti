@@ -115,7 +115,7 @@ pub(all) enum DfsEvent {
   TreeEdge(Int, Int)
   BackEdge(Int, Int)
   CrossForwardEdge(Int, Int)
-} derive(Eq, Debug)
+} derive(Eq, @debug.Debug)
 
 pub(all) enum Graph {
   Empty

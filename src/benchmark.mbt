@@ -346,7 +346,6 @@ impl Successors for BenchMinimalGraph with fn successors(self, v) {
   }
 }
 
-
 ///|
 fn build_minimal_chain(n : Int) -> BenchMinimalGraph {
   let edges : Array[Array[Int]] = Array::makei(n, fn(i) {

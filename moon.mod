@@ -22,6 +22,4 @@ keywords = [
 
 description = "Algebraic graphs for MoonBit — directed graph trait and algorithm library inspired by Haskell's alga"
 
-options(
-  source: "src",
-)
+source = "src"

@@ -433,9 +433,10 @@ pub fn DenseGraph::dfs_events(self : DenseGraph) -> Iter[DfsEvent] {
               }
               1 => break Some(BackEdge(v, w))
               2 => break Some(CrossForwardEdge(v, w))
-              _ => abort(
-                "DenseGraph::dfs_events: invalid state \{state[w]} for vertex \{w}",
-              )
+              _ =>
+                abort(
+                  "DenseGraph::dfs_events: invalid state \{state[w]} for vertex \{w}",
+                )
             }
           None => {
             state[v] = 2
@@ -575,9 +576,7 @@ pub fn DenseGraph::reachable_gen(
       "DenseGraph::reachable_gen: marks.length() = \{marks.length()} < vertex_count = \{n}",
     )
   }
-  guard gen != 0 else {
-    abort("DenseGraph::reachable_gen: gen must be ≠ 0")
-  }
+  guard gen != 0 else { abort("DenseGraph::reachable_gen: gen must be ≠ 0") }
   if start < 0 || start >= n {
     return []
   }

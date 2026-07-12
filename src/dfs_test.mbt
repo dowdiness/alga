@@ -679,7 +679,13 @@ test "reachable_gen matches reachable on cycle" {
 
 ///|
 test "reachable_gen matches reachable on diamond" {
-  let dg = @alga.DenseGraph::from_edges(5, [(0, 1), (0, 2), (1, 3), (2, 3), (3, 4)])
+  let dg = @alga.DenseGraph::from_edges(5, [
+    (0, 1),
+    (0, 2),
+    (1, 3),
+    (2, 3),
+    (3, 4),
+  ])
   let expected = dg.reachable(0)
   let marks = FixedArray::make(5, 0)
   let actual = dg.reachable_gen(0, marks, 1)
@@ -702,9 +708,18 @@ test "reachable_gen gen reuse across multiple calls" {
 test "is_reachable_gen matches is_reachable on chain" {
   let dg = @alga.DenseGraph::from_edges(4, [(0, 1), (1, 2), (2, 3)])
   let marks = FixedArray::make(4, 0)
-  @test.assert_eq(dg.is_reachable_gen(0, 3, marks, 1), @alga.is_reachable(dg, 0, 3))
-  @test.assert_eq(dg.is_reachable_gen(0, 0, marks, 2), @alga.is_reachable(dg, 0, 0))
-  @test.assert_eq(dg.is_reachable_gen(3, 0, marks, 3), @alga.is_reachable(dg, 3, 0))
+  @test.assert_eq(
+    dg.is_reachable_gen(0, 3, marks, 1),
+    @alga.is_reachable(dg, 0, 3),
+  )
+  @test.assert_eq(
+    dg.is_reachable_gen(0, 0, marks, 2),
+    @alga.is_reachable(dg, 0, 0),
+  )
+  @test.assert_eq(
+    dg.is_reachable_gen(3, 0, marks, 3),
+    @alga.is_reachable(dg, 3, 0),
+  )
 }
 
 ///|

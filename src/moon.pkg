@@ -9,4 +9,5 @@ import {
   "moonbitlang/core/test",
   "moonbitlang/quickcheck" @qc,
 }
+
 warnings = "-1"

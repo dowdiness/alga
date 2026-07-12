@@ -364,14 +364,18 @@ pub impl @alga.Successors for SuccessorsOnly with fn successors(self, v) {
 ///|
 test "Successors-only: reachable works without VertexSet" {
   // 0 → 1 → 2 → 3
-  let g = SuccessorsOnly::{ edges: Map([(0, [1]), (1, [2]), (2, [3]), (3, [])]) }
+  let g = SuccessorsOnly::{
+    edges: Map([(0, [1]), (1, [2]), (2, [3]), (3, [])]),
+  }
   let r = @alga.reachable(g, 0)
   @test.assert_eq(r.length(), 4)
 }
 
 ///|
 test "Successors-only: dfs_fold works without VertexSet" {
-  let g = SuccessorsOnly::{ edges: Map([(0, [1, 2]), (1, [3]), (2, [3]), (3, [])]) }
+  let g = SuccessorsOnly::{
+    edges: Map([(0, [1, 2]), (1, [3]), (2, [3]), (3, [])]),
+  }
   let visited : Array[Int] = @alga.dfs_fold(g, 0, [], fn(arr : Array[Int], v) {
     arr.push(v)
     (arr, true)
@@ -381,7 +385,9 @@ test "Successors-only: dfs_fold works without VertexSet" {
 
 ///|
 test "Successors-only: bfs_fold works without VertexSet" {
-  let g = SuccessorsOnly::{ edges: Map([(0, [1, 2]), (1, [3]), (2, [3]), (3, [])]) }
+  let g = SuccessorsOnly::{
+    edges: Map([(0, [1, 2]), (1, [3]), (2, [3]), (3, [])]),
+  }
   let visited : Array[Int] = @alga.bfs_fold(g, 0, [], fn(arr : Array[Int], v) {
     arr.push(v)
     (arr, true)
@@ -391,7 +397,9 @@ test "Successors-only: bfs_fold works without VertexSet" {
 
 ///|
 test "Successors-only: outdegree works without VertexSet" {
-  let g = SuccessorsOnly::{ edges: Map([(0, [1, 2]), (1, [3]), (2, []), (3, [])]) }
+  let g = SuccessorsOnly::{
+    edges: Map([(0, [1, 2]), (1, [3]), (2, []), (3, [])]),
+  }
   @test.assert_eq(@alga.outdegree(g, 0), 2)
   @test.assert_eq(@alga.outdegree(g, 3), 0)
 }
