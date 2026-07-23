@@ -73,7 +73,7 @@ pub fn[G : DirectedGraph, Acc] bfs_fold_multi(
   let visited : Map[Int, Bool] = Map([])
   let queue : Array[Int] = []
   for s in starts {
-    if !visited.contains(s) && G::has_vertex(graph, s) {
+    if !visited.contains(s) && VertexSet::has_vertex(graph, s) {
       visited[s] = true
       queue.push(s)
     }
@@ -88,7 +88,7 @@ pub fn[G : DirectedGraph, Acc] bfs_fold_multi(
     if !result.1 {
       break
     }
-    G::each_successor(graph, v, fn(w) {
+    Successors::each_successor(graph, v, fn(w) {
       if !visited.contains(w) {
         visited[w] = true
         queue.push(w)

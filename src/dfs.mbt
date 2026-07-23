@@ -65,7 +65,7 @@ pub fn[G : Successors] reachable(graph : G, start : Int) -> Array[Int] {
 /// Time: O(V' + E') where V' and E' are the vertices and edges visited
 /// before encountering `to` (bounded by the reachable subgraph from `from`).
 pub fn[G : DirectedGraph] is_reachable(graph : G, from : Int, to : Int) -> Bool {
-  if !G::has_vertex(graph, from) {
+  if !VertexSet::has_vertex(graph, from) {
     return false
   }
   dfs_fold(graph, from, false, fn(_, v) {
@@ -143,7 +143,7 @@ pub fn[G : DirectedGraph, Acc] dfs_fold_multi(
   let seen : @hashset.HashSet[Int] = @hashset.HashSet([])
   for i in (starts.length() - 1)>=..0 {
     let s = starts[i]
-    if !seen.contains(s) && G::has_vertex(graph, s) {
+    if !seen.contains(s) && VertexSet::has_vertex(graph, s) {
       seen.add(s)
       stack.push(s)
     }
@@ -163,7 +163,7 @@ pub fn[G : DirectedGraph, Acc] dfs_fold_multi(
     // Push successors directly, then reverse in place so first successor
     // is on top of the stack. Avoids per-vertex temporary array allocation.
     let mark = stack.length()
-    G::each_successor(graph, v, fn(w) {
+    Successors::each_successor(graph, v, fn(w) {
       if !visited.contains(w) {
         stack.push(w)
       }
@@ -251,7 +251,7 @@ pub fn[G : DirectedGraph] dfs_events(graph : G) -> Iter[DfsEvent] {
   // absent = white (undiscovered), true = gray (on stack), false = black (finished)
   let state : Map[Int, Bool] = Map([])
   let frames : Array[(Int, Iter[Int])] = []
-  let roots = G::iter(graph)
+  let roots = VertexSet::iter(graph)
   // When set, the next event is Discover(v) and a frame is pushed.
   let mut enter_pending : Int? = None
   Iter::new(fn() {
@@ -260,7 +260,7 @@ pub fn[G : DirectedGraph] dfs_events(graph : G) -> Iter[DfsEvent] {
         Some(v) => {
           enter_pending = None
           state[v] = true
-          frames.push((v, G::successors(graph, v)))
+          frames.push((v, Successors::successors(graph, v)))
           break Some(Discover(v))
         }
         None => ()

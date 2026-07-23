@@ -72,12 +72,12 @@ pub fn[G : DirectedGraph + Predecessors] kosaraju_scc(
   let visited : Map[Int, Bool] = Map([])
   let finish_order : Array[Int] = []
   let frames : Array[(Int, Iter[Int])] = []
-  for root in G::iter(graph) {
+  for root in VertexSet::iter(graph) {
     if visited.contains(root) {
       continue
     }
     visited[root] = true
-    frames.push((root, G::successors(graph, root)))
+    frames.push((root, Successors::successors(graph, root)))
     while frames.length() > 0 {
       let top_idx = frames.length() - 1
       let v = frames[top_idx].0
@@ -86,7 +86,7 @@ pub fn[G : DirectedGraph + Predecessors] kosaraju_scc(
         Some(w) =>
           if !visited.contains(w) {
             visited[w] = true
-            frames.push((w, G::successors(graph, w)))
+            frames.push((w, Successors::successors(graph, w)))
           }
         None => {
           finish_order.push(v)
@@ -244,14 +244,14 @@ pub fn[G : DirectedGraph] tarjan_scc(graph : G) -> Array[Array[Int]] {
   // internal position. Since the iterator is stored (not recreated), returning
   // to this frame after a "recursive" call resumes where we left off.
   let frames : Array[(Int, Iter[Int])] = []
-  for root in G::iter(graph) {
+  for root in VertexSet::iter(graph) {
     if state.contains(root) {
       continue
     }
     state[root] = (counter, counter, true)
     counter = counter + 1
     scc_stack.push(root)
-    frames.push((root, G::successors(graph, root)))
+    frames.push((root, Successors::successors(graph, root)))
     while frames.length() > 0 {
       let top_idx = frames.length() - 1
       let v = frames[top_idx].0
@@ -263,7 +263,7 @@ pub fn[G : DirectedGraph] tarjan_scc(graph : G) -> Array[Array[Int]] {
             state[w] = (counter, counter, true)
             counter = counter + 1
             scc_stack.push(w)
-            frames.push((w, G::successors(graph, w)))
+            frames.push((w, Successors::successors(graph, w)))
           } else {
             // Back/cross edge: update v's lowlink to w's *index* (not lowlink).
             // Using index is correct — w's lowlink may not be finalized yet

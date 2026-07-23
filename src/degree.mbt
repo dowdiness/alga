@@ -29,7 +29,7 @@
 ///
 /// Time: O(degree(v)) — counts via `Iter::count` on successors.
 pub fn[G : Successors] outdegree(graph : G, v : Int) -> Int {
-  G::successors(graph, v).count()
+  Successors::successors(graph, v).count()
 }
 
 ///|
@@ -43,8 +43,12 @@ pub fn[G : Successors] outdegree(graph : G, v : Int) -> Int {
 /// For bulk indegree computation, prefer a single-pass array approach.
 pub fn[G : DirectedGraph] indegree(graph : G, v : Int) -> Int {
   let mut count = 0
-  G::each_vertex(graph, fn(u) {
-    G::each_successor(graph, u, fn(w) { if w == v { count = count + 1 } })
+  VertexSet::each_vertex(graph, fn(u) {
+    Successors::each_successor(graph, u, fn(w) {
+      if w == v {
+        count = count + 1
+      }
+    })
   })
   count
 }

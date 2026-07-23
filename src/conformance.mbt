@@ -63,7 +63,7 @@ pub fn[G : DirectedGraph] check_conformance(graph : G) -> Array[String] {
   let iter_raw : Array[Int] = []
   let iter_set : @hashset.HashSet[Int] = @hashset.HashSet([])
   let dup_reported : @hashset.HashSet[Int] = @hashset.HashSet([])
-  for v in G::iter(graph) {
+  for v in VertexSet::iter(graph) {
     iter_raw.push(v)
     if iter_set.contains(v) {
       // Duplicate — report once per offending vertex, then keep going so
@@ -79,7 +79,7 @@ pub fn[G : DirectedGraph] check_conformance(graph : G) -> Array[String] {
   // Law D: vertex_count agrees with the raw iter count. Defaults to
   // iter().count() so duplicate-iter impls still satisfy this against
   // the default; only a custom override can fail D in isolation.
-  let vc = G::vertex_count(graph)
+  let vc = VertexSet::vertex_count(graph)
   if vc != iter_raw.length() {
     violations.push(
       "Law D: vertex_count() = \{vc} but iter().count() = \{iter_raw.length()}",
@@ -89,7 +89,7 @@ pub fn[G : DirectedGraph] check_conformance(graph : G) -> Array[String] {
   // false for vertices observably outside iter (spot-checked — we can't
   // enumerate the complement).
   for v in iter_set {
-    if !G::has_vertex(graph, v) {
+    if !VertexSet::has_vertex(graph, v) {
       violations.push(
         "Law C: iter() yielded \{v} but has_vertex(\{v}) returned false",
       )
@@ -100,7 +100,7 @@ pub fn[G : DirectedGraph] check_conformance(graph : G) -> Array[String] {
   // and require has_vertex returns false.
   let outside = outside_candidates(iter_set)
   for v in outside {
-    if G::has_vertex(graph, v) {
+    if VertexSet::has_vertex(graph, v) {
       violations.push(
         "Law C: has_vertex(\{v}) returned true but \{v} is not in iter()",
       )
@@ -109,7 +109,7 @@ pub fn[G : DirectedGraph] check_conformance(graph : G) -> Array[String] {
   // Laws B + E: successors closure + no duplicates.
   for v in iter_set {
     let succ_seen : @hashset.HashSet[Int] = @hashset.HashSet([])
-    for w in G::successors(graph, v) {
+    for w in Successors::successors(graph, v) {
       if succ_seen.contains(w) {
         violations.push("Law E: successors(\{v}) yielded duplicate vertex \{w}")
       } else {
@@ -124,7 +124,7 @@ pub fn[G : DirectedGraph] check_conformance(graph : G) -> Array[String] {
   }
   // Law F: each_vertex agrees with iter() as a multiset (duplicates and all).
   let ev_list : Array[Int] = []
-  G::each_vertex(graph, fn(v) { ev_list.push(v) })
+  VertexSet::each_vertex(graph, fn(v) { ev_list.push(v) })
   if !multiset_eq(ev_list, iter_raw) {
     violations.push(
       "Law F: each_vertex visited \{ev_list.length()} vertices, iter() yielded \{iter_raw.length()}; multisets differ",
@@ -133,8 +133,8 @@ pub fn[G : DirectedGraph] check_conformance(graph : G) -> Array[String] {
   // Law F cont'd: each_successor agrees with successors() for each vertex.
   for v in iter_set {
     let es_list : Array[Int] = []
-    G::each_successor(graph, v, fn(w) { es_list.push(w) })
-    let su_list : Array[Int] = G::successors(graph, v).collect()
+    Successors::each_successor(graph, v, fn(w) { es_list.push(w) })
+    let su_list : Array[Int] = Successors::successors(graph, v).collect()
     if !multiset_eq(es_list, su_list) {
       violations.push(
         "Law F: each_successor(\{v}) visited \{es_list.length()} vertices, successors(\{v}) yielded \{su_list.length()}; multisets differ",
@@ -191,11 +191,11 @@ pub fn[G : DirectedGraph + Predecessors] check_predecessors_conformance(
 ) -> Array[String] {
   let violations = check_conformance(graph)
   // Collect vertices once — no need to re-run iter duplicate check.
-  let iter_list : Array[Int] = G::iter(graph).collect()
+  let iter_list : Array[Int] = VertexSet::iter(graph).collect()
   // Build forward edge set: (u, v) for v ∈ successors(u).
   let forward : @hashset.HashSet[(Int, Int)] = @hashset.HashSet([])
   for u in iter_list {
-    for v in G::successors(graph, u) {
+    for v in Successors::successors(graph, u) {
       forward.add((u, v))
     }
   }

@@ -40,9 +40,9 @@
 /// Returns a Map where every vertex has an entry (0 if no incoming edges).
 fn[G : DirectedGraph] compute_in_degrees(graph : G) -> Map[Int, Int] {
   let in_degree : Map[Int, Int] = Map([])
-  G::each_vertex(graph, fn(v) { in_degree[v] = 0 })
-  G::each_vertex(graph, fn(v) {
-    G::each_successor(graph, v, fn(w) {
+  VertexSet::each_vertex(graph, fn(v) { in_degree[v] = 0 })
+  VertexSet::each_vertex(graph, fn(v) {
+    Successors::each_successor(graph, v, fn(w) {
       let d = match in_degree.get(w) {
         Some(n) => n
         None => 0
@@ -76,7 +76,7 @@ pub fn[G : DirectedGraph] toposort(graph : G) -> Array[Int]? {
     let v = queue[head]
     head = head + 1
     result.push(v)
-    G::each_successor(graph, v, fn(w) {
+    Successors::each_successor(graph, v, fn(w) {
       let d = match in_degree.get(w) {
         Some(n) => n
         None => 0
@@ -88,7 +88,7 @@ pub fn[G : DirectedGraph] toposort(graph : G) -> Array[Int]? {
     })
   }
   // Check completeness — incomplete means a cycle exists
-  let vc = G::vertex_count(graph)
+  let vc = VertexSet::vertex_count(graph)
   if result.length() == vc {
     Some(result)
   } else {
@@ -131,13 +131,13 @@ pub fn[G : DirectedGraph] find_cycle(graph : G) -> Array[Int]? {
   // extraction when a back-edge is encountered.
   let position : Map[Int, Int] = Map([])
   let frames : Array[(Int, Iter[Int])] = []
-  for root in G::iter(graph) {
+  for root in VertexSet::iter(graph) {
     if state.contains(root) {
       continue
     }
     state[root] = true
     position[root] = 0
-    frames.push((root, G::successors(graph, root)))
+    frames.push((root, Successors::successors(graph, root)))
     while frames.length() > 0 {
       let top_idx = frames.length() - 1
       let v = frames[top_idx].0
@@ -149,7 +149,7 @@ pub fn[G : DirectedGraph] find_cycle(graph : G) -> Array[Int]? {
               // Tree edge: descend into w
               state[w] = true
               position[w] = frames.length()
-              frames.push((w, G::successors(graph, w)))
+              frames.push((w, Successors::successors(graph, w)))
             }
             Some(true) => {
               // Back edge v -> w: w is an ancestor on the current path.
@@ -263,7 +263,7 @@ pub fn[G : DirectedGraph] topo_levels(graph : G) -> Map[Int, Int]? {
       Some(l) => l
       None => 0
     }
-    G::each_successor(graph, v, fn(w) {
+    Successors::each_successor(graph, v, fn(w) {
       let d = match in_degree.get(w) {
         Some(n) => n
         None => 0
@@ -319,7 +319,7 @@ pub fn[G : DirectedGraph] toposort_subset(
   let subset : @hashset.HashSet[Int] = @hashset.HashSet([])
   let unique : Array[Int] = []
   for v in vertices {
-    if !subset.contains(v) && G::has_vertex(graph, v) {
+    if !subset.contains(v) && VertexSet::has_vertex(graph, v) {
       subset.add(v)
       unique.push(v)
     }
@@ -331,7 +331,7 @@ pub fn[G : DirectedGraph] toposort_subset(
   // Compute in-degrees within the induced subgraph
   let in_degree : @hashmap.HashMap[Int, Int] = @hashmap.HashMap([])
   for v in unique {
-    G::each_successor(graph, v, fn(w) {
+    Successors::each_successor(graph, v, fn(w) {
       if subset.contains(w) {
         match in_degree.get(w) {
           Some(d) => in_degree[w] = d + 1
@@ -354,7 +354,7 @@ pub fn[G : DirectedGraph] toposort_subset(
     let v = queue[head]
     head = head + 1
     result.push(v)
-    G::each_successor(graph, v, fn(w) {
+    Successors::each_successor(graph, v, fn(w) {
       if subset.contains(w) {
         match in_degree.get(w) {
           Some(d) => {
