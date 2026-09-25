@@ -178,4 +178,3 @@ pub(open) trait VertexSet {
   fn vertex_count(Self) -> Int = _
   fn has_vertex(Self, Int) -> Bool = _
 }
-
