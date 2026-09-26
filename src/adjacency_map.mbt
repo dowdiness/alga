@@ -379,8 +379,8 @@ pub impl Debug for AdjacencyMap with fn to_repr(self) {
     sorted.sort()
     entries.push(
       (
-        @debug.to_repr(k),
-        @debug.Repr::array(sorted.map(fn(v) { @debug.to_repr(v) })),
+        Repr(k),
+        @debug.Repr::array(sorted.map(fn(v) { Repr(v) })),
       ),
     )
   }
@@ -458,3 +458,21 @@ pub impl Predecessors for AdjacencyMap with fn predecessors(self, v) {
     None => Iter::empty()
   }
 }
+
+///|
+pub extend AdjacencyMap with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend AdjacencyMap with Eq::{equal, not_equal}
+
+///|
+pub extend AdjacencyMap with Predecessors::{predecessors}
+
+///|
+pub extend AdjacencyMap with Show::{output, to_string}
+
+///|
+pub extend AdjacencyMap with Successors::{bfs_fold, dfs_fold, each_successor, successors}
+
+///|
+pub extend AdjacencyMap with VertexSet::{each_vertex, has_vertex, iter, vertex_count}

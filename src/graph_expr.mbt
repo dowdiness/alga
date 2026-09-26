@@ -118,7 +118,7 @@ pub fn Graph::to_adjacency_map(self : Graph) -> AdjacencyMap {
   let all_vertices : Array[Int] = []
   // Fresh merge avoids aliasing the shared `empty` array across Empty nodes.
   fn merge(a : Array[Int], b : Array[Int]) -> Array[Int] {
-    let result : Array[Int] = Array::new(capacity=a.length() + b.length())
+    let result : Array[Int] = Array(capacity=a.length() + b.length())
     result.append(a)
     result.append(b)
     result
@@ -363,16 +363,16 @@ pub impl Show for Graph with fn output(self, logger) {
 pub impl Debug for Graph with fn to_repr(self) {
   match self {
     Empty => @debug.Repr::ctor("Empty", [])
-    Vertex(v) => @debug.Repr::ctor("Vertex", [(None, @debug.to_repr(v))])
+    Vertex(v) => @debug.Repr::ctor("Vertex", [(None, Repr(v))])
     Overlay(a, b) =>
       @debug.Repr::ctor("Overlay", [
-        (None, @debug.to_repr(a)),
-        (None, @debug.to_repr(b)),
+        (None, Repr(a)),
+        (None, Repr(b)),
       ])
     Connect(a, b) =>
       @debug.Repr::ctor("Connect", [
-        (None, @debug.to_repr(a)),
-        (None, @debug.to_repr(b)),
+        (None, Repr(a)),
+        (None, Repr(b)),
       ])
   }
 }
@@ -398,3 +398,12 @@ pub impl GraphSym for Graph with fn overlay(a, b) {
 pub impl GraphSym for Graph with fn connect(a, b) {
   Connect(a, b)
 }
+
+///|
+pub extend Graph with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend Graph with GraphSym::{connect, empty, overlay, vertex}
+
+///|
+pub extend Graph with Show::{output, to_string}

@@ -302,3 +302,9 @@ pub fn[G : DirectedGraph] dfs_events(graph : G) -> Iter[DfsEvent] {
     }
   })
 }
+
+///|
+pub extend DfsEvent with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend DfsEvent with Eq::{equal, not_equal}

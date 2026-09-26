@@ -61,3 +61,12 @@ pub impl[G : Successors] Predecessors for Reversed[G] with fn predecessors(
 ) {
   G::successors(self.graph, v)
 }
+
+///|
+pub extend Reversed with Predecessors::{predecessors}
+
+///|
+pub extend Reversed with Successors::{bfs_fold, dfs_fold, each_successor, successors}
+
+///|
+pub extend Reversed with VertexSet::{each_vertex, has_vertex, iter, vertex_count}
