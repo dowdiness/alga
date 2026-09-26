@@ -64,20 +64,34 @@ pub struct AdjacencyMap {
   adjacency : Map[Int, Array[Int]]
   predecessors : Map[Int, Array[Int]]
 }
+pub fn[Acc] AdjacencyMap::bfs_fold(Self, Int, Acc, (Acc, Int) -> (Acc, Bool)) -> Acc
 pub fn AdjacencyMap::condensation(Self) -> (Self, Map[Int, Int])
 pub fn AdjacencyMap::connect(Self, Self) -> Self
+pub fn[Acc] AdjacencyMap::dfs_fold(Self, Int, Acc, (Acc, Int) -> (Acc, Bool)) -> Acc
+pub fn AdjacencyMap::each_successor(Self, Int, (Int) -> Unit) -> Unit
+pub fn AdjacencyMap::each_vertex(Self, (Int) -> Unit) -> Unit
 pub fn AdjacencyMap::edge(Int, Int) -> Self
 pub fn AdjacencyMap::edge_count(Self) -> Int
 pub fn AdjacencyMap::edge_list(Self) -> Array[(Int, Int)]
 pub fn AdjacencyMap::empty() -> Self
+pub fn AdjacencyMap::equal(Self, Self) -> Bool
 pub fn AdjacencyMap::from_edges(Array[(Int, Int)]) -> Self
 pub fn AdjacencyMap::has_edge(Self, Int, Int) -> Bool
+pub fn AdjacencyMap::has_vertex(Self, Int) -> Bool
+pub fn AdjacencyMap::iter(Self) -> Iter[Int]
+pub fn AdjacencyMap::not_equal(Self, Self) -> Bool
+pub fn AdjacencyMap::output(Self, &Logger) -> Unit
 pub fn AdjacencyMap::overlay(Self, Self) -> Self
+pub fn AdjacencyMap::predecessors(Self, Int) -> Iter[Int]
 pub fn AdjacencyMap::remove_self_loops(Self) -> Self
 pub fn AdjacencyMap::scc(Self) -> Array[Array[Int]]
 pub fn AdjacencyMap::successor_list(Self, Int) -> Array[Int]
+pub fn AdjacencyMap::successors(Self, Int) -> Iter[Int]
+pub fn AdjacencyMap::to_repr(Self) -> @debug.Repr
+pub fn AdjacencyMap::to_string(Self) -> String
 pub fn AdjacencyMap::transpose(Self) -> Self
 pub fn AdjacencyMap::vertex(Int) -> Self
+pub fn AdjacencyMap::vertex_count(Self) -> Int
 pub fn AdjacencyMap::vertex_list(Self) -> Array[Int]
 pub impl DirectedGraph for AdjacencyMap
 pub impl GraphSym for AdjacencyMap
@@ -92,16 +106,28 @@ pub struct DenseGraph {
   successors : Array[Array[Int]]
   predecessors : Array[Array[Int]]
 }
+pub fn[Acc] DenseGraph::bfs_fold(Self, Int, Acc, (Acc, Int) -> (Acc, Bool)) -> Acc
 pub fn DenseGraph::dfs_events(Self) -> Iter[DfsEvent]
+pub fn[Acc] DenseGraph::dfs_fold(Self, Int, Acc, (Acc, Int) -> (Acc, Bool)) -> Acc
+pub fn DenseGraph::each_successor(Self, Int, (Int) -> Unit) -> Unit
+pub fn DenseGraph::each_vertex(Self, (Int) -> Unit) -> Unit
 pub fn DenseGraph::from_adjacency_map(AdjacencyMap) -> Self
 pub fn DenseGraph::from_edges(Int, Array[(Int, Int)]) -> Self
 pub fn DenseGraph::has_cycle(Self) -> Bool
+pub fn DenseGraph::has_vertex(Self, Int) -> Bool
 pub fn DenseGraph::is_reachable_gen(Self, Int, Int, FixedArray[Int], Int) -> Bool
+pub fn DenseGraph::iter(Self) -> Iter[Int]
+pub fn DenseGraph::output(Self, &Logger) -> Unit
+pub fn DenseGraph::predecessors(Self, Int) -> Iter[Int]
 pub fn DenseGraph::reachable(Self, Int) -> Array[Int]
 pub fn DenseGraph::reachable_gen(Self, Int, FixedArray[Int], Int) -> Array[Int]
 pub fn DenseGraph::scc(Self) -> Array[Array[Int]]
+pub fn DenseGraph::successors(Self, Int) -> Iter[Int]
+pub fn DenseGraph::to_repr(Self) -> @debug.Repr
+pub fn DenseGraph::to_string(Self) -> String
 pub fn DenseGraph::toposort(Self) -> Array[Int]?
 pub fn DenseGraph::transpose(Self) -> Self
+pub fn DenseGraph::vertex_count(Self) -> Int
 pub impl DirectedGraph for DenseGraph
 pub impl Predecessors for DenseGraph
 pub impl Successors for DenseGraph
@@ -116,6 +142,9 @@ pub(all) enum DfsEvent {
   BackEdge(Int, Int)
   CrossForwardEdge(Int, Int)
 } derive(Eq, @debug.Debug)
+pub fn DfsEvent::equal(Self, Self) -> Bool
+pub fn DfsEvent::not_equal(Self, Self) -> Bool
+pub fn DfsEvent::to_repr(Self) -> @debug.Repr
 
 pub(all) enum Graph {
   Empty
@@ -123,16 +152,24 @@ pub(all) enum Graph {
   Overlay(Graph, Graph)
   Connect(Graph, Graph)
 }
+pub fn Graph::arbitrary(Int, @splitmix.RandomState) -> Self
 pub fn Graph::bind(Self, (Int) -> Self) -> Self
 pub fn Graph::circuit(Array[Int]) -> Self
 pub fn Graph::clique(Array[Int]) -> Self
+pub fn Graph::connect(Self, Self) -> Self
 pub fn Graph::edges(Array[(Int, Int)]) -> Self
+pub fn Graph::empty() -> Self
 pub fn Graph::gmap(Self, (Int) -> Int) -> Self
 pub fn Graph::induce(Self, (Int) -> Bool) -> Self
+pub fn Graph::output(Self, &Logger) -> Unit
+pub fn Graph::overlay(Self, Self) -> Self
 pub fn Graph::path(Array[Int]) -> Self
 pub fn Graph::remove_vertex(Self, Int) -> Self
 pub fn Graph::star(Int, Array[Int]) -> Self
 pub fn Graph::to_adjacency_map(Self) -> AdjacencyMap
+pub fn Graph::to_repr(Self) -> @debug.Repr
+pub fn Graph::to_string(Self) -> String
+pub fn Graph::vertex(Int) -> Self
 pub fn Graph::vertices(Array[Int]) -> Self
 pub impl GraphSym for Graph
 pub impl Show for Graph
@@ -143,6 +180,15 @@ pub impl @shrink.Shrink for Graph
 pub struct Reversed[G] {
   graph : G
 }
+pub fn[G : Predecessors, Acc] Reversed::bfs_fold(Self[G], Int, Acc, (Acc, Int) -> (Acc, Bool)) -> Acc
+pub fn[G : Predecessors, Acc] Reversed::dfs_fold(Self[G], Int, Acc, (Acc, Int) -> (Acc, Bool)) -> Acc
+pub fn[G : Predecessors] Reversed::each_successor(Self[G], Int, (Int) -> Unit) -> Unit
+pub fn[G : VertexSet] Reversed::each_vertex(Self[G], (Int) -> Unit) -> Unit
+pub fn[G : VertexSet] Reversed::has_vertex(Self[G], Int) -> Bool
+pub fn[G : VertexSet] Reversed::iter(Self[G]) -> Iter[Int]
+pub fn[G : Successors] Reversed::predecessors(Self[G], Int) -> Iter[Int]
+pub fn[G : Predecessors] Reversed::successors(Self[G], Int) -> Iter[Int]
+pub fn[G : VertexSet] Reversed::vertex_count(Self[G]) -> Int
 pub impl[G : VertexSet + Predecessors] DirectedGraph for Reversed[G]
 pub impl[G : Successors] Predecessors for Reversed[G]
 pub impl[G : Predecessors] Successors for Reversed[G]
