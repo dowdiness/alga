@@ -26,14 +26,14 @@ impl DirectedGraph for ArrayGraph
 ///|
 test "external impl: reachable" {
   // 0 → 1 → 2 → 3
-  let g : ArrayGraph = { successors: [[1], [2], [3], []] }
+  let g : ArrayGraph = { successors: [[1], [2], [3], []], }
   let r = reachable(g, 0)
   @test.assert_eq(r.length(), 4)
 }
 
 ///|
 test "external impl: toposort" {
-  let g : ArrayGraph = { successors: [[1], [2], [3], []] }
+  let g : ArrayGraph = { successors: [[1], [2], [3], []], }
   let result = toposort(g)
   assert_true(result is Some(_))
   match result {
@@ -45,20 +45,20 @@ test "external impl: toposort" {
 ///|
 test "external impl: has_cycle" {
   // Acyclic
-  let g : ArrayGraph = { successors: [[1], [2], [3], []] }
+  let g : ArrayGraph = { successors: [[1], [2], [3], []], }
   assert_true(!has_cycle(g))
 }
 
 ///|
 test "external impl: has_cycle true" {
   // 0 → 1 → 2 → 0 (cycle)
-  let g : ArrayGraph = { successors: [[1], [2], [0]] }
+  let g : ArrayGraph = { successors: [[1], [2], [0]], }
   assert_true(has_cycle(g))
 }
 
 ///|
 test "external impl: bfs_fold" {
-  let g : ArrayGraph = { successors: [[1, 2], [3], [3], []] }
+  let g : ArrayGraph = { successors: [[1, 2], [3], [3], []], }
   let order : Array[Int] = bfs_fold(g, 0, [], fn(arr : Array[Int], v) {
     arr.push(v)
     (arr, true)
@@ -71,7 +71,7 @@ test "external impl: bfs_fold" {
 
 ///|
 test "external impl: dfs_fold" {
-  let g : ArrayGraph = { successors: [[1], [2], [3], []] }
+  let g : ArrayGraph = { successors: [[1], [2], [3], []], }
   let visited = dfs_fold(g, 0, [], fn(arr : Array[Int], v) {
     arr.push(v)
     (arr, true)
@@ -92,7 +92,7 @@ test "default has_vertex works on ArrayGraph" {
   // ArrayGraph overrides vertex_count but NOT has_vertex.
   // This exercises the O(V) default from traits.mbt, proving
   // the default impl is dispatched when no override exists.
-  let g = ArrayGraph::{ successors: [[1, 2], [2], [3], []] }
+  let g = ArrayGraph::{ successors: [[1, 2], [2], [3], []], }
   assert_true(VertexSet::has_vertex(g, 0))
   assert_true(VertexSet::has_vertex(g, 3))
   assert_true(!VertexSet::has_vertex(g, 4))

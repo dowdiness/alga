@@ -365,15 +365,9 @@ pub impl Debug for Graph with fn to_repr(self) {
     Empty => @debug.Repr::ctor("Empty", [])
     Vertex(v) => @debug.Repr::ctor("Vertex", [(None, Repr(v))])
     Overlay(a, b) =>
-      @debug.Repr::ctor("Overlay", [
-        (None, Repr(a)),
-        (None, Repr(b)),
-      ])
+      @debug.Repr::ctor("Overlay", [(None, Repr(a)), (None, Repr(b))])
     Connect(a, b) =>
-      @debug.Repr::ctor("Connect", [
-        (None, Repr(a)),
-        (None, Repr(b)),
-      ])
+      @debug.Repr::ctor("Connect", [(None, Repr(a)), (None, Repr(b))])
   }
 }
 

@@ -46,7 +46,7 @@ pub struct AdjacencyMap {
 /// The empty graph: no vertices, no edges.
 /// Identity element for both overlay and connect.
 pub fn AdjacencyMap::empty() -> AdjacencyMap {
-  { adjacency: Map([]), predecessors: Map([]) }
+  { adjacency: Map([]), predecessors: Map([]), }
 }
 
 ///|
@@ -56,7 +56,7 @@ pub fn AdjacencyMap::vertex(v : Int) -> AdjacencyMap {
   m[v] = []
   let r : Map[Int, Array[Int]] = Map([])
   r[v] = []
-  { adjacency: m, predecessors: r }
+  { adjacency: m, predecessors: r, }
 }
 
 ///|
@@ -71,7 +71,7 @@ pub fn AdjacencyMap::edge(u : Int, v : Int) -> AdjacencyMap {
     m[v] = []
     r[u] = []
   }
-  { adjacency: m, predecessors: r }
+  { adjacency: m, predecessors: r, }
 }
 
 ///|
@@ -120,7 +120,7 @@ pub fn AdjacencyMap::from_edges(edges : Array[(Int, Int)]) -> AdjacencyMap {
       r[u] = []
     }
   }
-  { adjacency: m, predecessors: r }
+  { adjacency: m, predecessors: r, }
 }
 
 ///|
@@ -239,7 +239,7 @@ pub fn AdjacencyMap::connect(
 
   add_cross_edges(m, self_vertices, other_vertices)
   add_cross_edges(r, other_vertices, self_vertices)
-  { adjacency: m, predecessors: r }
+  { adjacency: m, predecessors: r, }
 }
 
 ///|
@@ -297,7 +297,7 @@ pub fn AdjacencyMap::edge_count(self : AdjacencyMap) -> Int {
 /// The original and transposed graph share underlying map data (shallow copy).
 /// This is safe because AdjacencyMap is treated as immutable after construction.
 pub fn AdjacencyMap::transpose(self : AdjacencyMap) -> AdjacencyMap {
-  { adjacency: self.predecessors, predecessors: self.adjacency }
+  { adjacency: self.predecessors, predecessors: self.adjacency, }
 }
 
 ///|
@@ -324,7 +324,7 @@ pub fn AdjacencyMap::remove_self_loops(self : AdjacencyMap) -> AdjacencyMap {
     }
     r[k] = filtered
   }
-  { adjacency: m, predecessors: r }
+  { adjacency: m, predecessors: r, }
 }
 
 ///|
@@ -377,12 +377,7 @@ pub impl Debug for AdjacencyMap with fn to_repr(self) {
     }
     let sorted = succs.copy()
     sorted.sort()
-    entries.push(
-      (
-        Repr(k),
-        @debug.Repr::array(sorted.map(fn(v) { Repr(v) })),
-      ),
-    )
+    entries.push((Repr(k), @debug.Repr::array(sorted.map(fn(v) { Repr(v) }))))
   }
   @debug.Repr::opaque_("AdjacencyMap", @debug.Repr::map(entries))
 }
@@ -472,7 +467,17 @@ pub extend AdjacencyMap with Predecessors::{predecessors}
 pub extend AdjacencyMap with Show::{output, to_string}
 
 ///|
-pub extend AdjacencyMap with Successors::{bfs_fold, dfs_fold, each_successor, successors}
+pub extend AdjacencyMap with Successors::{
+  bfs_fold,
+  dfs_fold,
+  each_successor,
+  successors,
+}
 
 ///|
-pub extend AdjacencyMap with VertexSet::{each_vertex, has_vertex, iter, vertex_count}
+pub extend AdjacencyMap with VertexSet::{
+  each_vertex,
+  has_vertex,
+  iter,
+  vertex_count,
+}

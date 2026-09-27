@@ -216,6 +216,6 @@ test "prop: reversed preserves edge count" {
     max_success=100,
   )
 }
+
 ///|
 pub extend Graph with @moonbitlang/core/quickcheck.Arbitrary::{arbitrary}
-
