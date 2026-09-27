@@ -62,7 +62,7 @@ pub fn DenseGraph::from_edges(
       preds[v].push(u)
     }
   }
-  { successors: succs, predecessors: preds }
+  { successors: succs, predecessors: preds, }
 }
 
 ///|
@@ -91,13 +91,13 @@ pub fn DenseGraph::from_adjacency_map(am : AdjacencyMap) -> DenseGraph {
       preds[w].push(v)
     }
   }
-  { successors: succs, predecessors: preds }
+  { successors: succs, predecessors: preds, }
 }
 
 ///|
 /// Reverse all edge directions. O(1) — swaps successor and predecessor arrays.
 pub fn DenseGraph::transpose(self : DenseGraph) -> DenseGraph {
-  { successors: self.predecessors, predecessors: self.successors }
+  { successors: self.predecessors, predecessors: self.successors, }
 }
 
 ///|
@@ -135,11 +135,11 @@ pub impl Show for DenseGraph with fn output(self, logger) {
 /// Produces structured Repr showing vertex count and edges.
 pub impl Debug for DenseGraph with fn to_repr(self) {
   let fields : Map[String, @debug.Repr] = Map([])
-  fields["vertex_count"] = @debug.to_repr(self.successors.length())
+  fields["vertex_count"] = Repr(self.successors.length())
   let edges : Array[@debug.Repr] = []
   for v = 0; v < self.successors.length(); v = v + 1 {
     for w in self.successors[v] {
-      edges.push(@debug.Repr::tuple([@debug.to_repr(v), @debug.to_repr(w)]))
+      edges.push(@debug.Repr::tuple([Repr(v), Repr(w)]))
     }
   }
   fields["edges"] = @debug.Repr::array(edges)
@@ -598,4 +598,29 @@ pub fn DenseGraph::reachable_gen(
     }
   }
   result
+}
+
+///|
+pub extend DenseGraph with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend DenseGraph with Predecessors::{predecessors}
+
+///|
+pub extend DenseGraph with Show::{output, to_string}
+
+///|
+pub extend DenseGraph with Successors::{
+  bfs_fold,
+  dfs_fold,
+  each_successor,
+  successors,
+}
+
+///|
+pub extend DenseGraph with VertexSet::{
+  each_vertex,
+  has_vertex,
+  iter,
+  vertex_count,
 }

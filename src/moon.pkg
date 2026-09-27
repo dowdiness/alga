@@ -6,8 +6,16 @@ import {
   "moonbitlang/core/int",
   "moonbitlang/core/quickcheck" @coreqc,
   "moonbitlang/core/quickcheck/splitmix",
-  "moonbitlang/core/test",
   "moonbitlang/quickcheck" @qc,
 }
 
-warnings = "-1"
+warnings = "-1-implicit_impl_as_method"
+
+import {
+  "moonbitlang/core/test",
+} for "test"
+
+import {
+  "moonbitlang/core/debug",
+  "moonbitlang/core/test",
+} for "wbtest"
