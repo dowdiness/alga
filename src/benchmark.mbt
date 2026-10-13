@@ -2,8 +2,8 @@
 // Run with: moon bench --release
 
 ///|
-fn build_chain(n : Int) -> AdjacencyMap {
-  let edges : Array[(Int, Int)] = []
+fn build_chain(n : Int32) -> AdjacencyMap {
+  let edges : Array[(Int32, Int32)] = []
   for i = 0; i < n - 1; i = i + 1 {
     edges.push((i, i + 1))
   }
@@ -11,8 +11,8 @@ fn build_chain(n : Int) -> AdjacencyMap {
 }
 
 ///|
-fn build_diamond(n : Int) -> AdjacencyMap {
-  let edges : Array[(Int, Int)] = []
+fn build_diamond(n : Int32) -> AdjacencyMap {
+  let edges : Array[(Int32, Int32)] = []
   let width = 10
   let layers = n / width
   for layer = 0; layer < layers - 1; layer = layer + 1 {
@@ -30,8 +30,8 @@ fn build_diamond(n : Int) -> AdjacencyMap {
 }
 
 ///|
-fn build_cyclic(n : Int) -> AdjacencyMap {
-  let edges : Array[(Int, Int)] = []
+fn build_cyclic(n : Int32) -> AdjacencyMap {
+  let edges : Array[(Int32, Int32)] = []
   for i = 0; i < n; i = i + 1 {
     edges.push((i, (i + 1) % n))
   }
@@ -45,7 +45,7 @@ fn build_cyclic(n : Int) -> AdjacencyMap {
 
 ///|
 test "bench/from_edges/100" (b : @bench.T) {
-  let edges : Array[(Int, Int)] = []
+  let edges : Array[(Int32, Int32)] = []
   for i = 0; i < 99; i = i + 1 {
     edges.push((i, i + 1))
   }
@@ -54,7 +54,7 @@ test "bench/from_edges/100" (b : @bench.T) {
 
 ///|
 test "bench/from_edges/1000" (b : @bench.T) {
-  let edges : Array[(Int, Int)] = []
+  let edges : Array[(Int32, Int32)] = []
   for i = 0; i < 999; i = i + 1 {
     edges.push((i, i + 1))
   }
@@ -63,7 +63,7 @@ test "bench/from_edges/1000" (b : @bench.T) {
 
 ///|
 test "bench/from_edges/10000" (b : @bench.T) {
-  let edges : Array[(Int, Int)] = []
+  let edges : Array[(Int32, Int32)] = []
   for i = 0; i < 9999; i = i + 1 {
     edges.push((i, i + 1))
   }
@@ -329,7 +329,7 @@ test "bench/transpose/1000" (b : @bench.T) {
 /// so that benchmarks measure the cost of the O(V) default fallback, with no
 /// O(1) override. Compare against AdjacencyMap and DenseGraph which override.
 priv struct BenchMinimalGraph {
-  edges : Array[Array[Int]]
+  edges : Array[Array[Int32]]
 }
 
 ///|
@@ -347,8 +347,8 @@ impl Successors for BenchMinimalGraph with fn successors(self, v) {
 }
 
 ///|
-fn build_minimal_chain(n : Int) -> BenchMinimalGraph {
-  let edges : Array[Array[Int]] = Array::makei(n, fn(i) {
+fn build_minimal_chain(n : Int32) -> BenchMinimalGraph {
+  let edges : Array[Array[Int32]] = Array::makei(n, fn(i) {
     if i < n - 1 {
       [i + 1]
     } else {

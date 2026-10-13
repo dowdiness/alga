@@ -3,7 +3,7 @@
 /// Proves that an external data structure can implement DirectedGraph
 /// and use all algorithms without modification.
 struct ArrayGraph {
-  successors : Array[Array[Int]]
+  successors : Array[Array[Int32]]
 }
 
 ///|
@@ -59,7 +59,7 @@ test "external impl: has_cycle true" {
 ///|
 test "external impl: bfs_fold" {
   let g : ArrayGraph = { successors: [[1, 2], [3], [3], []], }
-  let order : Array[Int] = bfs_fold(g, 0, [], fn(arr : Array[Int], v) {
+  let order : Array[Int32] = bfs_fold(g, 0, [], fn(arr : Array[Int32], v) {
     arr.push(v)
     (arr, true)
   })
@@ -72,7 +72,7 @@ test "external impl: bfs_fold" {
 ///|
 test "external impl: dfs_fold" {
   let g : ArrayGraph = { successors: [[1], [2], [3], []], }
-  let visited = dfs_fold(g, 0, [], fn(arr : Array[Int], v) {
+  let visited = dfs_fold(g, 0, [], fn(arr : Array[Int32], v) {
     arr.push(v)
     (arr, true)
   })

@@ -71,10 +71,10 @@
 /// Required method: `iter() -> Iter[Int]`.
 /// All others have O(V) defaults derived from `iter`.
 pub(open) trait VertexSet {
-  fn iter(Self) -> Iter[Int]
-  fn each_vertex(Self, (Int) -> Unit) -> Unit = _
-  fn vertex_count(Self) -> Int = _
-  fn has_vertex(Self, Int) -> Bool = _
+  fn iter(Self) -> Iter[Int32]
+  fn each_vertex(Self, (Int32) -> Unit) -> Unit = _
+  fn vertex_count(Self) -> Int32 = _
+  fn has_vertex(Self, Int32) -> Bool = _
 }
 
 ///|
@@ -110,10 +110,10 @@ impl VertexSet with fn has_vertex(self, v) {
 /// with a `Map[Int, Bool]` visited set; override for faster
 /// visited-set tracking (e.g. `FixedArray[Bool]` for dense IDs).
 pub(open) trait Successors {
-  fn successors(Self, Int) -> Iter[Int]
-  fn[Acc] dfs_fold(Self, Int, Acc, (Acc, Int) -> (Acc, Bool)) -> Acc = _
-  fn[Acc] bfs_fold(Self, Int, Acc, (Acc, Int) -> (Acc, Bool)) -> Acc = _
-  fn each_successor(Self, Int, (Int) -> Unit) -> Unit = _
+  fn successors(Self, Int32) -> Iter[Int32]
+  fn[Acc] dfs_fold(Self, Int32, Acc, (Acc, Int32) -> (Acc, Bool)) -> Acc = _
+  fn[Acc] bfs_fold(Self, Int32, Acc, (Acc, Int32) -> (Acc, Bool)) -> Acc = _
+  fn each_successor(Self, Int32, (Int32) -> Unit) -> Unit = _
 }
 
 ///|
@@ -132,8 +132,8 @@ impl Successors with fn each_successor(self, v, f) {
 /// callers that need membership checks should require `VertexSet`
 /// in addition to `Successors`.
 impl Successors with fn dfs_fold(self, start, init, f) {
-  let visited : Map[Int, Bool] = Map([])
-  let stack : Array[Int] = [start]
+  let visited : Map[Int32, Bool] = Map([])
+  let stack : Array[Int32] = [start]
   let mut acc = init
   while stack.length() > 0 {
     let v = stack.unsafe_pop()
@@ -172,8 +172,8 @@ impl Successors with fn dfs_fold(self, start, init, f) {
 ///
 /// Same "known start" caveat as `dfs_fold` — does not validate membership.
 impl Successors with fn bfs_fold(self, start, init, f) {
-  let visited : Map[Int, Bool] = Map([])
-  let queue : Array[Int] = [start]
+  let visited : Map[Int32, Bool] = Map([])
+  let queue : Array[Int32] = [start]
   visited[start] = true
   let mut acc = init
   let mut head = 0
@@ -223,5 +223,5 @@ pub(open) trait DirectedGraph: VertexSet + Successors {}
 ///
 /// Used by `Reversed[G]` to swap `successors` and `predecessors`.
 pub(open) trait Predecessors {
-  fn predecessors(Self, Int) -> Iter[Int]
+  fn predecessors(Self, Int32) -> Iter[Int32]
 }

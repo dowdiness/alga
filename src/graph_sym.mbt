@@ -44,7 +44,7 @@
 /// https://dl.acm.org/doi/10.1145/3122955.3122956
 pub(open) trait GraphSym {
   fn empty() -> Self
-  fn vertex(Int) -> Self
+  fn vertex(Int32) -> Self
   fn overlay(Self, Self) -> Self
   fn connect(Self, Self) -> Self
 }

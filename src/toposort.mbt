@@ -38,8 +38,8 @@
 ///|
 /// Compute in-degrees for all vertices. Shared by toposort and topo_levels.
 /// Returns a Map where every vertex has an entry (0 if no incoming edges).
-fn[G : DirectedGraph] compute_in_degrees(graph : G) -> Map[Int, Int] {
-  let in_degree : Map[Int, Int] = Map([])
+fn[G : DirectedGraph] compute_in_degrees(graph : G) -> Map[Int32, Int32] {
+  let in_degree : Map[Int32, Int32] = Map([])
   VertexSet::each_vertex(graph, fn(v) { in_degree[v] = 0 })
   VertexSet::each_vertex(graph, fn(v) {
     Successors::each_successor(graph, v, fn(w) {
@@ -60,17 +60,17 @@ fn[G : DirectedGraph] compute_in_degrees(graph : G) -> Map[Int, Int] {
 /// **Warning:** Self-loops (edges v -> v) are treated as cycles and cause
 /// this function to return `None`. If your graph may contain self-loops
 /// that you want to ignore, call `remove_self_loops()` first.
-pub fn[G : DirectedGraph] toposort(graph : G) -> Array[Int]? {
+pub fn[G : DirectedGraph] toposort(graph : G) -> Array[Int32]? {
   let in_degree = compute_in_degrees(graph)
   // Seed queue with zero-in-degree vertices
-  let queue : Array[Int] = []
+  let queue : Array[Int32] = []
   for v, d in in_degree {
     if d == 0 {
       queue.push(v)
     }
   }
   // Process queue, building topological order
-  let result : Array[Int] = []
+  let result : Array[Int32] = []
   let mut head = 0
   while head < queue.length() {
     let v = queue[head]
@@ -124,13 +124,13 @@ pub fn[G : DirectedGraph] has_cycle(graph : G) -> Bool {
 ///
 /// Time: O(V + E) worst case (acyclic graph). Early-exits on first cycle.
 /// Space: O(V).
-pub fn[G : DirectedGraph] find_cycle(graph : G) -> Array[Int]? {
+pub fn[G : DirectedGraph] find_cycle(graph : G) -> Array[Int32]? {
   // state: absent = white, true = gray (on stack), false = black (finished)
-  let state : Map[Int, Bool] = Map([])
+  let state : Map[Int32, Bool] = Map([])
   // position[v] = frame index of v while v is gray, enabling O(1) cycle
   // extraction when a back-edge is encountered.
-  let position : Map[Int, Int] = Map([])
-  let frames : Array[(Int, Iter[Int])] = []
+  let position : Map[Int32, Int32] = Map([])
+  let frames : Array[(Int32, Iter[Int32])] = []
   for root in VertexSet::iter(graph) {
     if state.contains(root) {
       continue
@@ -155,7 +155,7 @@ pub fn[G : DirectedGraph] find_cycle(graph : G) -> Array[Int]? {
               // Back edge v -> w: w is an ancestor on the current path.
               // Extract cycle from frames[position[w]..=top_idx].
               let start = position[w]
-              let cycle : Array[Int] = []
+              let cycle : Array[Int32] = []
               for i in start..<=top_idx {
                 cycle.push(frames[i].0)
               }
@@ -190,7 +190,7 @@ pub fn[G : DirectedGraph] find_cycle(graph : G) -> Array[Int]? {
 /// plain `toposort`.
 pub fn[G : DirectedGraph] toposort_or_cycle(
   graph : G,
-) -> Result[Array[Int], Array[Int]] {
+) -> Result[Array[Int32], Array[Int32]] {
   match toposort(graph) {
     Some(order) => Ok(order)
     None =>
@@ -239,11 +239,11 @@ pub fn[G : DirectedGraph] toposort_or_cycle(
 /// for both sparse `AdjacencyMap` and dense `DenseGraph` IDs).
 ///
 /// Time: O(V + E). Space: O(V).
-pub fn[G : DirectedGraph] topo_levels(graph : G) -> Map[Int, Int]? {
+pub fn[G : DirectedGraph] topo_levels(graph : G) -> Map[Int32, Int32]? {
   let in_degree = compute_in_degrees(graph)
   // Step 1: Seed queue with sources (in-degree 0) at level 0
-  let levels : Map[Int, Int] = Map([])
-  let queue : Array[Int] = []
+  let levels : Map[Int32, Int32] = Map([])
+  let queue : Array[Int32] = []
   for v, d in in_degree {
     if d == 0 {
       levels[v] = 0
@@ -310,14 +310,14 @@ pub fn[G : DirectedGraph] topo_levels(graph : G) -> Map[Int, Int]? {
 /// Time: O(V_sub + E_sub). Space: O(V_sub).
 pub fn[G : DirectedGraph] toposort_subset(
   graph : G,
-  vertices : Array[Int],
-) -> Array[Int]? {
+  vertices : Array[Int32],
+) -> Array[Int32]? {
   // Build membership set and deduplicated vertex list (preserves input order).
   // has_vertex filters out IDs not in the graph — prevents panics on
   // DenseGraph (out-of-bounds) and inconsistent results on AdjacencyMap
   // (unknown IDs treated as isolated vertices with in-degree 0).
-  let subset : @hashset.HashSet[Int] = @hashset.HashSet([])
-  let unique : Array[Int] = []
+  let subset : @hashset.HashSet[Int32] = @hashset.HashSet([])
+  let unique : Array[Int32] = []
   for v in vertices {
     if !subset.contains(v) && VertexSet::has_vertex(graph, v) {
       subset.add(v)
@@ -329,7 +329,7 @@ pub fn[G : DirectedGraph] toposort_subset(
     return Some([])
   }
   // Compute in-degrees within the induced subgraph
-  let in_degree : @hashmap.HashMap[Int, Int] = @hashmap.HashMap([])
+  let in_degree : @hashmap.HashMap[Int32, Int32] = @hashmap.HashMap([])
   for v in unique {
     Successors::each_successor(graph, v, fn(w) {
       if subset.contains(w) {
@@ -341,14 +341,14 @@ pub fn[G : DirectedGraph] toposort_subset(
     })
   }
   // Seed queue with zero-in-degree subset vertices (input order)
-  let queue : Array[Int] = []
+  let queue : Array[Int32] = []
   for v in unique {
     if !in_degree.contains(v) {
       queue.push(v)
     }
   }
   // Process queue
-  let result : Array[Int] = []
+  let result : Array[Int32] = []
   let mut head = 0
   while head < queue.length() {
     let v = queue[head]

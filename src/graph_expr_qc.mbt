@@ -4,7 +4,7 @@
 /// Uses small vertex IDs (0..size) to increase chance of structural overlap.
 /// Depth capped at 4 to keep expression trees manageable (max ~16 leaves).
 pub impl @coreqc.Arbitrary for Graph with fn arbitrary(size, rs) {
-  fn go(depth : Int, rs : @splitmix.RandomState) -> Graph {
+  fn go(depth : Int32, rs : @splitmix.RandomState) -> Graph {
     if depth <= 0 {
       // 2/3 Vertex, 1/3 Empty at leaves — biases toward non-trivial graphs
       if rs.next_uint() % 3 == 0 {
@@ -34,20 +34,20 @@ pub impl @coreqc.Arbitrary for Graph with fn arbitrary(size, rs) {
 /// 2. Weakened form (Connect→Overlay)
 /// 3. Collapse to Empty
 /// 4. Recursive shrinks inside each child (preserves constructor)
-pub impl @qc.Shrink for Graph with fn shrink(self) {
+pub impl @shrink.Shrink for Graph with fn shrink(self) {
   match self {
     Empty => Iter::empty()
     Vertex(_) => [Empty].iter()
     Overlay(a, b) =>
       [a, b, Empty]
       .iter()
-      .concat(@qc.Shrink::shrink(a).map(fn(a1) { Overlay(a1, b) }))
-      .concat(@qc.Shrink::shrink(b).map(fn(b1) { Overlay(a, b1) }))
+      .concat(@shrink.Shrink::shrink(a).map(fn(a1) { Overlay(a1, b) }))
+      .concat(@shrink.Shrink::shrink(b).map(fn(b1) { Overlay(a, b1) }))
     Connect(a, b) =>
       [a, b, Overlay(a, b), Empty]
       .iter()
-      .concat(@qc.Shrink::shrink(a).map(fn(a1) { Connect(a1, b) }))
-      .concat(@qc.Shrink::shrink(b).map(fn(b1) { Connect(a, b1) }))
+      .concat(@shrink.Shrink::shrink(a).map(fn(a1) { Connect(a1, b) }))
+      .concat(@shrink.Shrink::shrink(b).map(fn(b1) { Connect(a, b1) }))
   }
 }
 
@@ -62,7 +62,9 @@ test "prop: tarjan_scc matches kosaraju scc" {
       let kosaraju = am.scc()
       let tarjan = tarjan_scc(am)
       // Normalize: sort each component, then sort the list of components
-      let normalize = fn(components : Array[Array[Int]]) -> Array[Array[Int]] {
+      let normalize = fn(
+        components : Array[Array[Int32]],
+      ) -> Array[Array[Int32]] {
         let sorted = components.map(fn(c) {
           let copy = c.copy()
           copy.sort()
@@ -219,3 +221,33 @@ test "prop: reversed preserves edge count" {
 
 ///|
 pub extend Graph with @moonbitlang/core/quickcheck.Arbitrary::{arbitrary}
+
+///|
+pub extend Graph with @moonbitlang/core/quickcheck/shrink.Shrink::{shrink}
+
+///|
+test "core Shrink preserves Graph candidates and recursive shrinking" {
+  assert_eq(@shrink.Shrink::shrink(Empty).count(), 0)
+  assert_true(@shrink.Shrink::shrink(Vertex(1)).collect() is [Empty])
+  assert_true(
+    @shrink.Shrink::shrink(Connect(Vertex(1), Vertex(2))).collect()
+    is [
+      Vertex(1),
+      Vertex(2),
+      Overlay(Vertex(1), Vertex(2)),
+      Empty,
+      Connect(Empty, Vertex(2)),
+      Connect(Vertex(1), Empty),
+    ],
+  )
+  assert_true(
+    Overlay(Vertex(1), Vertex(2)).shrink().collect()
+    is [
+      Vertex(1),
+      Vertex(2),
+      Empty,
+      Overlay(Empty, Vertex(2)),
+      Overlay(Vertex(1), Empty),
+    ],
+  )
+}

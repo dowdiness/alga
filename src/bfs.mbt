@@ -34,9 +34,9 @@
 /// Time: O(V + E) where V and E are the reachable vertices and edges.
 pub fn[G : Successors, Acc] bfs_fold(
   graph : G,
-  start : Int,
+  start : Int32,
   init : Acc,
-  f : (Acc, Int) -> (Acc, Bool),
+  f : (Acc, Int32) -> (Acc, Bool),
 ) -> Acc {
   graph.bfs_fold(start, init, f)
 }
@@ -66,12 +66,12 @@ pub fn[G : Successors, Acc] bfs_fold(
 /// Seed validation calls `has_vertex` — override it for O(1) on custom types.
 pub fn[G : DirectedGraph, Acc] bfs_fold_multi(
   graph : G,
-  starts : Array[Int],
+  starts : Array[Int32],
   init : Acc,
-  f : (Acc, Int) -> (Acc, Bool),
+  f : (Acc, Int32) -> (Acc, Bool),
 ) -> Acc {
-  let visited : Map[Int, Bool] = Map([])
-  let queue : Array[Int] = []
+  let visited : Map[Int32, Bool] = Map([])
+  let queue : Array[Int32] = []
   for s in starts {
     if !visited.contains(s) && VertexSet::has_vertex(graph, s) {
       visited[s] = true

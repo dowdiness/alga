@@ -4,6 +4,10 @@ A directed graph library for [MoonBit](https://www.moonbitlang.com/) with trait-
 
 Implement two methods (`iter`, `successors`) on your data structure and get DFS, BFS, topological sort, cycle detection, strongly connected components, edge classification, and reverse traversal — all with O(V+E) complexity.
 
+## Compatibility
+
+This branch targets MoonBit 0.10.15 and QuickCheck 0.15.0. Earlier compiler versions are not supported. `Graph` implements `moonbitlang/core/quickcheck/shrink.Shrink`; import that core package when referring to the shrinking trait directly.
+
 ## Quick start
 
 ```bash

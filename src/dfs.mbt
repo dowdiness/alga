@@ -36,16 +36,16 @@
 /// Time: O(V + E) where V and E are the reachable vertices and edges.
 pub fn[G : Successors, Acc] dfs_fold(
   graph : G,
-  start : Int,
+  start : Int32,
   init : Acc,
-  f : (Acc, Int) -> (Acc, Bool),
+  f : (Acc, Int32) -> (Acc, Bool),
 ) -> Acc {
   graph.dfs_fold(start, init, f)
 }
 
 ///|
 /// All vertices reachable from `start`, in DFS pre-order.
-pub fn[G : Successors] reachable(graph : G, start : Int) -> Array[Int] {
+pub fn[G : Successors] reachable(graph : G, start : Int32) -> Array[Int32] {
   dfs_fold(graph, start, [], fn(arr, v) {
     arr.push(v)
     (arr, true)
@@ -64,7 +64,11 @@ pub fn[G : Successors] reachable(graph : G, start : Int) -> Array[Int] {
 ///
 /// Time: O(V' + E') where V' and E' are the vertices and edges visited
 /// before encountering `to` (bounded by the reachable subgraph from `from`).
-pub fn[G : DirectedGraph] is_reachable(graph : G, from : Int, to : Int) -> Bool {
+pub fn[G : DirectedGraph] is_reachable(
+  graph : G,
+  from : Int32,
+  to : Int32,
+) -> Bool {
   if !VertexSet::has_vertex(graph, from) {
     return false
   }
@@ -97,8 +101,8 @@ pub fn[G : DirectedGraph] is_reachable(graph : G, from : Int, to : Int) -> Bool 
 /// searching from `v` for `u` (bounded by v's reachable subgraph).
 pub fn[G : DirectedGraph] would_create_cycle(
   graph : G,
-  u : Int,
-  v : Int,
+  u : Int32,
+  v : Int32,
 ) -> Bool {
   if u == v {
     return true
@@ -130,17 +134,17 @@ pub fn[G : DirectedGraph] would_create_cycle(
 /// Seed validation calls `has_vertex` — override it for O(1) on custom types.
 pub fn[G : DirectedGraph, Acc] dfs_fold_multi(
   graph : G,
-  starts : Array[Int],
+  starts : Array[Int32],
   init : Acc,
-  f : (Acc, Int) -> (Acc, Bool),
+  f : (Acc, Int32) -> (Acc, Bool),
 ) -> Acc {
-  let visited : Map[Int, Bool] = Map([])
-  let stack : Array[Int] = []
+  let visited : Map[Int32, Bool] = Map([])
+  let stack : Array[Int32] = []
   // Seed in reverse order so starts[0] ends up on top of the stack (LIFO).
   // Use visited for dedup — seeds are pushed but NOT marked as visited,
   // so the main loop's visited-check + fold runs normally for each seed.
   // After seeding, clear visited so the main loop starts fresh.
-  let seen : @hashset.HashSet[Int] = @hashset.HashSet([])
+  let seen : @hashset.HashSet[Int32] = @hashset.HashSet([])
   for i in (starts.length() - 1)>=..0 {
     let s = starts[i]
     if !seen.contains(s) && VertexSet::has_vertex(graph, s) {
@@ -188,8 +192,8 @@ pub fn[G : DirectedGraph, Acc] dfs_fold_multi(
 /// vertices into an array. Same relationship as `reachable` to `dfs_fold`.
 pub fn[G : DirectedGraph] reachable_multi(
   graph : G,
-  starts : Array[Int],
-) -> Array[Int] {
+  starts : Array[Int32],
+) -> Array[Int32] {
   dfs_fold_multi(graph, starts, [], fn(arr, v) {
     arr.push(v)
     (arr, true)
@@ -213,15 +217,15 @@ pub fn[G : DirectedGraph] reachable_multi(
 /// is examined: white → TreeEdge, gray → BackEdge, black → CrossForwardEdge.
 pub(all) enum DfsEvent {
   /// Vertex entered — pre-order. Vertex transitions white → gray.
-  Discover(Int)
+  Discover(Int32)
   /// All descendants done — post-order. Vertex transitions gray → black.
-  Finish(Int)
+  Finish(Int32)
   /// (u, v): v was white. v will be discovered on the next `.next()` call.
-  TreeEdge(Int, Int)
+  TreeEdge(Int32, Int32)
   /// (u, v): v is gray (ancestor on stack). Indicates a cycle: v →...→ u → v.
-  BackEdge(Int, Int)
+  BackEdge(Int32, Int32)
   /// (u, v): v is black (already finished). Merged forward + cross edges.
-  CrossForwardEdge(Int, Int)
+  CrossForwardEdge(Int32, Int32)
 } derive(Eq, Debug)
 
 ///|
@@ -249,11 +253,11 @@ pub(all) enum DfsEvent {
 /// Benchmark: ~155µs chain, ~179µs cyclic, ~257µs diamond (1000 vertices, AdjacencyMap).
 pub fn[G : DirectedGraph] dfs_events(graph : G) -> Iter[DfsEvent] {
   // absent = white (undiscovered), true = gray (on stack), false = black (finished)
-  let state : Map[Int, Bool] = Map([])
-  let frames : Array[(Int, Iter[Int])] = []
+  let state : Map[Int32, Bool] = Map([])
+  let frames : Array[(Int32, Iter[Int32])] = []
   let roots = VertexSet::iter(graph)
   // When set, the next event is Discover(v) and a frame is pushed.
-  let mut enter_pending : Int? = None
+  let mut enter_pending : Int32? = None
   Iter::new(fn() {
     while true {
       match enter_pending {

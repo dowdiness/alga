@@ -42,7 +42,7 @@
 /// `Graph` expressions.
 pub(all) enum Graph {
   Empty
-  Vertex(Int)
+  Vertex(Int32)
   Overlay(Graph, Graph)
   Connect(Graph, Graph)
 }
@@ -75,7 +75,7 @@ priv enum FoldWork {
 pub fn[B] foldg(
   graph : Graph,
   empty : B,
-  vertex : (Int) -> B,
+  vertex : (Int32) -> B,
   overlay : (B, B) -> B,
   connect : (B, B) -> B,
 ) -> B {
@@ -114,18 +114,18 @@ pub fn[B] foldg(
 /// linear; for pathological cases (deeply nested cliques) the
 /// cross-product in Connect dominates.
 pub fn Graph::to_adjacency_map(self : Graph) -> AdjacencyMap {
-  let all_edges : Array[(Int, Int)] = []
-  let all_vertices : Array[Int] = []
+  let all_edges : Array[(Int32, Int32)] = []
+  let all_vertices : Array[Int32] = []
   // Fresh merge avoids aliasing the shared `empty` array across Empty nodes.
-  fn merge(a : Array[Int], b : Array[Int]) -> Array[Int] {
-    let result : Array[Int] = Array(capacity=a.length() + b.length())
+  fn merge(a : Array[Int32], b : Array[Int32]) -> Array[Int32] {
+    let result : Array[Int32] = Array(capacity=a.length() + b.length())
     result.append(a)
     result.append(b)
     result
   }
 
   // Uses foldg_iter for stack safety on deep expressions — see doc comment.
-  let _ : Array[Int] = foldg_iter(
+  let _ : Array[Int32] = foldg_iter(
     self,
     [],
     fn(v) {
@@ -165,7 +165,7 @@ pub fn Graph::to_adjacency_map(self : Graph) -> AdjacencyMap {
 pub fn[B] foldg_iter(
   graph : Graph,
   empty : B,
-  vertex : (Int) -> B,
+  vertex : (Int32) -> B,
   overlay : (B, B) -> B,
   connect : (B, B) -> B,
 ) -> B {
@@ -208,7 +208,7 @@ pub fn[B] foldg_iter(
 ///
 /// `gmap(f)` applies `f` to every `Vertex(v)`, producing `Vertex(f(v))`.
 /// Overlay/Connect structure is unchanged.
-pub fn Graph::gmap(self : Graph, f : (Int) -> Int) -> Graph {
+pub fn Graph::gmap(self : Graph, f : (Int32) -> Int32) -> Graph {
   foldg(self, Empty, fn(v) { Vertex(f(v)) }, fn(a, b) { Overlay(a, b) }, fn(
     a,
     b,
@@ -226,20 +226,20 @@ pub fn Graph::gmap(self : Graph, f : (Int) -> Int) -> Graph {
 /// Example: `edge(1, 2).bind(fn(v) { path([v*10, v*10+1]) })`
 /// expands vertex 1 into path(10, 11) and vertex 2 into path(20, 21),
 /// preserving the connect structure between them.
-pub fn Graph::bind(self : Graph, f : (Int) -> Graph) -> Graph {
+pub fn Graph::bind(self : Graph, f : (Int32) -> Graph) -> Graph {
   foldg(self, Empty, f, fn(a, b) { Overlay(a, b) }, fn(a, b) { Connect(a, b) })
 }
 
 ///|
 /// Subgraph induced by a predicate: keep only vertices where `pred(v)` is true.
 /// Edges between removed vertices are also removed.
-pub fn Graph::induce(self : Graph, pred : (Int) -> Bool) -> Graph {
+pub fn Graph::induce(self : Graph, pred : (Int32) -> Bool) -> Graph {
   self.bind(fn(v) { if pred(v) { Vertex(v) } else { Empty } })
 }
 
 ///|
 /// Remove a single vertex (and all its edges).
-pub fn Graph::remove_vertex(self : Graph, target : Int) -> Graph {
+pub fn Graph::remove_vertex(self : Graph, target : Int32) -> Graph {
   self.induce(fn(v) { v != target })
 }
 
@@ -251,7 +251,7 @@ pub fn Graph::remove_vertex(self : Graph, target : Int) -> Graph {
 
 ///|
 /// Overlay of isolated vertices: {v1} + {v2} + ... (no edges).
-pub fn Graph::vertices(vs : Array[Int]) -> Graph {
+pub fn Graph::vertices(vs : Array[Int32]) -> Graph {
   if vs.length() == 0 {
     return Empty
   }
@@ -264,7 +264,7 @@ pub fn Graph::vertices(vs : Array[Int]) -> Graph {
 
 ///|
 /// Graph from explicit edge list.
-pub fn Graph::edges(es : Array[(Int, Int)]) -> Graph {
+pub fn Graph::edges(es : Array[(Int32, Int32)]) -> Graph {
   if es.length() == 0 {
     return Empty
   }
@@ -280,7 +280,7 @@ pub fn Graph::edges(es : Array[(Int, Int)]) -> Graph {
 ///
 /// `clique([1, 2, 3])` = connect(connect(vertex(1), vertex(2)), vertex(3))
 /// = edges [(1,2), (1,3), (2,3)]
-pub fn Graph::clique(vs : Array[Int]) -> Graph {
+pub fn Graph::clique(vs : Array[Int32]) -> Graph {
   if vs.length() == 0 {
     return Empty
   }
@@ -293,7 +293,7 @@ pub fn Graph::clique(vs : Array[Int]) -> Graph {
 
 ///|
 /// Star graph: center → each satellite. No edges between satellites.
-pub fn Graph::star(center : Int, satellites : Array[Int]) -> Graph {
+pub fn Graph::star(center : Int32, satellites : Array[Int32]) -> Graph {
   if satellites.length() == 0 {
     return Vertex(center)
   }
@@ -302,7 +302,7 @@ pub fn Graph::star(center : Int, satellites : Array[Int]) -> Graph {
 
 ///|
 /// Path: v1 → v2 → ... → vn (linear chain).
-pub fn Graph::path(vs : Array[Int]) -> Graph {
+pub fn Graph::path(vs : Array[Int32]) -> Graph {
   if vs.length() == 0 {
     return Empty
   }
@@ -318,7 +318,7 @@ pub fn Graph::path(vs : Array[Int]) -> Graph {
 
 ///|
 /// Circuit: path that loops back — v1 → v2 → ... → vn → v1.
-pub fn Graph::circuit(vs : Array[Int]) -> Graph {
+pub fn Graph::circuit(vs : Array[Int32]) -> Graph {
   if vs.length() == 0 {
     return Empty
   }

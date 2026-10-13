@@ -64,12 +64,15 @@ test "dfs_fold early termination" {
 ///|
 test "dfs_fold_multi single start matches dfs_fold" {
   let g = @alga.AdjacencyMap::from_edges([(1, 2), (2, 3), (3, 4)])
-  let single : Array[Int] = @alga.dfs_fold(g, 1, [], fn(arr : Array[Int], v) {
+  let single : Array[Int32] = @alga.dfs_fold(g, 1, [], fn(
+    arr : Array[Int32],
+    v,
+  ) {
     arr.push(v)
     (arr, true)
   })
-  let multi : Array[Int] = @alga.dfs_fold_multi(g, [1], [], fn(
-    arr : Array[Int],
+  let multi : Array[Int32] = @alga.dfs_fold_multi(g, [1], [], fn(
+    arr : Array[Int32],
     v,
   ) {
     arr.push(v)
@@ -82,8 +85,8 @@ test "dfs_fold_multi single start matches dfs_fold" {
 test "dfs_fold_multi multiple starts" {
   // Two disconnected chains: 1->2->3 and 10->11->12
   let g = @alga.AdjacencyMap::from_edges([(1, 2), (2, 3), (10, 11), (11, 12)])
-  let visited : Array[Int] = @alga.dfs_fold_multi(g, [1, 10], [], fn(
-    arr : Array[Int],
+  let visited : Array[Int32] = @alga.dfs_fold_multi(g, [1, 10], [], fn(
+    arr : Array[Int32],
     v,
   ) {
     arr.push(v)
@@ -100,8 +103,8 @@ test "dfs_fold_multi multiple starts" {
 test "dfs_fold_multi overlapping reachability" {
   // Diamond: both 1 and 3 can reach 4
   let g = @alga.AdjacencyMap::from_edges([(1, 2), (1, 3), (2, 4), (3, 4)])
-  let visited : Array[Int] = @alga.dfs_fold_multi(g, [1, 3], [], fn(
-    arr : Array[Int],
+  let visited : Array[Int32] = @alga.dfs_fold_multi(g, [1, 3], [], fn(
+    arr : Array[Int32],
     v,
   ) {
     arr.push(v)
@@ -121,8 +124,8 @@ test "dfs_fold_multi empty starts" {
 ///|
 test "dfs_fold_multi invalid starts filtered" {
   let g = @alga.AdjacencyMap::from_edges([(1, 2), (2, 3)])
-  let visited : Array[Int] = @alga.dfs_fold_multi(g, [99, 100], [], fn(
-    arr : Array[Int],
+  let visited : Array[Int32] = @alga.dfs_fold_multi(g, [99, 100], [], fn(
+    arr : Array[Int32],
     v,
   ) {
     arr.push(v)
@@ -134,8 +137,8 @@ test "dfs_fold_multi invalid starts filtered" {
 ///|
 test "dfs_fold_multi disconnected components" {
   let g = @alga.AdjacencyMap::from_edges([(1, 2), (3, 4)])
-  let visited : Array[Int] = @alga.dfs_fold_multi(g, [1, 3], [], fn(
-    arr : Array[Int],
+  let visited : Array[Int32] = @alga.dfs_fold_multi(g, [1, 3], [], fn(
+    arr : Array[Int32],
     v,
   ) {
     arr.push(v)
@@ -152,8 +155,8 @@ test "dfs_fold_multi disconnected components" {
 test "dfs_fold_multi DenseGraph genericity" {
   let am = @alga.AdjacencyMap::from_edges([(0, 1), (1, 2), (3, 4)])
   let g = @alga.DenseGraph::from_adjacency_map(am)
-  let visited : Array[Int] = @alga.dfs_fold_multi(g, [0, 3], [], fn(
-    arr : Array[Int],
+  let visited : Array[Int32] = @alga.dfs_fold_multi(g, [0, 3], [], fn(
+    arr : Array[Int32],
     v,
   ) {
     arr.push(v)
@@ -262,7 +265,7 @@ test "dfs_events back edge (cycle)" {
   let g = @alga.AdjacencyMap::from_edges([(1, 2), (2, 3), (3, 1)])
   let events = @alga.dfs_events(g).collect()
   // Should contain exactly one BackEdge(3, 1)
-  let back_edges : Array[(Int, Int)] = []
+  let back_edges : Array[(Int32, Int32)] = []
   for e in events.iter() {
     match e {
       @alga.BackEdge(u, v) => back_edges.push((u, v))
@@ -279,7 +282,7 @@ test "dfs_events cross/forward edge" {
   // Edge 0→2 is a cross/forward edge (2 is black when 0 examines it)
   let g = @alga.AdjacencyMap::from_edges([(0, 1), (1, 2), (0, 2)])
   let events = @alga.dfs_events(g).collect()
-  let cf_edges : Array[(Int, Int)] = []
+  let cf_edges : Array[(Int32, Int32)] = []
   for e in events.iter() {
     match e {
       @alga.CrossForwardEdge(u, v) => cf_edges.push((u, v))
@@ -295,7 +298,7 @@ test "dfs_events self loop" {
   let g = @alga.AdjacencyMap::from_edges([(1, 1)])
   let events = @alga.dfs_events(g).collect()
   // Self-loop: 1 is gray when edge 1→1 is examined → BackEdge
-  let back_edges : Array[(Int, Int)] = []
+  let back_edges : Array[(Int32, Int32)] = []
   for e in events.iter() {
     match e {
       @alga.BackEdge(u, v) => back_edges.push((u, v))
@@ -516,7 +519,10 @@ test "reversed works with tarjan_scc" {
   // Same number of SCCs
   @test.assert_eq(orig_sccs.length(), rev_sccs.length())
   // The cyclic SCC {0,1,2} should appear in both (order may differ)
-  fn find_scc_containing(sccs : Array[Array[Int]], v : Int) -> Array[Int] {
+  fn find_scc_containing(
+    sccs : Array[Array[Int32]],
+    v : Int32,
+  ) -> Array[Int32] {
     for scc in sccs {
       if scc.contains(v) {
         return scc
