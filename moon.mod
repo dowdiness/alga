@@ -3,7 +3,7 @@ name = "dowdiness/alga"
 version = "0.4.0"
 
 import {
-  "moonbitlang/quickcheck@0.14.0",
+  "moonbitlang/quickcheck@0.15.0",
 }
 
 readme = "README.md"

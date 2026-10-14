@@ -4,8 +4,8 @@ package "dowdiness/alga"
 import {
   "moonbitlang/core/debug",
   "moonbitlang/core/quickcheck",
+  "moonbitlang/core/quickcheck/shrink",
   "moonbitlang/core/quickcheck/splitmix",
-  "moonbitlang/quickcheck/shrink",
 }
 
 // Values
@@ -165,6 +165,7 @@ pub fn Graph::output(Self, &Logger) -> Unit
 pub fn Graph::overlay(Self, Self) -> Self
 pub fn Graph::path(Array[Int]) -> Self
 pub fn Graph::remove_vertex(Self, Int) -> Self
+pub fn Graph::shrink(Self) -> Iter[Self]
 pub fn Graph::star(Int, Array[Int]) -> Self
 pub fn Graph::to_adjacency_map(Self) -> AdjacencyMap
 pub fn Graph::to_repr(Self) -> @debug.Repr

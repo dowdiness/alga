@@ -1,7 +1,10 @@
 ///|
 test "bfs_fold diamond order" {
   let g = @alga.AdjacencyMap::from_edges([(1, 2), (1, 3), (2, 4), (3, 4)])
-  let order : Array[Int] = @alga.bfs_fold(g, 1, [], fn(arr : Array[Int], v) {
+  let order : Array[Int32] = @alga.bfs_fold(g, 1, [], fn(
+    arr : Array[Int32],
+    v,
+  ) {
     arr.push(v)
     (arr, true)
   })
@@ -16,7 +19,10 @@ test "bfs_fold diamond order" {
 ///|
 test "bfs_fold reachability" {
   let g = @alga.AdjacencyMap::from_edges([(1, 2), (2, 3), (3, 4)])
-  let visited : Array[Int] = @alga.bfs_fold(g, 1, [], fn(arr : Array[Int], v) {
+  let visited : Array[Int32] = @alga.bfs_fold(g, 1, [], fn(
+    arr : Array[Int32],
+    v,
+  ) {
     arr.push(v)
     (arr, true)
   })
@@ -43,12 +49,15 @@ test "bfs_fold early termination" {
 ///|
 test "bfs_fold_multi single start matches bfs_fold" {
   let g = @alga.AdjacencyMap::from_edges([(1, 2), (1, 3), (2, 4), (3, 4)])
-  let single : Array[Int] = @alga.bfs_fold(g, 1, [], fn(arr : Array[Int], v) {
+  let single : Array[Int32] = @alga.bfs_fold(g, 1, [], fn(
+    arr : Array[Int32],
+    v,
+  ) {
     arr.push(v)
     (arr, true)
   })
-  let multi : Array[Int] = @alga.bfs_fold_multi(g, [1], [], fn(
-    arr : Array[Int],
+  let multi : Array[Int32] = @alga.bfs_fold_multi(g, [1], [], fn(
+    arr : Array[Int32],
     v,
   ) {
     arr.push(v)
@@ -61,8 +70,8 @@ test "bfs_fold_multi single start matches bfs_fold" {
 test "bfs_fold_multi multiple starts" {
   // Two disconnected chains: 1->2->3 and 10->11->12
   let g = @alga.AdjacencyMap::from_edges([(1, 2), (2, 3), (10, 11), (11, 12)])
-  let visited : Array[Int] = @alga.bfs_fold_multi(g, [1, 10], [], fn(
-    arr : Array[Int],
+  let visited : Array[Int32] = @alga.bfs_fold_multi(g, [1, 10], [], fn(
+    arr : Array[Int32],
     v,
   ) {
     arr.push(v)
@@ -79,8 +88,8 @@ test "bfs_fold_multi multiple starts" {
 test "bfs_fold_multi overlapping reachability" {
   // Diamond: both 1 and 2 can reach 4
   let g = @alga.AdjacencyMap::from_edges([(1, 2), (1, 3), (2, 4), (3, 4)])
-  let visited : Array[Int] = @alga.bfs_fold_multi(g, [1, 2], [], fn(
-    arr : Array[Int],
+  let visited : Array[Int32] = @alga.bfs_fold_multi(g, [1, 2], [], fn(
+    arr : Array[Int32],
     v,
   ) {
     arr.push(v)
@@ -100,8 +109,8 @@ test "bfs_fold_multi empty starts" {
 ///|
 test "bfs_fold_multi invalid starts filtered" {
   let g = @alga.AdjacencyMap::from_edges([(1, 2), (2, 3)])
-  let visited : Array[Int] = @alga.bfs_fold_multi(g, [99, 100], [], fn(
-    arr : Array[Int],
+  let visited : Array[Int32] = @alga.bfs_fold_multi(g, [99, 100], [], fn(
+    arr : Array[Int32],
     v,
   ) {
     arr.push(v)
@@ -113,8 +122,8 @@ test "bfs_fold_multi invalid starts filtered" {
 ///|
 test "bfs_fold_multi disconnected components" {
   let g = @alga.AdjacencyMap::from_edges([(1, 2), (3, 4)])
-  let visited : Array[Int] = @alga.bfs_fold_multi(g, [1, 3], [], fn(
-    arr : Array[Int],
+  let visited : Array[Int32] = @alga.bfs_fold_multi(g, [1, 3], [], fn(
+    arr : Array[Int32],
     v,
   ) {
     arr.push(v)
@@ -131,8 +140,8 @@ test "bfs_fold_multi disconnected components" {
 test "bfs_fold_multi DenseGraph genericity" {
   let am = @alga.AdjacencyMap::from_edges([(0, 1), (1, 2), (3, 4)])
   let g = @alga.DenseGraph::from_adjacency_map(am)
-  let visited : Array[Int] = @alga.bfs_fold_multi(g, [0, 3], [], fn(
-    arr : Array[Int],
+  let visited : Array[Int32] = @alga.bfs_fold_multi(g, [0, 3], [], fn(
+    arr : Array[Int32],
     v,
   ) {
     arr.push(v)

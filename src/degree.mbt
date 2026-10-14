@@ -28,7 +28,7 @@
 /// Self-loops count: if v→v exists, it contributes 1 to outdegree.
 ///
 /// Time: O(degree(v)) — counts via `Iter::count` on successors.
-pub fn[G : Successors] outdegree(graph : G, v : Int) -> Int {
+pub fn[G : Successors] outdegree(graph : G, v : Int32) -> Int32 {
   Successors::successors(graph, v).count()
 }
 
@@ -41,7 +41,7 @@ pub fn[G : Successors] outdegree(graph : G, v : Int) -> Int {
 /// Time: O(V + E) — must scan every vertex's successor list because
 /// the `DirectedGraph` trait only exposes forward adjacency.
 /// For bulk indegree computation, prefer a single-pass array approach.
-pub fn[G : DirectedGraph] indegree(graph : G, v : Int) -> Int {
+pub fn[G : DirectedGraph] indegree(graph : G, v : Int32) -> Int32 {
   let mut count = 0
   VertexSet::each_vertex(graph, fn(u) {
     Successors::each_successor(graph, u, fn(w) {

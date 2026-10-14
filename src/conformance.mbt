@@ -60,9 +60,9 @@ pub fn[G : DirectedGraph] check_conformance(graph : G) -> Array[String] {
   // - iter_raw: what Laws D and F compare against, since the default
   //   vertex_count/each_vertex delegate to iter() including duplicates.
   // - iter_set: vertex membership oracle for Law B.
-  let iter_raw : Array[Int] = []
-  let iter_set : @hashset.HashSet[Int] = @hashset.HashSet([])
-  let dup_reported : @hashset.HashSet[Int] = @hashset.HashSet([])
+  let iter_raw : Array[Int32] = []
+  let iter_set : @hashset.HashSet[Int32] = @hashset.HashSet([])
+  let dup_reported : @hashset.HashSet[Int32] = @hashset.HashSet([])
   for v in VertexSet::iter(graph) {
     iter_raw.push(v)
     if iter_set.contains(v) {
@@ -108,7 +108,7 @@ pub fn[G : DirectedGraph] check_conformance(graph : G) -> Array[String] {
   }
   // Laws B + E: successors closure + no duplicates.
   for v in iter_set {
-    let succ_seen : @hashset.HashSet[Int] = @hashset.HashSet([])
+    let succ_seen : @hashset.HashSet[Int32] = @hashset.HashSet([])
     for w in Successors::successors(graph, v) {
       if succ_seen.contains(w) {
         violations.push("Law E: successors(\{v}) yielded duplicate vertex \{w}")
@@ -123,7 +123,7 @@ pub fn[G : DirectedGraph] check_conformance(graph : G) -> Array[String] {
     }
   }
   // Law F: each_vertex agrees with iter() as a multiset (duplicates and all).
-  let ev_list : Array[Int] = []
+  let ev_list : Array[Int32] = []
   VertexSet::each_vertex(graph, fn(v) { ev_list.push(v) })
   if !multiset_eq(ev_list, iter_raw) {
     violations.push(
@@ -132,9 +132,9 @@ pub fn[G : DirectedGraph] check_conformance(graph : G) -> Array[String] {
   }
   // Law F cont'd: each_successor agrees with successors() for each vertex.
   for v in iter_set {
-    let es_list : Array[Int] = []
+    let es_list : Array[Int32] = []
     Successors::each_successor(graph, v, fn(w) { es_list.push(w) })
-    let su_list : Array[Int] = Successors::successors(graph, v).collect()
+    let su_list : Array[Int32] = Successors::successors(graph, v).collect()
     if !multiset_eq(es_list, su_list) {
       violations.push(
         "Law F: each_successor(\{v}) visited \{es_list.length()} vertices, successors(\{v}) yielded \{su_list.length()}; multisets differ",
@@ -149,7 +149,7 @@ pub fn[G : DirectedGraph] check_conformance(graph : G) -> Array[String] {
 /// Used for Law C negative consistency — we can't enumerate the complement
 /// of iter(), but we can spot-check sentinels that are guaranteed outside
 /// any finite vertex set we just observed.
-fn outside_candidates(iter_set : @hashset.HashSet[Int]) -> Array[Int] {
+fn outside_candidates(iter_set : @hashset.HashSet[Int32]) -> Array[Int32] {
   if iter_set.length() == 0 {
     // Any value works as "not in iter" when iter is empty.
     return [0, 1, -1, @int.MAX_VALUE, @int.MIN_VALUE]
@@ -164,7 +164,7 @@ fn outside_candidates(iter_set : @hashset.HashSet[Int]) -> Array[Int] {
       hi = v
     }
   }
-  let candidates : Array[Int] = []
+  let candidates : Array[Int32] = []
   if hi < @int.MAX_VALUE {
     candidates.push(hi + 1)
   }
@@ -191,9 +191,9 @@ pub fn[G : DirectedGraph + Predecessors] check_predecessors_conformance(
 ) -> Array[String] {
   let violations = check_conformance(graph)
   // Collect vertices once — no need to re-run iter duplicate check.
-  let iter_list : Array[Int] = VertexSet::iter(graph).collect()
+  let iter_list : Array[Int32] = VertexSet::iter(graph).collect()
   // Build forward edge set: (u, v) for v ∈ successors(u).
-  let forward : @hashset.HashSet[(Int, Int)] = @hashset.HashSet([])
+  let forward : @hashset.HashSet[(Int32, Int32)] = @hashset.HashSet([])
   for u in iter_list {
     for v in Successors::successors(graph, u) {
       forward.add((u, v))
@@ -201,9 +201,9 @@ pub fn[G : DirectedGraph + Predecessors] check_predecessors_conformance(
   }
   // Build backward edge set: (u, v) for u ∈ predecessors(v).
   // Also checks Law E' (no duplicate predecessors per vertex).
-  let backward : @hashset.HashSet[(Int, Int)] = @hashset.HashSet([])
+  let backward : @hashset.HashSet[(Int32, Int32)] = @hashset.HashSet([])
   for v in iter_list {
-    let pred_seen : @hashset.HashSet[Int] = @hashset.HashSet([])
+    let pred_seen : @hashset.HashSet[Int32] = @hashset.HashSet([])
     for u in Predecessors::predecessors(graph, v) {
       if pred_seen.contains(u) {
         violations.push(
@@ -235,11 +235,11 @@ pub fn[G : DirectedGraph + Predecessors] check_predecessors_conformance(
 
 ///|
 /// Multiset equality over Int arrays. O(n) via hash counting.
-fn multiset_eq(a : Array[Int], b : Array[Int]) -> Bool {
+fn multiset_eq(a : Array[Int32], b : Array[Int32]) -> Bool {
   if a.length() != b.length() {
     return false
   }
-  let counts : @hashmap.HashMap[Int, Int] = @hashmap.HashMap([])
+  let counts : @hashmap.HashMap[Int32, Int32] = @hashmap.HashMap([])
   for x in a {
     match counts.get(x) {
       Some(n) => counts[x] = n + 1

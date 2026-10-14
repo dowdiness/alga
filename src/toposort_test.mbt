@@ -7,7 +7,7 @@ test "toposort linear" {
     Some(order) => {
       @test.assert_eq(order.length(), 4)
       // Validate: for every edge (u, v), u appears before v
-      let pos : Map[Int, Int] = Map([])
+      let pos : Map[Int32, Int32] = Map([])
       for i = 0; i < order.length(); i = i + 1 {
         pos[order[i]] = i
       }
@@ -80,7 +80,7 @@ test "toposort_subset linear middle" {
     Some(order) => {
       @test.assert_eq(order.length(), 3)
       // Validate ordering: 1 before 2 before 3
-      let pos : Map[Int, Int] = Map([])
+      let pos : Map[Int32, Int32] = Map([])
       for i = 0; i < order.length(); i = i + 1 {
         pos[order[i]] = i
       }
@@ -175,7 +175,7 @@ test "toposort_subset duplicate vertices" {
   match result {
     Some(order) => {
       @test.assert_eq(order.length(), 3)
-      let pos : Map[Int, Int] = Map([])
+      let pos : Map[Int32, Int32] = Map([])
       for i = 0; i < order.length(); i = i + 1 {
         pos[order[i]] = i
       }
@@ -449,7 +449,7 @@ test "toposort_or_cycle ok" {
     Ok(order) => {
       @test.assert_eq(order.length(), 3)
       // Verify order is a valid topological order.
-      let pos : Map[Int, Int] = Map([])
+      let pos : Map[Int32, Int32] = Map([])
       for i, v in order {
         pos[v] = i
       }

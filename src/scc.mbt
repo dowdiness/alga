@@ -65,13 +65,13 @@
 /// Time: O(V + E). Space: O(V) — no transpose allocation.
 pub fn[G : DirectedGraph + Predecessors] kosaraju_scc(
   graph : G,
-) -> Array[Array[Int]] {
+) -> Array[Array[Int32]] {
   // Pass 1: Forward DFS — record finish order.
   // Stack frames: (vertex, Iter[Int]) — iterator carries successor position,
   // matching tarjan_scc's approach and avoiding temp-array allocation.
-  let visited : Map[Int, Bool] = Map([])
-  let finish_order : Array[Int] = []
-  let frames : Array[(Int, Iter[Int])] = []
+  let visited : Map[Int32, Bool] = Map([])
+  let finish_order : Array[Int32] = []
+  let frames : Array[(Int32, Iter[Int32])] = []
   for root in VertexSet::iter(graph) {
     if visited.contains(root) {
       continue
@@ -97,15 +97,15 @@ pub fn[G : DirectedGraph + Predecessors] kosaraju_scc(
   }
   // Pass 2: Backward DFS in reverse finish order, walking predecessors.
   // Each DFS tree on the reverse graph is one SCC.
-  let visited2 : Map[Int, Bool] = Map([])
-  let components : Array[Array[Int]] = []
+  let visited2 : Map[Int32, Bool] = Map([])
+  let components : Array[Array[Int32]] = []
   for i in (finish_order.length() - 1)>=..0 {
     let root = finish_order[i]
     if visited2.contains(root) {
       continue
     }
-    let component : Array[Int] = []
-    let stack : Array[Int] = [root]
+    let component : Array[Int32] = []
+    let stack : Array[Int32] = [root]
     visited2[root] = true
     while stack.length() > 0 {
       let v = stack.unsafe_pop()
@@ -127,7 +127,7 @@ pub fn[G : DirectedGraph + Predecessors] kosaraju_scc(
 ///
 /// Thin wrapper over the generic `kosaraju_scc` — see its doc comment for
 /// ordering and complexity guarantees.
-pub fn AdjacencyMap::scc(self : AdjacencyMap) -> Array[Array[Int]] {
+pub fn AdjacencyMap::scc(self : AdjacencyMap) -> Array[Array[Int32]] {
   kosaraju_scc(self)
 }
 
@@ -164,10 +164,10 @@ pub fn AdjacencyMap::scc(self : AdjacencyMap) -> Array[Array[Int]] {
 /// Time: O(V + E). Space: O(V + E).
 pub fn AdjacencyMap::condensation(
   self : AdjacencyMap,
-) -> (AdjacencyMap, Map[Int, Int]) {
+) -> (AdjacencyMap, Map[Int32, Int32]) {
   let components = self.scc()
   // Build vertex → component_id mapping
-  let vertex_to_component : Map[Int, Int] = Map([])
+  let vertex_to_component : Map[Int32, Int32] = Map([])
   for i, component in components {
     for v in component {
       vertex_to_component[v] = i
@@ -175,7 +175,7 @@ pub fn AdjacencyMap::condensation(
   }
   // Collect inter-component edges. Duplicates are fine — from_edges deduplicates.
   let num_components = components.length()
-  let condensed_edges : Array[(Int, Int)] = []
+  let condensed_edges : Array[(Int32, Int32)] = []
   for u, succs in self.adjacency {
     let cu = match vertex_to_component.get(u) {
       Some(c) => c
@@ -232,18 +232,18 @@ pub fn AdjacencyMap::condensation(
 /// Kosaraju's `scc()` which produces reverse topological order.
 ///
 /// Time: O(V + E). Space: O(V) — no transpose allocation.
-pub fn[G : DirectedGraph] tarjan_scc(graph : G) -> Array[Array[Int]] {
+pub fn[G : DirectedGraph] tarjan_scc(graph : G) -> Array[Array[Int32]] {
   // Per-vertex state: (discovery_index, lowlink, on_scc_stack).
   // Merged into one map to avoid 3 separate hash lookups per edge.
-  let state : Map[Int, (Int, Int, Bool)] = Map([])
-  let scc_stack : Array[Int] = []
-  let result : Array[Array[Int]] = []
+  let state : Map[Int32, (Int32, Int32, Bool)] = Map([])
+  let scc_stack : Array[Int32] = []
+  let result : Array[Array[Int32]] = []
   let mut counter = 0
   // Stack frames: (vertex, successor_iterator).
   // Iter[Int] is a closure wrapper — calling .next() advances the closure's
   // internal position. Since the iterator is stored (not recreated), returning
   // to this frame after a "recursive" call resumes where we left off.
-  let frames : Array[(Int, Iter[Int])] = []
+  let frames : Array[(Int32, Iter[Int32])] = []
   for root in VertexSet::iter(graph) {
     if state.contains(root) {
       continue
@@ -281,7 +281,7 @@ pub fn[G : DirectedGraph] tarjan_scc(graph : G) -> Array[Array[Int]] {
           let (v_idx, v_low, _) = state[v]
           if v_low == v_idx {
             // v is root of an SCC — pop scc_stack until v (inclusive)
-            let component : Array[Int] = []
+            let component : Array[Int32] = []
             while true {
               let w = scc_stack.unsafe_pop()
               let (w_idx, w_low, _) = state[w]

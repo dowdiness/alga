@@ -31,8 +31,8 @@
 /// | DFS reachable    | ~94 µs (1000V)  | ~7 µs (1000V)   |
 /// | SCC              | ~460 µs (1000V) | ~50 µs (1000V)  |
 pub struct DenseGraph {
-  successors : Array[Array[Int]]
-  predecessors : Array[Array[Int]]
+  successors : Array[Array[Int32]]
+  predecessors : Array[Array[Int32]]
 }
 
 ///|
@@ -40,12 +40,14 @@ pub struct DenseGraph {
 ///
 /// Aborts if any vertex in the edge list is outside 0..vertex_count-1.
 pub fn DenseGraph::from_edges(
-  vertex_count : Int,
-  edges : Array[(Int, Int)],
+  vertex_count : Int32,
+  edges : Array[(Int32, Int32)],
 ) -> DenseGraph {
-  let succs : Array[Array[Int]] = Array::makei(vertex_count, fn(_i) { [] })
-  let preds : Array[Array[Int]] = Array::makei(vertex_count, fn(_i) { [] })
-  let seen : Array[@hashset.HashSet[Int]] = Array::makei(vertex_count, fn(_i) {
+  let succs : Array[Array[Int32]] = Array::makei(vertex_count, fn(_i) { [] })
+  let preds : Array[Array[Int32]] = Array::makei(vertex_count, fn(_i) { [] })
+  let seen : Array[@hashset.HashSet[Int32]] = Array::makei(vertex_count, fn(
+    _i,
+  ) {
     @hashset.HashSet([])
   })
   for edge in edges {
@@ -73,8 +75,8 @@ pub fn DenseGraph::from_edges(
 /// have dense, zero-based vertex IDs.
 pub fn DenseGraph::from_adjacency_map(am : AdjacencyMap) -> DenseGraph {
   let n = am.vertex_count()
-  let succs : Array[Array[Int]] = Array::makei(n, fn(_i) { [] })
-  let preds : Array[Array[Int]] = Array::makei(n, fn(_i) { [] })
+  let succs : Array[Array[Int32]] = Array::makei(n, fn(_i) { [] })
+  let preds : Array[Array[Int32]] = Array::makei(n, fn(_i) { [] })
   for v, s in am.adjacency {
     guard v >= 0 && v < n else {
       abort(
@@ -182,7 +184,7 @@ pub impl Successors for DenseGraph with fn dfs_fold(self, start, init, f) {
     return init
   }
   let visited = FixedArray::make(n, false)
-  let stack : Array[Int] = [start]
+  let stack : Array[Int32] = [start]
   let mut acc = init
   while stack.length() > 0 {
     let v = stack.unsafe_pop()
@@ -216,7 +218,7 @@ pub impl Successors for DenseGraph with fn bfs_fold(self, start, init, f) {
     return init
   }
   let visited = FixedArray::make(n, false)
-  let queue : Array[Int] = [start]
+  let queue : Array[Int32] = [start]
   visited[start] = true
   let mut acc = init
   let mut head = 0
@@ -260,14 +262,14 @@ pub impl Predecessors for DenseGraph with fn predecessors(self, v) {
 /// no per-vertex allocation. Allocates a fresh visited set per call.
 ///
 /// Returns empty array if `start` is not a valid vertex.
-pub fn DenseGraph::reachable(self : DenseGraph, start : Int) -> Array[Int] {
+pub fn DenseGraph::reachable(self : DenseGraph, start : Int32) -> Array[Int32] {
   let n = self.successors.length()
   if start < 0 || start >= n {
     return []
   }
   let visited = FixedArray::make(n, false)
-  let stack : Array[Int] = [start]
-  let result : Array[Int] = []
+  let stack : Array[Int32] = [start]
+  let result : Array[Int32] = []
   while stack.length() > 0 {
     let v = stack.unsafe_pop()
     if visited[v] {
@@ -288,7 +290,7 @@ pub fn DenseGraph::reachable(self : DenseGraph, start : Int) -> Array[Int] {
 
 ///|
 /// Topological sort with direct array access.
-pub fn DenseGraph::toposort(self : DenseGraph) -> Array[Int]? {
+pub fn DenseGraph::toposort(self : DenseGraph) -> Array[Int32]? {
   let n = self.successors.length()
   let in_degree = Array::make(n, 0)
   for u = 0; u < n; u = u + 1 {
@@ -296,13 +298,13 @@ pub fn DenseGraph::toposort(self : DenseGraph) -> Array[Int]? {
       in_degree[v] = in_degree[v] + 1
     }
   }
-  let queue : Array[Int] = []
+  let queue : Array[Int32] = []
   for v = 0; v < n; v = v + 1 {
     if in_degree[v] == 0 {
       queue.push(v)
     }
   }
-  let result : Array[Int] = []
+  let result : Array[Int32] = []
   let mut head = 0
   while head < queue.length() {
     let v = queue[head]
@@ -330,16 +332,16 @@ pub fn DenseGraph::has_cycle(self : DenseGraph) -> Bool {
 ///|
 /// Strongly connected components via Kosaraju's algorithm.
 /// Both DFS passes and transpose use direct array access.
-pub fn DenseGraph::scc(self : DenseGraph) -> Array[Array[Int]] {
+pub fn DenseGraph::scc(self : DenseGraph) -> Array[Array[Int32]] {
   let n = self.successors.length()
   let visited = FixedArray::make(n, false)
-  let finish_order : Array[Int] = []
+  let finish_order : Array[Int32] = []
   // Pass 1: forward DFS — record finish order
   for root = 0; root < n; root = root + 1 {
     if visited[root] {
       continue
     }
-    let stack : Array[(Int, Int)] = [(root, 0)]
+    let stack : Array[(Int32, Int32)] = [(root, 0)]
     visited[root] = true
     while stack.length() > 0 {
       let top_idx = stack.length() - 1
@@ -363,14 +365,14 @@ pub fn DenseGraph::scc(self : DenseGraph) -> Array[Array[Int]] {
   let transposed = self.transpose()
   // Pass 3: backward DFS in reverse finish order
   let visited2 = FixedArray::make(n, false)
-  let components : Array[Array[Int]] = []
+  let components : Array[Array[Int32]] = []
   for i in (finish_order.length() - 1)>=..0 {
     let root = finish_order[i]
     if visited2[root] {
       continue
     }
-    let component : Array[Int] = []
-    let stack : Array[Int] = [root]
+    let component : Array[Int32] = []
+    let stack : Array[Int32] = [root]
     visited2[root] = true
     while stack.length() > 0 {
       let v = stack.unsafe_pop()
@@ -405,10 +407,10 @@ pub fn DenseGraph::dfs_events(self : DenseGraph) -> Iter[DfsEvent] {
   let n = self.successors.length()
   // 0 = white (undiscovered), 1 = gray (on stack), 2 = black (finished)
   let state = FixedArray::make(n, 0)
-  let frames : Array[(Int, Iter[Int])] = []
+  let frames : Array[(Int32, Iter[Int32])] = []
   let mut root_idx = 0
   // When set, the next event is Discover(v) and a frame is pushed.
-  let mut enter_pending : Int? = None
+  let mut enter_pending : Int32? = None
   Iter::new(fn() {
     while true {
       match enter_pending {
@@ -492,10 +494,10 @@ pub fn DenseGraph::dfs_events(self : DenseGraph) -> Iter[DfsEvent] {
 /// ~1.2× faster than repeated `DenseGraph::reachable` on deep graphs.
 pub fn DenseGraph::is_reachable_gen(
   self : DenseGraph,
-  from : Int,
-  to : Int,
-  marks : FixedArray[Int],
-  gen : Int,
+  from : Int32,
+  to : Int32,
+  marks : FixedArray[Int32],
+  gen : Int32,
 ) -> Bool {
   let n = self.successors.length()
   guard marks.length() >= n else {
@@ -512,7 +514,7 @@ pub fn DenseGraph::is_reachable_gen(
   if from == to {
     return true
   }
-  let stack : Array[Int] = [from]
+  let stack : Array[Int32] = [from]
   while stack.length() > 0 {
     let v = stack.unsafe_pop()
     if marks[v] == gen {
@@ -566,10 +568,10 @@ pub fn DenseGraph::is_reachable_gen(
 /// (chain_1000, wasm-gc --release).
 pub fn DenseGraph::reachable_gen(
   self : DenseGraph,
-  start : Int,
-  marks : FixedArray[Int],
-  gen : Int,
-) -> Array[Int] {
+  start : Int32,
+  marks : FixedArray[Int32],
+  gen : Int32,
+) -> Array[Int32] {
   let n = self.successors.length()
   guard marks.length() >= n else {
     abort(
@@ -580,8 +582,8 @@ pub fn DenseGraph::reachable_gen(
   if start < 0 || start >= n {
     return []
   }
-  let stack : Array[Int] = [start]
-  let result : Array[Int] = []
+  let stack : Array[Int32] = [start]
+  let result : Array[Int32] = []
   while stack.length() > 0 {
     let v = stack.unsafe_pop()
     if marks[v] == gen {

@@ -38,8 +38,8 @@
 /// | vertex_count   | O(1)            |
 /// | edge_count     | O(V)            |
 pub struct AdjacencyMap {
-  adjacency : Map[Int, Array[Int]]
-  predecessors : Map[Int, Array[Int]]
+  adjacency : Map[Int32, Array[Int32]]
+  predecessors : Map[Int32, Array[Int32]]
 }
 
 ///|
@@ -51,10 +51,10 @@ pub fn AdjacencyMap::empty() -> AdjacencyMap {
 
 ///|
 /// A graph with a single vertex and no edges.
-pub fn AdjacencyMap::vertex(v : Int) -> AdjacencyMap {
-  let m : Map[Int, Array[Int]] = Map([])
+pub fn AdjacencyMap::vertex(v : Int32) -> AdjacencyMap {
+  let m : Map[Int32, Array[Int32]] = Map([])
   m[v] = []
-  let r : Map[Int, Array[Int]] = Map([])
+  let r : Map[Int32, Array[Int32]] = Map([])
   r[v] = []
   { adjacency: m, predecessors: r, }
 }
@@ -62,9 +62,9 @@ pub fn AdjacencyMap::vertex(v : Int) -> AdjacencyMap {
 ///|
 /// A graph with a single directed edge u -> v.
 /// Both u and v are added as vertices (maintaining the key invariant).
-pub fn AdjacencyMap::edge(u : Int, v : Int) -> AdjacencyMap {
-  let m : Map[Int, Array[Int]] = Map([])
-  let r : Map[Int, Array[Int]] = Map([])
+pub fn AdjacencyMap::edge(u : Int32, v : Int32) -> AdjacencyMap {
+  let m : Map[Int32, Array[Int32]] = Map([])
+  let r : Map[Int32, Array[Int32]] = Map([])
   m[u] = [v]
   r[v] = [u]
   if u != v {
@@ -80,10 +80,10 @@ pub fn AdjacencyMap::edge(u : Int, v : Int) -> AdjacencyMap {
 /// as vertices (maintaining the key invariant).
 ///
 /// Uses `HashSet` internally for O(1) duplicate edge detection.
-pub fn AdjacencyMap::from_edges(edges : Array[(Int, Int)]) -> AdjacencyMap {
-  let m : Map[Int, Array[Int]] = Map([])
-  let r : Map[Int, Array[Int]] = Map([])
-  let seen : Map[Int, @hashset.HashSet[Int]] = Map([])
+pub fn AdjacencyMap::from_edges(edges : Array[(Int32, Int32)]) -> AdjacencyMap {
+  let m : Map[Int32, Array[Int32]] = Map([])
+  let r : Map[Int32, Array[Int32]] = Map([])
+  let seen : Map[Int32, @hashset.HashSet[Int32]] = Map([])
   for edge in edges {
     let u = edge.0
     let v = edge.1
@@ -100,7 +100,7 @@ pub fn AdjacencyMap::from_edges(edges : Array[(Int, Int)]) -> AdjacencyMap {
           true
         }
       None => {
-        let set : @hashset.HashSet[Int] = @hashset.HashSet([])
+        let set : @hashset.HashSet[Int32] = @hashset.HashSet([])
         set.add(v)
         seen[u] = set
         m[u] = [v]
@@ -136,15 +136,15 @@ pub fn AdjacencyMap::overlay(
   other : AdjacencyMap,
 ) -> AdjacencyMap {
   fn merge_maps(
-    a : Map[Int, Array[Int]],
-    b : Map[Int, Array[Int]],
-  ) -> Map[Int, Array[Int]] {
-    let m : Map[Int, Array[Int]] = Map([])
-    let seen : Map[Int, @hashset.HashSet[Int]] = Map([])
+    a : Map[Int32, Array[Int32]],
+    b : Map[Int32, Array[Int32]],
+  ) -> Map[Int32, Array[Int32]] {
+    let m : Map[Int32, Array[Int32]] = Map([])
+    let seen : Map[Int32, @hashset.HashSet[Int32]] = Map([])
     for k, v in a {
       let arr = v.copy()
       m[k] = arr
-      let set : @hashset.HashSet[Int] = @hashset.HashSet([])
+      let set : @hashset.HashSet[Int32] = @hashset.HashSet([])
       for elem in arr {
         set.add(elem)
       }
@@ -156,7 +156,7 @@ pub fn AdjacencyMap::overlay(
           let set = match seen.get(k) {
             Some(s) => s
             None => {
-              let s : @hashset.HashSet[Int] = @hashset.HashSet([])
+              let s : @hashset.HashSet[Int32] = @hashset.HashSet([])
               seen[k] = s
               s
             }
@@ -170,7 +170,7 @@ pub fn AdjacencyMap::overlay(
         }
         None => {
           m[k] = v.copy()
-          let set : @hashset.HashSet[Int] = @hashset.HashSet([])
+          let set : @hashset.HashSet[Int32] = @hashset.HashSet([])
           for elem in v {
             set.add(elem)
           }
@@ -205,25 +205,25 @@ pub fn AdjacencyMap::connect(
   let base = self.overlay(other)
   let m = base.adjacency
   let r = base.predecessors
-  let other_vertices : Array[Int] = []
+  let other_vertices : Array[Int32] = []
   for k, _ in other.adjacency {
     other_vertices.push(k)
   }
-  let self_vertices : Array[Int] = []
+  let self_vertices : Array[Int32] = []
   for k, _ in self.adjacency {
     self_vertices.push(k)
   }
   fn add_cross_edges(
-    map : Map[Int, Array[Int]],
-    sources : Array[Int],
-    targets : Array[Int],
+    map : Map[Int32, Array[Int32]],
+    sources : Array[Int32],
+    targets : Array[Int32],
   ) -> Unit {
     for u in sources {
       let current = match map.get(u) {
         Some(s) => s
         None => []
       }
-      let set : @hashset.HashSet[Int] = @hashset.HashSet([])
+      let set : @hashset.HashSet[Int32] = @hashset.HashSet([])
       for elem in current {
         set.add(elem)
       }
@@ -244,8 +244,8 @@ pub fn AdjacencyMap::connect(
 
 ///|
 /// All vertices as an array.
-pub fn AdjacencyMap::vertex_list(self : AdjacencyMap) -> Array[Int] {
-  let result : Array[Int] = []
+pub fn AdjacencyMap::vertex_list(self : AdjacencyMap) -> Array[Int32] {
+  let result : Array[Int32] = []
   for k, _ in self.adjacency {
     result.push(k)
   }
@@ -254,8 +254,8 @@ pub fn AdjacencyMap::vertex_list(self : AdjacencyMap) -> Array[Int] {
 
 ///|
 /// All edges as (source, target) pairs.
-pub fn AdjacencyMap::edge_list(self : AdjacencyMap) -> Array[(Int, Int)] {
-  let result : Array[(Int, Int)] = []
+pub fn AdjacencyMap::edge_list(self : AdjacencyMap) -> Array[(Int32, Int32)] {
+  let result : Array[(Int32, Int32)] = []
   for u, succs in self.adjacency {
     for v in succs {
       result.push((u, v))
@@ -266,7 +266,10 @@ pub fn AdjacencyMap::edge_list(self : AdjacencyMap) -> Array[(Int, Int)] {
 
 ///|
 /// Successor vertices of v (vertices reachable by one edge from v).
-pub fn AdjacencyMap::successor_list(self : AdjacencyMap, v : Int) -> Array[Int] {
+pub fn AdjacencyMap::successor_list(
+  self : AdjacencyMap,
+  v : Int32,
+) -> Array[Int32] {
   match self.adjacency.get(v) {
     Some(s) => s.copy()
     None => []
@@ -274,7 +277,11 @@ pub fn AdjacencyMap::successor_list(self : AdjacencyMap, v : Int) -> Array[Int] 
 }
 
 ///|
-pub fn AdjacencyMap::has_edge(self : AdjacencyMap, u : Int, v : Int) -> Bool {
+pub fn AdjacencyMap::has_edge(
+  self : AdjacencyMap,
+  u : Int32,
+  v : Int32,
+) -> Bool {
   match self.adjacency.get(u) {
     Some(s) => s.contains(v)
     None => false
@@ -283,7 +290,7 @@ pub fn AdjacencyMap::has_edge(self : AdjacencyMap, u : Int, v : Int) -> Bool {
 
 ///|
 /// Count all edges. O(V) — sums successor list lengths.
-pub fn AdjacencyMap::edge_count(self : AdjacencyMap) -> Int {
+pub fn AdjacencyMap::edge_count(self : AdjacencyMap) -> Int32 {
   for _, v in self.adjacency; count = 0 {
     continue count + v.length()
   } nobreak {
@@ -304,10 +311,10 @@ pub fn AdjacencyMap::transpose(self : AdjacencyMap) -> AdjacencyMap {
 /// Remove all self-loops (edges v -> v) from the graph.
 /// Returns a new graph with the same vertex set but no self-loops.
 pub fn AdjacencyMap::remove_self_loops(self : AdjacencyMap) -> AdjacencyMap {
-  let m : Map[Int, Array[Int]] = Map([])
-  let r : Map[Int, Array[Int]] = Map([])
+  let m : Map[Int32, Array[Int32]] = Map([])
+  let r : Map[Int32, Array[Int32]] = Map([])
   for k, succs in self.adjacency {
-    let filtered : Array[Int] = []
+    let filtered : Array[Int32] = []
     for v in succs {
       if v != k {
         filtered.push(v)
@@ -316,7 +323,7 @@ pub fn AdjacencyMap::remove_self_loops(self : AdjacencyMap) -> AdjacencyMap {
     m[k] = filtered
   }
   for k, preds in self.predecessors {
-    let filtered : Array[Int] = []
+    let filtered : Array[Int32] = []
     for v in preds {
       if v != k {
         filtered.push(v)
@@ -332,7 +339,7 @@ pub fn AdjacencyMap::remove_self_loops(self : AdjacencyMap) -> AdjacencyMap {
 /// Format: `AdjacencyMap({1: [2, 3], 2: []})`
 pub impl Show for AdjacencyMap with fn output(self, logger) {
   logger.write_string("AdjacencyMap({")
-  let keys : Array[Int] = []
+  let keys : Array[Int32] = []
   for k, _ in self.adjacency {
     keys.push(k)
   }
@@ -365,7 +372,7 @@ pub impl Show for AdjacencyMap with fn output(self, logger) {
 /// Produces structured Repr for inspect/debugging tools.
 pub impl Debug for AdjacencyMap with fn to_repr(self) {
   let entries : Array[(@debug.Repr, @debug.Repr)] = []
-  let keys : Array[Int] = []
+  let keys : Array[Int32] = []
   for k, _ in self.adjacency {
     keys.push(k)
   }
@@ -389,7 +396,10 @@ pub impl Debug for AdjacencyMap with fn to_repr(self) {
 // Only compares adjacency (forward edges). The predecessors map is derived —
 // if forward edges are equal, predecessors must be too (given correct construction).
 pub impl Eq for AdjacencyMap with fn equal(self, other) -> Bool {
-  fn maps_equal(a : Map[Int, Array[Int]], b : Map[Int, Array[Int]]) -> Bool {
+  fn maps_equal(
+    a : Map[Int32, Array[Int32]],
+    b : Map[Int32, Array[Int32]],
+  ) -> Bool {
     if a.length() != b.length() {
       return false
     }

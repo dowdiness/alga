@@ -350,7 +350,7 @@ test "negative: Law E' — duplicate predecessor flagged" {
 /// Proves that `reachable`, `outdegree`, `dfs_fold`, and `bfs_fold`
 /// work on successors-only graphs.
 struct SuccessorsOnly {
-  edges : Map[Int, Array[Int]]
+  edges : Map[Int32, Array[Int32]]
 }
 
 ///|
@@ -376,7 +376,10 @@ test "Successors-only: dfs_fold works without VertexSet" {
   let g = SuccessorsOnly::{
     edges: Map([(0, [1, 2]), (1, [3]), (2, [3]), (3, [])]),
   }
-  let visited : Array[Int] = @alga.dfs_fold(g, 0, [], fn(arr : Array[Int], v) {
+  let visited : Array[Int32] = @alga.dfs_fold(g, 0, [], fn(
+    arr : Array[Int32],
+    v,
+  ) {
     arr.push(v)
     (arr, true)
   })
@@ -388,7 +391,10 @@ test "Successors-only: bfs_fold works without VertexSet" {
   let g = SuccessorsOnly::{
     edges: Map([(0, [1, 2]), (1, [3]), (2, [3]), (3, [])]),
   }
-  let visited : Array[Int] = @alga.bfs_fold(g, 0, [], fn(arr : Array[Int], v) {
+  let visited : Array[Int32] = @alga.bfs_fold(g, 0, [], fn(
+    arr : Array[Int32],
+    v,
+  ) {
     arr.push(v)
     (arr, true)
   })

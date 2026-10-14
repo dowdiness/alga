@@ -256,8 +256,8 @@ test "tarjan_scc two components connected" {
   ])
   let components = @alga.tarjan_scc(g)
   @test.assert_eq(components.length(), 2)
-  let mut comp12 : Array[Int] = []
-  let mut comp34 : Array[Int] = []
+  let mut comp12 : Array[Int32] = []
+  let mut comp34 : Array[Int32] = []
   for c in components {
     if c.contains(1) {
       comp12 = c
@@ -311,8 +311,8 @@ test "tarjan_scc works on DenseGraph" {
   let g = @alga.DenseGraph::from_edges(4, [(0, 1), (1, 2), (2, 0), (2, 3)])
   let components = @alga.tarjan_scc(g)
   @test.assert_eq(components.length(), 2)
-  let mut cycle_comp : Array[Int] = []
-  let mut singleton_comp : Array[Int] = []
+  let mut cycle_comp : Array[Int32] = []
+  let mut singleton_comp : Array[Int32] = []
   for c in components {
     if c.length() == 3 {
       cycle_comp = c
