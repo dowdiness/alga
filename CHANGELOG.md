@@ -5,15 +5,28 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.5.0] — 2026-11-18
+
+### Breaking changes
+
+- Target MoonBit 0.10.15; older compiler compatibility is not retained.
+  Release validation uses `moonc v0.10.15+943464bfa`.
+- Migrate the public `Shrink` implementation for `Graph` from
+  `moonbitlang/quickcheck/shrink` to `moonbitlang/core/quickcheck/shrink`.
+  Consumers using the trait directly must update their imports and bounds.
 
 ### Changed
-- Target MoonBit 0.10.15 and QuickCheck 0.15.0 only.
-- Move the public `Graph` shrinking implementation to `moonbitlang/core/quickcheck/shrink.Shrink` and explicitly retain the `Graph::shrink` method.
-- Refresh generated interfaces and current formatter output without changing graph algorithms.
+
+- Upgrade `moonbitlang/quickcheck` from 0.14.0 to 0.15.0.
+- Explicitly expose `Graph::shrink` with the current extension syntax and
+  migrate recursive shrinking calls to the core trait.
+- Refresh generated interfaces and formatter output for the current compiler.
+  Graph algorithms are unchanged.
 
 ### Tests
-- Add deterministic coverage for empty, vertex, overlay, and connect shrinking candidates, including recursive shrinking.
+
+- Add deterministic shrinking regression coverage for `Empty`, `Vertex`,
+  `Overlay`, and `Connect`, including recursive candidates.
 
 ## [0.4.0] — 2026-06-22
 
